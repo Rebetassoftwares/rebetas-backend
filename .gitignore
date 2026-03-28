@@ -1,0 +1,17 @@
+# ENV FILES
+.env
+rebetas-backend/.env
+frontend/.env
+
+# NODE MODULES
+node_modules/
+rebetas-backend/node_modules/
+frontend/node_modules/
+
+# BUILD FILES
+dist/
+build/
+
+# SYSTEM FILES
+.DS_Store
+Thumbs.db
