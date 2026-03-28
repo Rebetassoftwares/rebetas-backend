@@ -13,6 +13,7 @@ import SupportedPlatforms from "./pages/SupportedPlatforms/SupportedPlatforms";
 import VerifyEmail from "./pages/VerifyEmail/VerifyEmail";
 import Terms from "./pages/Register/Terms";
 import Privacy from "./pages/Register/Privacy";
+import PaymentVerify from "./pages/PaymentVerify/PaymentVerify";
 
 /* USER */
 import Dashboard from "./pages/Dashboard/Dashboard";
@@ -75,6 +76,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/payment/verify" element={<PaymentVerify />} />
         <Route path="/supported-platforms" element={<SupportedPlatforms />} />
         <Route path="/promo-dashboard" element={<PromoDashboard />} />
         <Route path="/payout-details" element={<PayoutDetails />} />
