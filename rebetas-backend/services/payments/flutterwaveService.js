@@ -27,7 +27,7 @@ async function initializeFlutterwavePayment({
         tx_ref: reference,
         amount: Number(amount),
         currency,
-        redirect_url: `${process.env.CLIENT_URL}/payment/callback`,
+        redirect_url: `${process.env.CLIENT_URL}/payment/verify`,
 
         customer: {
           email,
