@@ -9,26 +9,56 @@ function generateToken(size = 32) {
   return crypto.randomBytes(size).toString("hex");
 }
 
-function createTransporter() {
-  const transporter = nodemailer.createTransport({
-    host: "mail.privateemail.com",
-    port: 587,
-    secure: false, // important (TLS)
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
+let transporter;
 
-  transporter.verify((error, success) => {
-    if (error) {
-      console.log("EMAIL CONFIG ERROR:", error);
-    } else {
-      console.log("EMAIL SERVER READY ✅");
-    }
-  });
+function getTransporter() {
+  if (!transporter) {
+    transporter = nodemailer.createTransport({
+      host: "mail.privateemail.com",
+      port: 587,
+      secure: false,
+
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+
+      pool: true,
+      maxConnections: 5,
+      maxMessages: 100,
+
+      connectionTimeout: 5000,
+      greetingTimeout: 5000,
+      socketTimeout: 10000,
+
+      family: 4,
+      tls: {
+        rejectUnauthorized: false,
+      },
+    });
+
+    transporter.verify((error) => {
+      if (error) {
+        console.log("EMAIL CONFIG ERROR:", error);
+      } else {
+        console.log("EMAIL SERVER READY ✅");
+      }
+    });
+  }
 
   return transporter;
+}
+
+function sendEmailAsync(mailOptions) {
+  const transporter = getTransporter();
+
+  setImmediate(async () => {
+    try {
+      await transporter.sendMail(mailOptions);
+    } catch (err) {
+      console.error("Email error:", err.message);
+    }
+  });
 }
 
 function generateOtp() {
@@ -156,11 +186,9 @@ async function registerUser(req, res) {
     SEND EMAIL (SAFE - WILL NOT BREAK REGISTRATION)
     */
     try {
-      const transporter = createTransporter();
-
       const verifyUrl = `${process.env.CLIENT_URL}/verify-email?token=${verificationToken}`;
 
-      await transporter.sendMail({
+      sendEmailAsync({
         from: `"Rebetas" <${process.env.EMAIL_USER}>`,
         to: user.email,
         subject: "🚀 Verify Your Rebetas Account",
@@ -363,9 +391,7 @@ async function loginUser(req, res) {
 
     // ✅ SEND EMAIL
     try {
-      const transporter = createTransporter();
-
-      await transporter.sendMail({
+      sendEmailAsync({
         from: `"Rebetas" <${process.env.EMAIL_USER}>`,
         to: user.email,
         subject: "🔐 Your Rebetas Login Code",
@@ -552,9 +578,7 @@ async function resendLoginOtp(req, res) {
 
     await user.save();
 
-    const transporter = createTransporter();
-
-    await transporter.sendMail({
+    sendEmailAsync({
       from: `"Rebetas" <${process.env.EMAIL_USER}>`,
       to: user.email,
       subject: "🔁 Your New Rebetas Login Code",
