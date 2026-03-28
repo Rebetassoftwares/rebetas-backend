@@ -1,0 +1,124 @@
+/* LAYOUT WRAPPER */
+.admin-layout {
+  display: flex;
+  height: 100vh; /* 🔥 IMPORTANT */
+  overflow: hidden; /* 🔥 prevent body scroll */
+
+  background:
+    radial-gradient(
+      circle at 15% 20%,
+      rgba(160, 32, 240, 0.2),
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at 85% 10%,
+      rgba(160, 32, 240, 0.1),
+      transparent 40%
+    ),
+    linear-gradient(180deg, #12041f, #0d0318 50%, #12041f);
+
+  color: #ffffff;
+}
+
+/* FORCE ALL TEXT WHITE */
+.admin-layout h1,
+.admin-layout h2,
+.admin-layout h3,
+.admin-layout p,
+.admin-layout span,
+.admin-layout label {
+  color: #ffffff !important;
+}
+
+/* MAIN AREA */
+.admin-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+
+  height: 100vh; /* 🔥 FIX */
+  overflow: hidden; /* 🔥 FIX */
+}
+
+/* TOPBAR */
+.admin-topbar {
+  height: 70px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 20px;
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+
+  color: #ffffff;
+
+  flex-shrink: 0; /* 🔥 FIX */
+}
+
+/* TITLE */
+.admin-topbar h1 {
+  font-size: 18px;
+  margin: 0;
+  font-weight: 700;
+}
+
+/* MENU BUTTON */
+.menu-toggle {
+  background: none;
+  border: none;
+
+  color: #ffffff;
+
+  font-size: 22px;
+  cursor: pointer;
+
+  display: none;
+}
+
+/* USER */
+.admin-user {
+  font-size: 13px;
+  font-weight: 500;
+  color: #ffffff;
+}
+
+/* CONTENT */
+.admin-content {
+  flex: 1; /* 🔥 IMPORTANT */
+  overflow-y: auto; /* 🔥 THIS FIXES SCROLL */
+  overflow-x: hidden;
+
+  padding: 24px;
+
+  /* 🔥 PREVENT WHITE BACKGROUND */
+  background:
+    radial-gradient(
+      circle at 15% 20%,
+      rgba(160, 32, 240, 0.2),
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at 85% 10%,
+      rgba(160, 32, 240, 0.1),
+      transparent 40%
+    ),
+    linear-gradient(180deg, #12041f, #0d0318 50%, #12041f);
+}
+
+.admin-sidebar {
+  height: 100vh;
+  overflow-y: auto; /* 🔥 THIS FIXES NAV CUT OFF */
+  overflow-x: hidden;
+}
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .menu-toggle {
+    display: block;
+  }
+}

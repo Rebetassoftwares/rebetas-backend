@@ -1,0 +1,107 @@
+/* PAGE */
+
+.subs-page {
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* FORCE ALL TEXT WHITE */
+
+.subs-page h1,
+.subs-page h2,
+.subs-page h3,
+.subs-page p,
+.subs-page span,
+.subs-page label {
+  color: #ffffff !important;
+}
+
+/* TABLE */
+
+.subs-table {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* HEADER */
+
+.table-head {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+
+  padding: 14px 16px;
+  border-radius: 12px;
+
+  background: rgba(255, 255, 255, 0.1);
+
+  font-weight: 700;
+}
+
+/* ROW */
+
+.table-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+
+  padding: 14px 16px;
+  border-radius: 12px;
+
+  background: rgba(255, 255, 255, 0.08);
+
+  align-items: center;
+}
+
+/* STATUS */
+
+.status {
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+
+  text-transform: capitalize;
+
+  color: #ffffff; /* force visibility */
+}
+
+/* ACTIVE */
+
+.status.active {
+  background: rgba(70, 227, 152, 0.25);
+  border: 1px solid rgba(70, 227, 152, 0.6);
+}
+
+/* CANCELLED */
+
+.status.cancelled {
+  background: rgba(255, 77, 109, 0.25);
+  border: 1px solid rgba(255, 77, 109, 0.6);
+}
+
+/* ACTION */
+
+.actions button {
+  padding: 7px 12px;
+  border-radius: 8px;
+  border: none;
+
+  background: #ff4d6d;
+
+  color: #ffffff;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 900px) {
+  .table-head,
+  .table-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}

@@ -1,0 +1,240 @@
+.withdrawals-page {
+  padding: 25px;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  margin-top: 20px;
+}
+
+.withdrawals-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 10px;
+}
+
+.withdrawals-table th,
+.withdrawals-table td {
+  padding: 12px;
+  text-align: left;
+}
+
+.withdrawals-table tr:nth-child(even) {
+  background: #f9f9f9;
+}
+
+/* STATUS */
+.status {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.status.pending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.status.approved {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status.rejected {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+/* ACTIONS */
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.approve {
+  background: #22a06b;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.reject {
+  background: #d9534f;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.done {
+  color: #999;
+}
+
+/* HEADER */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* FILTERS */
+.filters {
+  display: flex;
+  gap: 8px;
+}
+
+.filters button {
+  padding: 6px 12px;
+  border: none;
+  background: #eee;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.filters .active {
+  background: #6c2bd9;
+  color: white;
+}
+
+/* SUMMARY */
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 15px;
+  margin: 20px 0;
+}
+
+.card {
+  background: white;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+.card.pending {
+  border-left: 4px solid #ffc107;
+}
+
+.card.approved {
+  border-left: 4px solid #28a745;
+}
+
+/* NOTE INPUT */
+.withdrawals-table input {
+  width: 100%;
+  padding: 5px;
+}
+
+/* LOADING / ERROR */
+.loading,
+.error {
+  padding: 40px;
+  text-align: center;
+}
+
+.extra-filters {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.extra-filters select,
+.extra-filters input {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+}
+
+/* ================================
+   📱 MOBILE (≤ 768px)
+================================ */
+@media (max-width: 768px) {
+  .withdrawals-page {
+    padding: 15px;
+  }
+
+  /* HEADER STACK */
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  /* FILTER BUTTONS WRAP */
+  .filters {
+    flex-wrap: wrap;
+  }
+
+  /* EXTRA FILTERS STACK */
+  .extra-filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .extra-filters select,
+  .extra-filters input,
+  .extra-filters button {
+    width: 100%;
+  }
+
+  /* SUMMARY GRID */
+  .summary-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .card h2 {
+    font-size: 18px;
+  }
+
+  /* TABLE */
+  .withdrawals-table th,
+  .withdrawals-table td {
+    padding: 10px;
+    font-size: 13px;
+  }
+
+  /* ACTION BUTTONS STACK */
+  .actions {
+    flex-direction: column;
+  }
+}
+
+/* ================================
+   📱 SMALL MOBILE (≤ 480px)
+================================ */
+@media (max-width: 480px) {
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .header h1 {
+    font-size: 20px;
+  }
+
+  .withdrawals-table {
+    min-width: 600px; /* force scroll instead of breaking */
+  }
+
+  .approve,
+  .reject {
+    padding: 8px;
+    font-size: 13px;
+  }
+}
+
+/* ================================
+   💻 TABLET (769px – 1024px)
+================================ */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .filters {
+    flex-wrap: wrap;
+  }
+}

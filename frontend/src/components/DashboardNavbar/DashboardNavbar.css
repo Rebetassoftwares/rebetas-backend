@@ -1,0 +1,154 @@
+.dashboard-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  width: 100%;
+
+  background: rgba(15, 4, 30, 0.8);
+  backdrop-filter: blur(14px);
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dashboard-navbar-inner {
+  width: min(1200px, 92%);
+  margin: auto;
+
+  height: 70px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* LOGO */
+
+.dashboard-logo a {
+  font-size: 22px;
+  font-weight: 700;
+  text-decoration: none;
+  color: #ffffff;
+}
+
+/* LINKS */
+
+.dashboard-nav-links {
+  display: flex;
+  gap: 30px;
+  list-style: none;
+}
+
+.dashboard-nav-links a {
+  color: #ebe7ff;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 15px;
+
+  transition: color 0.2s ease;
+}
+
+.dashboard-nav-links a:hover {
+  color: #ffffff;
+}
+
+/* USER ACTIONS */
+
+.dashboard-user-actions {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.dashboard-account {
+  color: #ebe7ff;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.dashboard-logout {
+  background: #a020f0;
+  border: none;
+
+  padding: 8px 16px;
+  border-radius: 6px;
+
+  color: white;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+}
+
+.dashboard-logout:hover {
+  background: #8b1ed6;
+}
+
+/* MOBILE MENU BUTTON */
+
+.menu-toggle {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.menu-toggle span {
+  width: 22px;
+  height: 2px;
+  background: white;
+}
+
+/* MOBILE */
+
+@media (max-width: 900px) {
+  .menu-toggle {
+    display: flex;
+  }
+
+  .dashboard-nav-links {
+    position: absolute;
+
+    top: 70px;
+    left: 0;
+
+    width: 100%;
+
+    background: rgba(15, 4, 30, 0.95);
+
+    flex-direction: column;
+
+    gap: 20px;
+
+    padding: 30px;
+
+    display: none;
+  }
+
+  .dashboard-nav-links.open {
+    display: flex;
+  }
+
+  .dashboard-user-actions {
+    position: absolute;
+
+    top: 210px;
+    left: 0;
+
+    width: 100%;
+
+    background: rgba(15, 4, 30, 0.95);
+
+    justify-content: center;
+
+    gap: 25px;
+
+    padding-bottom: 30px;
+
+    display: none;
+  }
+
+  .dashboard-user-actions.open {
+    display: flex;
+  }
+}

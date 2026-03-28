@@ -1,0 +1,265 @@
+/* PAGE */
+.promo-dashboard {
+  padding: 25px;
+  background: #f5f7fb;
+  min-height: 100vh;
+}
+
+/* HEADER */
+.promo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+/* 🔥 NEW: HEADER RIGHT (for button + code) */
+.promo-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* PROMO CODE */
+.promo-code {
+  background: #6c2bd9;
+  color: white;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-weight: bold;
+}
+
+/* 🔥 NEW: PAYMENT BUTTON */
+.payout-btn {
+  background: #6c2bd9;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: 0.2s ease;
+}
+
+.payout-btn:hover {
+  opacity: 0.9;
+}
+
+/* SUMMARY */
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.summary-card {
+  background: white;
+  padding: 18px;
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.summary-card p {
+  font-size: 13px;
+  color: #777;
+}
+
+.summary-card h2 {
+  margin-top: 5px;
+}
+
+/* SECTION */
+.section {
+  margin-top: 25px;
+}
+
+/* WALLETS */
+.wallet-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 15px;
+}
+
+.wallet-card {
+  background: white;
+  padding: 15px;
+  border-radius: 12px;
+}
+
+.wallet-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.badge {
+  background: #e6f7ee;
+  color: #22a06b;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.wallet-body {
+  display: flex;
+  justify-content: space-between;
+}
+
+.wallet-footer button {
+  margin-top: 10px;
+  width: 100%;
+  padding: 10px;
+  border: none;
+  background: #6c2bd9;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.wallet-footer button:disabled {
+  background: #ccc;
+}
+
+/* TABLE */
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.earnings-table {
+  width: 100%;
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.earnings-table th,
+.earnings-table td {
+  padding: 12px;
+  text-align: left;
+}
+
+.earnings-table tr:nth-child(even) {
+  background: #f9f9f9;
+}
+
+/* STATES */
+.empty {
+  color: #999;
+  padding: 15px;
+}
+
+.promo-loading,
+.promo-error {
+  padding: 40px;
+  text-align: center;
+}
+
+/* ================================
+   📱 MOBILE (≤ 768px)
+================================ */
+@media (max-width: 768px) {
+  .promo-dashboard {
+    padding: 15px;
+  }
+
+  /* HEADER STACK */
+  .promo-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  /* 🔥 NEW: responsive header right */
+  .promo-header-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .promo-code {
+    font-size: 14px;
+    padding: 5px 10px;
+  }
+
+  .payout-btn {
+    font-size: 12px;
+    padding: 5px 10px;
+  }
+
+  /* SUMMARY GRID */
+  .summary-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .summary-card {
+    padding: 14px;
+  }
+
+  .summary-card h2 {
+    font-size: 18px;
+  }
+
+  /* WALLET GRID */
+  .wallet-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .wallet-body {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* TABLE */
+  .earnings-table th,
+  .earnings-table td {
+    padding: 10px;
+    font-size: 13px;
+  }
+}
+
+/* ================================
+   📱 SMALL MOBILE (≤ 480px)
+================================ */
+@media (max-width: 480px) {
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .promo-header h1 {
+    font-size: 20px;
+  }
+
+  .summary-card h2 {
+    font-size: 16px;
+  }
+
+  .wallet-card {
+    padding: 12px;
+  }
+
+  .wallet-footer button {
+    padding: 8px;
+    font-size: 14px;
+  }
+
+  .table-wrapper {
+    overflow-x: auto;
+  }
+
+  .earnings-table {
+    min-width: 500px;
+  }
+}
+
+/* ================================
+   💻 TABLET (769px – 1024px)
+================================ */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .wallet-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

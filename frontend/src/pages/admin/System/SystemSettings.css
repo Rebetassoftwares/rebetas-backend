@@ -1,0 +1,112 @@
+/* PAGE */
+
+.system-page {
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* FORCE ALL TEXT WHITE */
+
+.system-page h1,
+.system-page h2,
+.system-page h3,
+.system-page p,
+.system-page span,
+.system-page label {
+  color: #ffffff !important;
+}
+
+/* FORM */
+
+.system-form {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+
+  padding: 20px;
+  border-radius: 16px;
+
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* INPUTS */
+
+.system-form input {
+  padding: 12px;
+  border-radius: 10px;
+
+  border: 1px solid rgba(255, 255, 255, 0.3);
+
+  background: rgba(255, 255, 255, 0.15);
+
+  color: #ffffff;
+  font-weight: 500;
+
+  outline: none;
+}
+
+/* PLACEHOLDER */
+
+.system-form input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* CHECKBOX */
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  color: #ffffff;
+}
+
+/* BUTTONS */
+
+.system-form button {
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+
+  font-weight: 600;
+
+  color: #ffffff;
+
+  cursor: pointer;
+}
+
+/* SUBMIT */
+
+.system-form button[type="submit"] {
+  background: linear-gradient(135deg, #a020f0, #7b2cff);
+}
+
+/* RESET */
+
+.reset-btn {
+  background: #ff4d6d;
+}
+
+/* ALERTS */
+
+.admin-success {
+  padding: 12px;
+  border-radius: 10px;
+
+  background: rgba(70, 227, 152, 0.25);
+  border: 1px solid rgba(70, 227, 152, 0.6);
+
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 900px) {
+  .system-form {
+    grid-template-columns: 1fr;
+  }
+}

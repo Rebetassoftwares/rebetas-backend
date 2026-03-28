@@ -1,0 +1,263 @@
+/* GLOBAL RESET */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background: #470047;
+  color: white;
+  line-height: 1.6;
+}
+
+/* CONTAINER */
+
+.container {
+  width: 1100px;
+  max-width: 95%;
+  margin: auto;
+}
+
+/* SECTIONS */
+
+section {
+  padding: 100px 0;
+}
+
+/* NAVBAR */
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 80px;
+}
+
+.logo {
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.nav-links span {
+  margin: 0 20px;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+.nav-actions button {
+  padding: 10px 18px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}
+
+/* HERO */
+
+.hero {
+  min-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.hero h1 {
+  font-size: 48px;
+  margin-bottom: 20px;
+}
+
+.hero p {
+  font-size: 18px;
+  color: #d1d5db;
+  max-width: 600px;
+}
+
+/* BUTTONS */
+
+.btn-primary {
+  padding: 12px 24px;
+  background: white;
+  color: #470047;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.btn-outline {
+  padding: 12px 24px;
+  background: transparent;
+  border: 2px solid white;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* SIGNAL SECTION */
+
+.signal h2 {
+  font-size: 28px;
+  margin-bottom: 20px;
+}
+
+.signal-card {
+  background: #1a1238;
+  padding: 40px;
+  border-radius: 14px;
+  margin-top: 40px;
+}
+
+.teams {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.team {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.bet {
+  font-size: 22px;
+  color: #22c55e;
+  font-weight: bold;
+}
+
+.locked {
+  text-align: center;
+}
+
+.locked p {
+  margin-bottom: 15px;
+}
+
+/* ABOUT */
+
+.about h2 {
+  font-size: 32px;
+  margin-bottom: 20px;
+}
+
+.about p {
+  max-width: 700px;
+  color: #d1d5db;
+}
+
+/* SIGNAL EXPLANATION */
+
+.explanation h2 {
+  font-size: 32px;
+  margin-bottom: 20px;
+}
+
+.explanation p {
+  max-width: 700px;
+  color: #d1d5db;
+}
+
+/* WHY REBETAS */
+
+.why {
+  background: #1a1238;
+}
+
+.why h2 {
+  font-size: 32px;
+  margin-bottom: 20px;
+}
+
+.why p {
+  max-width: 700px;
+  color: #d1d5db;
+}
+
+/* PRICING */
+
+.pricing h2 {
+  font-size: 32px;
+}
+
+.plans {
+  display: flex;
+  gap: 30px;
+  margin-top: 40px;
+}
+
+.plan {
+  flex: 1;
+  background: #1a1238;
+  padding: 30px;
+  border-radius: 12px;
+}
+
+.plan h3 {
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.plan p {
+  margin-bottom: 20px;
+  color: #d1d5db;
+}
+
+/* FEATURES */
+
+.features h2 {
+  font-size: 32px;
+}
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+  margin-top: 40px;
+}
+
+.feature {
+  background: #1a1238;
+  padding: 30px;
+  border-radius: 12px;
+  text-align: center;
+}
+
+/* FOOTER */
+
+.footer {
+  background: #120b24;
+  padding: 80px 0;
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 40px;
+}
+
+.footer h4 {
+  margin-bottom: 15px;
+}
+
+.footer p {
+  margin-bottom: 10px;
+  color: #c4c4c4;
+}
+
+/* MOBILE */
+
+@media (max-width: 900px) {
+  .plans {
+    flex-direction: column;
+  }
+
+  .feature-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .footer-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}

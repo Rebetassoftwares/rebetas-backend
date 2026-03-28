@@ -1,0 +1,202 @@
+/* NAVBAR WRAPPER */
+
+.navbar {
+  position: absolute;
+  top: 40px;
+  width: 100%;
+  z-index: 20;
+}
+
+/* NAVBAR CONTAINER */
+
+.navbar-container {
+  width: min(1200px, 92%);
+  margin: auto;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  background: linear-gradient(135deg, #8c1ee8, #c14dff);
+  border-color: rgba(255, 255, 255, 0.28);
+  color: #ffffff;
+  box-shadow: 0 10px 24px rgba(160, 32, 240, 0.3);
+  backdrop-filter: blur(10px);
+
+  padding: 16px 24px;
+  border-radius: 12px;
+
+  position: relative;
+}
+
+/* LOGO */
+
+.logo {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1a1a1a;
+  text-decoration: none;
+}
+
+/* NAV LINKS (DESKTOP) */
+
+.nav-links {
+  display: flex;
+  gap: 28px;
+  list-style: none;
+}
+
+.nav-links a {
+  color: #444;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.nav-links a:hover {
+  color: black;
+}
+
+/* AUTH BUTTONS */
+
+.nav-auth {
+  display: flex;
+  align-items: center;
+}
+
+/* LOGIN */
+
+.login-btn {
+  padding: 10px 26px;
+  border: 2px solid #2e7d32;
+  color: #333;
+  text-decoration: none;
+  font-weight: 600;
+  border-right: none;
+}
+
+/* REGISTER */
+
+.register-btn {
+  position: relative;
+  background: #2e7d32;
+  color: white;
+  padding: 10px 32px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+/* TRIANGLE WEDGE */
+
+.register-btn::before {
+  content: "";
+  position: absolute;
+  left: -18px;
+  top: 0;
+
+  width: 0;
+  height: 0;
+
+  border-top: 22px solid transparent;
+  border-bottom: 22px solid transparent;
+  border-right: 18px solid #2e7d32;
+}
+
+/* HAMBURGER */
+
+.menu-toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+
+  position: relative;
+  z-index: 50;
+}
+
+/* THE 3 LINES */
+
+.menu-toggle span {
+  width: 26px;
+  height: 3px;
+
+  background: #1a1a1a; /* darker for visibility */
+  border-radius: 3px;
+
+  transition: all 0.3s ease;
+
+  display: block;
+}
+
+/* ANIMATION */
+
+.menu-toggle.active span:nth-child(1) {
+  transform: rotate(45deg) translate(6px, 6px);
+}
+
+.menu-toggle.active span:nth-child(2) {
+  opacity: 0;
+}
+
+.menu-toggle.active span:nth-child(3) {
+  transform: rotate(-45deg) translate(6px, -6px);
+}
+
+/* MOBILE */
+
+@media (max-width: 900px) {
+  .menu-toggle {
+    display: flex;
+    position: relative;
+    z-index: 50;
+  }
+
+  /* hide desktop items */
+
+  .nav-links {
+    position: absolute;
+    top: 90px;
+    right: 0;
+
+    width: 50%;
+
+    background: white;
+
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+
+    padding: 30px;
+
+    border-radius: 0 0 12px 12px;
+
+    display: none;
+  }
+
+  .nav-links.open {
+    display: flex;
+  }
+
+  /* AUTH SECTION */
+
+  .nav-auth {
+    position: static; /* removes forced position */
+    display: none;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 20px;
+    width: 100%;
+  }
+
+  .nav-auth.open {
+    display: flex;
+  }
+
+  /* hide desktop auth buttons inside navbar */
+
+  .navbar-container {
+    justify-content: space-between;
+  }
+}

@@ -1,0 +1,127 @@
+.footer {
+  background:
+    radial-gradient(
+      circle at 20% 10%,
+      rgba(160, 32, 240, 0.25),
+      transparent 40%
+    ),
+    linear-gradient(180deg, #0d0318, #12041f);
+
+  color: #ffffff;
+
+  padding: 80px 0 40px;
+}
+
+/* GRID */
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 40px;
+}
+
+/* TITLES */
+
+.footer h3,
+.footer h4 {
+  margin-bottom: 15px;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+/* TEXT */
+
+.footer p {
+  color: #e9e6ff;
+  line-height: 1.7;
+}
+
+/* LIST */
+
+.footer ul {
+  list-style: none;
+  padding: 0;
+}
+
+.footer li {
+  margin-bottom: 10px;
+}
+
+/* LINKS */
+
+.footer a {
+  color: #e9e6ff;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.footer a:hover {
+  color: #ffffff;
+}
+
+/* BOTTOM */
+
+.footer-bottom {
+  margin-top: 50px;
+  text-align: center;
+  color: #cfc9ff;
+  font-size: 14px;
+
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 25px;
+}
+
+.footer-countries {
+  margin-top: 40px;
+  text-align: center;
+  padding: 20px 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.footer-country-text {
+  color: #d8ccff;
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+.footer-country-list {
+  color: #e9ddff;
+  font-size: 13px;
+  line-height: 1.6;
+  max-width: 800px;
+  margin: 0 auto 15px;
+}
+
+.footer-flags {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.footer-flags svg {
+  border-radius: 4px;
+  transition: transform 0.2s ease;
+}
+
+.footer-flags svg:hover {
+  transform: scale(1.15);
+}
+
+.country-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  max-width: 900px;
+  margin: 0 auto 15px;
+}
+
+.country-tags span {
+  background: rgba(168, 85, 247, 0.15);
+  border: 1px solid rgba(216, 204, 255, 0.15);
+  color: #e9ddff;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+}

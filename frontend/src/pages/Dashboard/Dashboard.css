@@ -1,0 +1,359 @@
+.dashboard-page {
+  color: #ffffff;
+
+  background:
+    radial-gradient(
+      circle at 15% 20%,
+      rgba(160, 32, 240, 0.28),
+      transparent 35%
+    ),
+    radial-gradient(
+      circle at 85% 10%,
+      rgba(160, 32, 240, 0.18),
+      transparent 35%
+    ),
+    linear-gradient(180deg, #12041f, #0d0318 45%, #12041f 100%);
+
+  min-height: 100vh;
+}
+
+.dashboard-container {
+  padding: 120px 0 100px 0;
+}
+
+/* SECTION TAG */
+
+.dashboard-tag {
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #d8ccff;
+  display: block;
+  margin-bottom: 8px;
+}
+
+/* ACCOUNT CARD */
+
+.account-card {
+  background: rgba(255, 255, 255, 0.08);
+
+  border: 1px solid rgba(255, 255, 255, 0.22);
+
+  padding: 32px;
+
+  border-radius: 16px;
+
+  margin-bottom: 70px;
+
+  backdrop-filter: blur(16px);
+
+  box-shadow:
+    0 0 30px rgba(160, 32, 240, 0.18),
+    inset 0 0 12px rgba(255, 255, 255, 0.04);
+}
+
+/* WELCOME TEXT */
+
+.account-card h2 {
+  color: #ffffff;
+  font-size: 30px;
+  margin-bottom: 14px;
+
+  font-weight: 700;
+
+  letter-spacing: 0.5px;
+
+  text-shadow:
+    0 0 8px rgba(255, 255, 255, 0.25),
+    0 0 18px rgba(160, 32, 240, 0.55),
+    0 0 35px rgba(160, 32, 240, 0.35);
+}
+
+.account-card p {
+  color: #ffffff;
+  line-height: 1.9;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* ACCOUNT HEADER */
+
+.account-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.account-info {
+  max-width: 80%;
+}
+
+/* PLAN DETAILS */
+
+.plan-details p {
+  margin-bottom: 6px;
+  font-size: 16px;
+}
+
+.plan-details strong {
+  color: #d9ccff;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+}
+
+/* PLAN STATUS BADGE */
+
+.plan-status {
+  margin-left: 8px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.plan-status.active {
+  background: rgba(0, 255, 140, 0.18);
+  color: #00ffb3;
+}
+
+.plan-status.expired {
+  background: rgba(255, 60, 60, 0.18);
+  color: #ff4c4c;
+}
+
+/* PROFILE ICON (UPGRADED) */
+
+.profile-icon {
+  width: 56px;
+  height: 56px;
+
+  border-radius: 50%;
+
+  background: radial-gradient(
+    circle at 30% 30%,
+    rgba(160, 32, 240, 0.8),
+    rgba(120, 0, 200, 0.9)
+  );
+
+  border: 2px solid rgba(255, 255, 255, 0.25);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 26px;
+
+  color: #ffffff;
+
+  text-decoration: none;
+
+  box-shadow:
+    0 0 12px rgba(160, 32, 240, 0.6),
+    0 0 30px rgba(160, 32, 240, 0.4),
+    inset 0 0 10px rgba(255, 255, 255, 0.15);
+
+  transition: all 0.25s ease;
+}
+
+.profile-icon:hover {
+  transform: scale(1.08);
+
+  box-shadow:
+    0 0 18px rgba(160, 32, 240, 0.9),
+    0 0 45px rgba(160, 32, 240, 0.7),
+    inset 0 0 12px rgba(255, 255, 255, 0.25);
+}
+
+/* PLATFORM SECTION */
+
+.platform-section h2 {
+  margin-bottom: 30px;
+  font-size: 32px;
+  text-align: center;
+  color: #ffffff;
+
+  text-shadow: 0 0 20px rgba(160, 32, 240, 0.35);
+}
+
+/* PLATFORM GRID */
+
+.platform-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 30px;
+  margin-bottom: 100px;
+}
+
+/* PLATFORM CARD */
+
+.platform-card {
+  background: rgba(255, 255, 255, 0.07);
+
+  border: 1px solid rgba(255, 255, 255, 0.2);
+
+  padding: 45px 30px;
+
+  border-radius: 16px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  backdrop-filter: blur(14px);
+
+  transition: all 0.25s ease;
+
+  text-decoration: none;
+}
+
+.platform-card:hover {
+  transform: translateY(-6px);
+
+  border-color: rgba(160, 32, 240, 0.7);
+
+  box-shadow:
+    0 18px 45px rgba(160, 32, 240, 0.35),
+    0 0 20px rgba(160, 32, 240, 0.25);
+}
+
+/* PLATFORM LOGO */
+
+.platform-card img {
+  max-width: 120px;
+  height: auto;
+
+  margin-bottom: 14px;
+
+  transition: transform 0.2s ease;
+}
+
+.platform-card:hover img {
+  transform: scale(1.08);
+}
+
+/* PLATFORM NAME */
+
+.platform-card span {
+  font-size: 16px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+/* TOOLS SECTION */
+
+.dashboard-tools {
+  display: grid;
+
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+
+  gap: 25px;
+}
+
+/* TOOL CARD */
+
+.tool-card {
+  background: rgba(255, 255, 255, 0.07);
+
+  border: 1px solid rgba(255, 255, 255, 0.2);
+
+  padding: 30px;
+
+  border-radius: 12px;
+
+  text-align: center;
+
+  text-decoration: none;
+
+  color: #ffffff;
+
+  font-weight: 600;
+  font-size: 16px;
+
+  backdrop-filter: blur(12px);
+
+  transition: all 0.25s ease;
+}
+
+.tool-card:hover {
+  border-color: rgba(160, 32, 240, 0.7);
+
+  transform: translateY(-4px);
+
+  box-shadow: 0 12px 35px rgba(160, 32, 240, 0.35);
+}
+
+/* PLAN STATUS INDICATOR */
+
+.plan-indicator {
+  background: rgba(0, 255, 150, 0.1);
+
+  border: 1px solid rgba(0, 255, 150, 0.4);
+
+  padding: 16px 22px;
+
+  border-radius: 12px;
+
+  margin-bottom: 30px;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  backdrop-filter: blur(10px);
+
+  box-shadow: 0 0 15px rgba(0, 255, 150, 0.25);
+}
+
+.plan-indicator-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.plan-dot {
+  width: 10px;
+  height: 10px;
+
+  background: #00ff9c;
+
+  border-radius: 50%;
+
+  box-shadow:
+    0 0 10px #00ff9c,
+    0 0 18px #00ff9c;
+}
+
+.plan-text {
+  font-weight: 700;
+  color: #00ffb3;
+  letter-spacing: 0.5px;
+}
+
+.plan-indicator-right {
+  color: #ffffff;
+  font-size: 14px;
+}
+
+.subscribe-banner {
+  margin: 20px 0;
+  padding: 20px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  text-align: center;
+}
+
+.subscribe-btn {
+  margin-top: 10px;
+  padding: 10px 20px;
+  background: #22c55e;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.subscribe-btn:hover {
+  background: #16a34a;
+}

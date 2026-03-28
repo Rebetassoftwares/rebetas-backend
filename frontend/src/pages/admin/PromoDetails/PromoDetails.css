@@ -1,0 +1,195 @@
+/* ---------------- PAGE ---------------- */
+
+.promo-details-page {
+  padding: 30px;
+  color: #ffffff;
+}
+
+/* ---------------- TITLE ---------------- */
+
+.promo-details-page h2 {
+  font-size: 26px;
+  font-weight: 600;
+  margin-bottom: 25px;
+  letter-spacing: 0.5px;
+}
+
+/* ---------------- CARD BASE ---------------- */
+
+.promo-info,
+.wallet-section,
+.earnings-section {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  padding: 22px;
+  margin-bottom: 25px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 0 25px rgba(160, 32, 240, 0.08);
+  transition: all 0.25s ease;
+}
+
+.promo-info:hover,
+.wallet-section:hover,
+.earnings-section:hover {
+  border-color: rgba(160, 32, 240, 0.4);
+  box-shadow: 0 0 35px rgba(160, 32, 240, 0.2);
+}
+
+/* ---------------- INFO ---------------- */
+
+.promo-info p {
+  margin: 8px 0;
+  font-size: 15px;
+  color: #dcdcdc;
+}
+
+.promo-info strong {
+  color: #ffffff;
+}
+
+/* ---------------- SECTION HEADINGS ---------------- */
+
+.wallet-section h3,
+.earnings-section h3 {
+  margin-bottom: 15px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+/* ---------------- WALLET GRID ---------------- */
+
+.wallet-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 18px;
+}
+
+/* ---------------- WALLET CARD ---------------- */
+
+.wallet-card {
+  background: linear-gradient(
+    135deg,
+    rgba(160, 32, 240, 0.25),
+    rgba(0, 0, 0, 0.3)
+  );
+  border-radius: 14px;
+  padding: 16px;
+  border: 1px solid rgba(160, 32, 240, 0.3);
+  transition: all 0.25s ease;
+}
+
+.wallet-card:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 0 20px rgba(160, 32, 240, 0.4);
+}
+
+.wallet-card h4 {
+  font-size: 16px;
+  margin-bottom: 10px;
+  color: #ffffff;
+}
+
+.wallet-card p {
+  font-size: 14px;
+  margin: 5px 0;
+  color: #e0e0e0;
+}
+
+/* ---------------- EARNINGS TABLE ---------------- */
+
+.earnings-table {
+  width: 100%;
+  overflow-x: auto;
+}
+
+/* HEADER */
+
+.table-head {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  padding: 12px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #bbbbbb;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ROW */
+
+.table-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  padding: 12px 10px;
+  font-size: 14px;
+  color: #ffffff;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.table-row:hover {
+  background: rgba(160, 32, 240, 0.1);
+}
+
+/* ---------------- EMPTY STATES ---------------- */
+
+.wallet-section p,
+.earnings-section p {
+  font-size: 14px;
+  color: #aaa;
+}
+
+/* ---------------- CURRENCY TAG ---------------- */
+
+.currency-tag {
+  display: inline-block;
+  padding: 4px 8px;
+  margin-bottom: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 6px;
+  background: rgba(160, 32, 240, 0.2);
+  color: #c084fc;
+  letter-spacing: 0.5px;
+}
+
+/* OPTIONAL: color variation per currency */
+
+.currency-NGN {
+  background: rgba(0, 200, 83, 0.15);
+  color: #00c853;
+}
+
+.currency-GHS {
+  background: rgba(255, 193, 7, 0.15);
+  color: #ffc107;
+}
+
+.currency-USD {
+  background: rgba(33, 150, 243, 0.15);
+  color: #2196f3;
+}
+
+/* ---------------- RESPONSIVE ---------------- */
+
+@media (max-width: 768px) {
+  .promo-details-page {
+    padding: 20px;
+  }
+
+  .table-head,
+  .table-row {
+    grid-template-columns: repeat(2, 1fr);
+    row-gap: 6px;
+  }
+
+  .table-head span:nth-child(n + 3),
+  .table-row span:nth-child(n + 3) {
+    display: none;
+  }
+
+  .wallet-grid {
+    grid-template-columns: 1fr;
+  }
+}

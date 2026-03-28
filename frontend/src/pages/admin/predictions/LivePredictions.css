@@ -1,0 +1,57 @@
+.live-page {
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* PLATFORM */
+.platform-block {
+  padding: 15px;
+  border-radius: 16px;
+
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* LEAGUE */
+.league-block {
+  margin-top: 10px;
+}
+
+/* GRID */
+.prediction-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+/* CARD */
+.prediction-card {
+  padding: 12px;
+  border-radius: 12px;
+
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* ACTIONS */
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.actions button:first-child {
+  background: #4ade80;
+}
+
+.actions button:last-child {
+  background: #ff4d6d;
+}
+
+/* CYCLES */
+.cycles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  font-size: 12px;
+}

@@ -1,0 +1,130 @@
+/* PAGE */
+.payout-details-page {
+  background: #f5f7fb;
+  min-height: 100vh;
+}
+
+/* CONTAINER */
+.payout-details-container {
+  padding: 30px 20px;
+  max-width: 600px;
+  margin: auto;
+}
+
+/* TITLE */
+.payout-details-title {
+  margin-bottom: 20px;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+/* CARD */
+.payout-details-card {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+}
+
+/* NOTE */
+.payout-details-note {
+  font-size: 13px;
+  color: #777;
+  margin-bottom: 15px;
+  line-height: 1.5;
+}
+
+/* FORM */
+.payout-details-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* INPUTS */
+.payout-details-form input {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.payout-details-form input:focus {
+  border-color: #6c2bd9;
+  box-shadow: 0 0 0 2px rgba(108, 43, 217, 0.1);
+}
+
+/* BUTTON */
+.payout-details-form button {
+  margin-top: 5px;
+  padding: 12px;
+  background: #6c2bd9;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.payout-details-form button:hover {
+  opacity: 0.9;
+}
+
+.payout-details-form button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+/* STATES */
+.payout-error {
+  margin-top: 10px;
+  color: #d9534f;
+  font-size: 13px;
+}
+
+.payout-success {
+  margin-top: 10px;
+  color: #22a06b;
+  font-size: 13px;
+}
+
+/* ============================
+   📱 MOBILE (≤ 768px)
+============================ */
+@media (max-width: 768px) {
+  .payout-details-container {
+    padding: 20px 15px;
+  }
+
+  .payout-details-title {
+    font-size: 20px;
+  }
+
+  .payout-details-card {
+    padding: 15px;
+  }
+
+  .payout-details-form input {
+    font-size: 13px;
+  }
+
+  .payout-details-form button {
+    padding: 10px;
+  }
+}
+
+/* ============================
+   📱 SMALL MOBILE (≤ 480px)
+============================ */
+@media (max-width: 480px) {
+  .payout-details-title {
+    font-size: 18px;
+  }
+
+  .payout-details-note {
+    font-size: 12px;
+  }
+}

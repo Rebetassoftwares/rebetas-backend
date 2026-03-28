@@ -1,0 +1,318 @@
+.account-page {
+  color: #ffffff;
+
+  background:
+    radial-gradient(
+      circle at 15% 20%,
+      rgba(160, 32, 240, 0.28),
+      transparent 35%
+    ),
+    radial-gradient(
+      circle at 85% 10%,
+      rgba(160, 32, 240, 0.18),
+      transparent 35%
+    ),
+    linear-gradient(180deg, #12041f, #0d0318 45%, #12041f 100%);
+
+  min-height: 100vh;
+}
+
+.account-container {
+  padding: 120px 0;
+  max-width: 900px;
+}
+
+/* TITLE */
+
+.account-title {
+  font-size: 36px;
+  font-weight: 800;
+  text-align: center;
+
+  margin-bottom: 50px;
+
+  letter-spacing: 1px;
+
+  color: #ffffff;
+
+  text-shadow: 0 0 30px rgba(160, 32, 240, 0.25);
+}
+
+/* CARD */
+
+.account-card {
+  background: rgba(255, 255, 255, 0.06);
+
+  border: 1px solid rgba(255, 255, 255, 0.18);
+
+  border-radius: 16px;
+
+  padding: 36px;
+
+  margin-bottom: 30px;
+
+  backdrop-filter: blur(14px);
+
+  transition: all 0.3s ease;
+}
+
+.account-card:hover {
+  border-color: rgba(160, 32, 240, 0.5);
+}
+
+/* CARD HEADER */
+
+.account-card h3 {
+  font-size: 20px;
+  font-weight: 700;
+
+  margin-bottom: 24px;
+
+  color: #f1eaff;
+
+  letter-spacing: 0.5px;
+}
+
+/* INFO SECTION */
+
+.account-info {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  font-size: 15px;
+
+  padding-bottom: 12px;
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.info-row span:first-child {
+  color: #bfb6e8;
+}
+
+.info-row span:last-child {
+  font-weight: 600;
+  color: #ffffff;
+}
+
+/* PLAN BADGE */
+
+.plan-badge {
+  background: linear-gradient(135deg, #a020f0, #c14dff);
+
+  padding: 6px 12px;
+
+  border-radius: 8px;
+
+  font-size: 12px;
+
+  font-weight: 700;
+
+  letter-spacing: 0.5px;
+
+  box-shadow: 0 0 10px rgba(160, 32, 240, 0.35);
+}
+
+/* ACTIVE STATUS */
+
+.active {
+  color: #22c55e;
+  font-weight: 700;
+}
+
+/* BUTTONS */
+
+.upgrade-btn {
+  margin-top: 24px;
+
+  background: linear-gradient(135deg, #a020f0, #c14dff);
+
+  border: none;
+
+  padding: 14px 24px;
+
+  border-radius: 10px;
+
+  color: white;
+
+  font-weight: 700;
+
+  font-size: 14px;
+
+  letter-spacing: 0.5px;
+
+  cursor: pointer;
+
+  transition: all 0.25s ease;
+
+  box-shadow: 0 8px 18px rgba(160, 32, 240, 0.35);
+}
+
+.upgrade-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(160, 32, 240, 0.45);
+}
+
+/* SECURITY BUTTON */
+
+.change-password {
+  background: transparent;
+
+  border: 1px solid rgba(255, 255, 255, 0.25);
+
+  padding: 14px 24px;
+
+  border-radius: 10px;
+
+  color: white;
+
+  font-weight: 600;
+
+  font-size: 14px;
+
+  cursor: pointer;
+
+  transition: all 0.25s ease;
+}
+
+.change-password:hover {
+  border-color: #a020f0;
+  color: #caa8ff;
+}
+
+/* SUPPORT BUTTONS */
+
+.support-buttons {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+/* WHATSAPP BUTTON */
+
+.whatsapp-btn {
+  background: #25d366;
+
+  color: white;
+
+  padding: 14px 22px;
+
+  border-radius: 10px;
+
+  text-decoration: none;
+
+  font-weight: 700;
+
+  font-size: 14px;
+
+  letter-spacing: 0.5px;
+
+  box-shadow: 0 8px 18px rgba(37, 211, 102, 0.35);
+
+  transition: all 0.25s ease;
+}
+
+.whatsapp-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(37, 211, 102, 0.45);
+}
+
+/* EMAIL BUTTON */
+
+.email-btn {
+  background: linear-gradient(135deg, #a020f0, #c14dff);
+
+  color: white;
+
+  padding: 14px 22px;
+
+  border-radius: 10px;
+
+  text-decoration: none;
+
+  font-weight: 700;
+
+  font-size: 14px;
+
+  letter-spacing: 0.5px;
+
+  box-shadow: 0 8px 18px rgba(160, 32, 240, 0.35);
+
+  transition: all 0.25s ease;
+}
+
+.email-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(160, 32, 240, 0.45);
+}
+
+/* PLAN EXPIRY ALERT */
+
+.plan-alert {
+  background: rgba(255, 193, 7, 0.12);
+
+  border: 1px solid rgba(255, 193, 7, 0.35);
+
+  padding: 16px 20px;
+
+  border-radius: 12px;
+
+  margin-bottom: 30px;
+
+  text-align: center;
+
+  font-size: 15px;
+
+  color: #ffe082;
+
+  font-weight: 600;
+
+  backdrop-filter: blur(10px);
+
+  box-shadow: 0 0 15px rgba(255, 193, 7, 0.15);
+}
+
+.plan-alert strong {
+  color: #ffffff;
+}
+
+.promo-btn {
+  margin-top: 10px;
+  padding: 10px 15px;
+  background: #6c2bd9;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.promo-btn:hover {
+  opacity: 0.9;
+}
+/* MOBILE */
+
+@media (max-width: 700px) {
+  .account-container {
+    padding: 100px 20px;
+  }
+
+  .account-title {
+    font-size: 28px;
+  }
+
+  .account-card {
+    padding: 28px;
+  }
+
+  .info-row {
+    font-size: 14px;
+  }
+}
