@@ -1,6 +1,6 @@
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ||
-  "https://rebetas-backend-production.up.railway.app";
+  "https://rebetas-backend-production.up.railway.app/api";
 
 async function request(endpoint, options = {}) {
   const token = localStorage.getItem("rebetas_token");

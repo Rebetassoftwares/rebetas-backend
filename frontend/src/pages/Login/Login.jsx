@@ -26,6 +26,8 @@ export default function Login() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  const [showPassword, setShowPassword] = useState(false);
+
   const [countdown, setCountdown] = useState(0);
 
   // ⏱️ COUNTDOWN TIMER
@@ -204,13 +206,17 @@ export default function Login() {
                     onChange={handleChange}
                   />
 
-                  <input
-                    type="password"
-                    name="password"
-                    placeholder="Password"
-                    value={formData.password}
-                    onChange={handleChange}
-                  />
+                  <div className="password-group">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      name="password"
+                      placeholder="Password"
+                      onChange={handleChange}
+                    />
+                    <span onClick={() => setShowPassword(!showPassword)}>
+                      {showPassword ? "🙈" : "👁️"}
+                    </span>
+                  </div>
 
                   {error && <p style={{ color: "#ff6b6b" }}>{error}</p>}
                   {success && <p style={{ color: "#22c55e" }}>{success}</p>}

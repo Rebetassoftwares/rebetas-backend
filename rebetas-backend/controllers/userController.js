@@ -1,64 +1,12 @@
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
-const nodemailer = require("nodemailer");
 
 const User = require("../models/User");
 const PromoCode = require("../models/PromoCode");
+const { sendEmail } = require("../services/emailService");
 
 function generateToken(size = 32) {
   return crypto.randomBytes(size).toString("hex");
-}
-
-let transporter;
-
-function getTransporter() {
-  if (!transporter) {
-    transporter = nodemailer.createTransport({
-      host: "mail.privateemail.com",
-      port: 587,
-      secure: false,
-
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-
-      pool: true,
-      maxConnections: 5,
-      maxMessages: 100,
-
-      connectionTimeout: 5000,
-      greetingTimeout: 5000,
-      socketTimeout: 10000,
-
-      family: 4,
-      tls: {
-        rejectUnauthorized: false,
-      },
-    });
-
-    transporter.verify((error) => {
-      if (error) {
-        console.log("EMAIL CONFIG ERROR:", error);
-      } else {
-        console.log("EMAIL SERVER READY ✅");
-      }
-    });
-  }
-
-  return transporter;
-}
-
-function sendEmailAsync(mailOptions) {
-  const transporter = getTransporter();
-
-  setImmediate(async () => {
-    try {
-      await transporter.sendMail(mailOptions);
-    } catch (err) {
-      console.error("Email error:", err.message);
-    }
-  });
 }
 
 function generateOtp() {
@@ -188,8 +136,7 @@ async function registerUser(req, res) {
     try {
       const verifyUrl = `${process.env.CLIENT_URL}/verify-email?token=${verificationToken}`;
 
-      sendEmailAsync({
-        from: `"Rebetas" <${process.env.EMAIL_USER}>`,
+      await sendEmail({
         to: user.email,
         subject: "🚀 Verify Your Rebetas Account",
         html: `
@@ -380,6 +327,16 @@ async function loginUser(req, res) {
       });
     }
 
+    // ✅ PRESERVE ONE-DEVICE-ONE-ACCOUNT RULE
+    // If a device is already logged in, do not issue another login from here.
+    if (user.activeDeviceToken) {
+      return res.status(403).json({
+        message:
+          "This account is already active on another device. Please log out from the current device first.",
+        sessionActive: true,
+      });
+    }
+
     // ✅ GENERATE OTP
     const otp = generateOtp();
     const expiry = new Date(Date.now() + 5 * 60 * 1000); // 5 mins
@@ -391,8 +348,9 @@ async function loginUser(req, res) {
 
     // ✅ SEND EMAIL
     try {
-      sendEmailAsync({
-        from: `"Rebetas" <${process.env.EMAIL_USER}>`,
+      console.log("📧 LOGIN EMAIL ATTEMPT TO:", user.email);
+
+      await sendEmail({
         to: user.email,
         subject: "🔐 Your Rebetas Login Code",
         html: `
@@ -478,7 +436,8 @@ async function loginUser(req, res) {
   `,
       });
     } catch (err) {
-      console.error("OTP email error:", err.message);
+      console.error("❌ FULL LOGIN EMAIL ERROR:");
+      console.error(err);
     }
 
     return res.json({
@@ -578,8 +537,7 @@ async function resendLoginOtp(req, res) {
 
     await user.save();
 
-    sendEmailAsync({
-      from: `"Rebetas" <${process.env.EMAIL_USER}>`,
+    await sendEmail({
       to: user.email,
       subject: "🔁 Your New Rebetas Login Code",
       html: `

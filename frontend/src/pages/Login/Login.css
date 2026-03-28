@@ -172,6 +172,29 @@
   text-decoration: underline;
 }
 
+.password-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-group input {
+  width: 100%;
+  padding-right: 40px;
+}
+
+.password-group span {
+  position: absolute;
+  right: 12px;
+  cursor: pointer;
+  font-size: 16px;
+  opacity: 0.7;
+}
+
+.password-group span:hover {
+  opacity: 1;
+}
+
 /* TABLET */
 
 @media (max-width: 1024px) {
