@@ -238,6 +238,8 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const filteredCountries = COUNTRIES.filter((c) =>
     c.name.toLowerCase().includes(search.toLowerCase()),
@@ -392,18 +394,31 @@ export default function Register() {
                 placeholder="Promo Code"
                 onChange={handleChange}
               />
-              <input
-                type="password"
-                name="password"
-                placeholder="Password"
-                onChange={handleChange}
-              />
-              <input
-                type="password"
-                name="confirmPassword"
-                placeholder="Confirm Password"
-                onChange={handleChange}
-              />
+              <div className="password-group">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  placeholder="Password"
+                  onChange={handleChange}
+                />
+                <span onClick={() => setShowPassword(!showPassword)}>
+                  {showPassword ? "🙈" : "👁️"}
+                </span>
+              </div>
+
+              <div className="password-group">
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  name="confirmPassword"
+                  placeholder="Confirm Password"
+                  onChange={handleChange}
+                />
+                <span
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  {showConfirmPassword ? "🙈" : "👁️"}
+                </span>
+              </div>
 
               <label className="terms-checkbox">
                 <input
