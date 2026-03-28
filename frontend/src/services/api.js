@@ -1,9 +1,11 @@
+import { getStoredToken } from "../utils/auth";
+
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ||
   "https://rebetas-backend-production.up.railway.app/api";
 
 async function request(endpoint, options = {}) {
-  const token = localStorage.getItem("rebetas_token");
+  const token = getStoredToken();
 
   const headers = {
     ...(options.body ? { "Content-Type": "application/json" } : {}),
@@ -31,6 +33,16 @@ async function request(endpoint, options = {}) {
       data,
       endpoint,
     });
+
+    // 🔥 HANDLE INVALID SESSION
+    if (response.status === 401) {
+      localStorage.removeItem("rebetas_token");
+      localStorage.removeItem("rebetas_user");
+
+      // redirect to login
+      window.location.href = "/login";
+      return;
+    }
 
     throw new Error(
       data?.message || `Request failed with status ${response.status}`,

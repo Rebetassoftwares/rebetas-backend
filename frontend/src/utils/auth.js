@@ -22,6 +22,8 @@ export function getStoredToken() {
   return localStorage.getItem("rebetas_token");
 }
 
+// 🔥 UPDATED
 export function isLoggedIn() {
-  return !!getStoredToken();
+  const token = getStoredToken();
+  return !!token;
 }
