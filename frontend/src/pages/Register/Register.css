@@ -147,6 +147,47 @@
   text-decoration: underline;
 }
 
+.phone-group {
+  position: relative;
+  display: flex;
+  gap: 10px;
+}
+
+.country-selector {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.country-dropdown {
+  position: absolute;
+  top: 60px;
+  left: 0;
+  width: 300px;
+  max-height: 300px;
+  overflow-y: auto;
+  background: #12041f;
+  border-radius: 12px;
+  padding: 10px;
+  z-index: 1000;
+}
+
+.country-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px;
+  cursor: pointer;
+}
+
+.country-item:hover {
+  background: rgba(160, 32, 240, 0.2);
+}
+
 /* TABLET */
 
 @media (max-width: 1024px) {
