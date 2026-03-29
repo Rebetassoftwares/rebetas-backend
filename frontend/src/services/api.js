@@ -7,8 +7,14 @@ const API_BASE_URL =
 async function request(endpoint, options = {}) {
   const token = getStoredToken();
 
+  // 🔥 detect FormData
+  const isFormData = options.body instanceof FormData;
+
   const headers = {
-    ...(options.body ? { "Content-Type": "application/json" } : {}),
+    // ✅ ONLY set JSON header if NOT FormData
+    ...(!isFormData && options.body
+      ? { "Content-Type": "application/json" }
+      : {}),
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...(options.headers || {}),
   };
@@ -39,7 +45,6 @@ async function request(endpoint, options = {}) {
       localStorage.removeItem("rebetas_token");
       localStorage.removeItem("rebetas_user");
 
-      // redirect to login
       window.location.href = "/login";
       return;
     }
@@ -56,24 +61,28 @@ const api = {
   get(endpoint) {
     return request(endpoint, { method: "GET" });
   },
+
   post(endpoint, body) {
     return request(endpoint, {
       method: "POST",
-      body: JSON.stringify(body),
+      body: body instanceof FormData ? body : JSON.stringify(body),
     });
   },
+
   put(endpoint, body) {
     return request(endpoint, {
       method: "PUT",
-      body: JSON.stringify(body),
+      body: body instanceof FormData ? body : JSON.stringify(body),
     });
   },
+
   patch(endpoint, body) {
     return request(endpoint, {
       method: "PATCH",
-      body: JSON.stringify(body),
+      body: body instanceof FormData ? body : JSON.stringify(body),
     });
   },
+
   delete(endpoint) {
     return request(endpoint, { method: "DELETE" });
   },
