@@ -134,7 +134,6 @@ function App() {
           <Route path="system" element={<SystemSettings />} />
           <Route path="promos/:id" element={<PromoDetails />} />
           <Route path="withdrawals" element={<Withdrawals />} />
-          <Route path="/admin/users/:id" element={<UserDetail />} />
 
           {/* 🔥 PLATFORM SYSTEM */}
           <Route path="platforms" element={<PlatformPage />} />
@@ -160,6 +159,8 @@ function App() {
             path="leagues/:leagueId/predictions"
             element={<LeaguePredictions />}
           />
+
+          <Route path="/admin/users/:id" element={<UserDetail />} />
 
           {/* 🔥 LIVE MONITOR */}
           <Route path="predictions/live" element={<LivePredictions />} />
