@@ -1,4 +1,5 @@
 const express = require("express");
+
 const {
   requestWithdrawalController,
   getMyWithdrawals,
@@ -6,18 +7,22 @@ const {
 
 const { getTransferFee } = require("../services/flutterwaveTransferService");
 
-const auth = require("../middleware/auth");
+// ✅ IMPORTANT: must point to your working middleware
+const authenticateUser = require("../middleware/authenticateUser");
 
 const router = express.Router();
 
-router.use(auth);
+/* ================================
+   AUTH
+================================ */
+router.use(authenticateUser);
 
 /* ================================
-   🔥 PREVIEW WITHDRAWAL (NEW)
+   🔥 PREVIEW WITHDRAWAL
 ================================ */
 router.post("/preview", async (req, res) => {
   try {
-    const { amount, currency } = req.body;
+    let { amount, currency } = req.body;
 
     const numericAmount = Number(amount);
 
@@ -27,27 +32,51 @@ router.post("/preview", async (req, res) => {
       });
     }
 
-    // 🔥 real Flutterwave fee
-    const { fee } = await getTransferFee({
-      amount: numericAmount,
-      currency,
-      type: "account",
-    });
+    // ✅ normalize currency
+    const normalizedCurrency = String(currency || "")
+      .toUpperCase()
+      .trim();
+
+    if (!normalizedCurrency) {
+      return res.status(400).json({
+        message: "Currency is required",
+      });
+    }
+
+    let fee = 0;
+
+    try {
+      // 🔥 Flutterwave fee (safe)
+      const result = await getTransferFee({
+        amount: numericAmount,
+        currency: normalizedCurrency,
+        type: "account",
+      });
+
+      fee = Number(result?.fee || 0);
+    } catch (flwError) {
+      // ✅ DO NOT crash preview if Flutterwave fails
+      console.error("Flutterwave fee error:", flwError.message);
+      fee = 0;
+    }
 
     // 🔥 hidden markup (5%)
     const markup = Number((numericAmount * 0.05).toFixed(2));
 
+    // 🔥 total fee shown to user (markup + real fee)
     const totalFee = Number((fee + markup).toFixed(2));
+
+    // 🔥 what user actually receives
     const net = Number((numericAmount - totalFee).toFixed(2));
 
-    res.json({
-      totalFee,
+    return res.json({
+      totalFee, // 👈 ONLY THIS is shown to user
       net,
     });
   } catch (err) {
     console.error("Preview error:", err.message);
 
-    res.status(500).json({
+    return res.status(500).json({
       message: "Failed to preview withdrawal",
     });
   }
