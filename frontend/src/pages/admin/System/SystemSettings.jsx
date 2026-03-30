@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom"; // ✅ ADDED
 import {
   getSettings,
   updateSettings,
@@ -14,6 +15,8 @@ const defaultSettings = {
 };
 
 export default function SystemSettings() {
+  const navigate = useNavigate(); // ✅ ADDED
+
   const [settings, setSettings] = useState(defaultSettings);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -96,7 +99,32 @@ export default function SystemSettings() {
 
   return (
     <div className="system-page">
-      <h2>System Settings</h2>
+      {/* ✅ UPDATED HEADER (SAFE ADDITION) */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <h2>System Settings</h2>
+
+        <button
+          type="button"
+          onClick={() => navigate("/admin/settings/withdrawals")}
+          style={{
+            padding: "8px 14px",
+            borderRadius: "8px",
+            border: "none",
+            background: "#7c3aed",
+            color: "#fff",
+            cursor: "pointer",
+            fontWeight: "600",
+          }}
+        >
+          Withdrawal Settings ⚙️
+        </button>
+      </div>
 
       {error && <div className="admin-error">{error}</div>}
       {success && <div className="admin-success">{success}</div>}
