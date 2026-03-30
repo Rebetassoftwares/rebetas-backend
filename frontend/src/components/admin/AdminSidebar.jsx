@@ -28,14 +28,13 @@ const menu = [
       { name: "Payments", path: "/admin/payments", icon: "💸" },
       { name: "Subscriptions", path: "/admin/subscriptions", icon: "🧾" },
       { name: "System", path: "/admin/system", icon: "⚙️" },
-      { name: "Withdrawals", path: "/admin/withdrawals", icon: "🏦" },
-
       // ✅ NEW
       {
         name: "Withdrawal Settings",
         path: "/admin/settings/withdrawals",
         icon: "⚙️",
       },
+      { name: "Withdrawals", path: "/admin/withdrawals", icon: "🏦" },
     ],
   },
 ];
