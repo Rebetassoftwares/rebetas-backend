@@ -29,6 +29,11 @@ const menu = [
       { name: "Subscriptions", path: "/admin/subscriptions", icon: "🧾" },
       { name: "System", path: "/admin/system", icon: "⚙️" },
       { name: "Withdrawals", path: "/admin/withdrawals", icon: "🏦" }, // ✅ add this too
+      {
+        name: "Withdrawals Settings",
+        path: "/admin/settings/withdrawals",
+        icon: "🏦",
+      }, // ✅ add this too
     ],
   },
 ];
