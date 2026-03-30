@@ -128,7 +128,9 @@ function App() {
           {/* EXISTING */}
           <Route path="pricing" element={<PricingManagement />} />
           <Route path="promo-codes" element={<PromoCodes />} />
-          <Route path="users" element={<Users />} />
+          <Route path="users" element={<Users />}>
+            <Route path=":id" element={<UserDetail />} />
+          </Route>
           <Route path="payments" element={<Payments />} />
           <Route path="subscriptions" element={<Subscriptions />} />
           <Route path="system" element={<SystemSettings />} />
@@ -159,8 +161,6 @@ function App() {
             path="leagues/:leagueId/predictions"
             element={<LeaguePredictions />}
           />
-
-          <Route path="users/:id" element={<UserDetail />} />
 
           {/* 🔥 LIVE MONITOR */}
           <Route path="predictions/live" element={<LivePredictions />} />

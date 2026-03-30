@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Outlet } from "react-router-dom";
 import { useEffect, useState } from "react";
 import {
   getUsers,
@@ -303,6 +303,7 @@ export default function Users() {
           </div>
         </div>
       )}
+      <Outlet />
     </div>
   );
 }
