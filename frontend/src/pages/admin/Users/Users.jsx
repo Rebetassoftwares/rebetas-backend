@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import {
   getUsers,
@@ -20,6 +21,7 @@ export default function Users() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   const [modal, setModal] = useState({
     show: false,
@@ -207,7 +209,11 @@ export default function Users() {
           </div>
 
           {filtered.map((user) => (
-            <div key={user._id} className="table-row">
+            <div
+              key={user._id}
+              className="table-row clickable"
+              onClick={() => navigate(`/admin/users/${user._id}`)}
+            >
               <span>
                 <strong>{user.fullName}</strong>
                 <br />@{user.username}
@@ -242,17 +248,26 @@ export default function Users() {
 
               <div className="actions">
                 <button
-                  onClick={() => confirmAction("status", user._id, "active")}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    confirmAction("status", user._id, "active");
+                  }}
                 >
                   Activate
                 </button>
                 <button
-                  onClick={() => confirmAction("status", user._id, "suspended")}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    confirmAction("status", user._id, "suspended");
+                  }}
                 >
                   Suspend
                 </button>
                 <button
-                  onClick={() => confirmAction("status", user._id, "banned")}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    confirmAction("status", user._id, "banned");
+                  }}
                 >
                   Ban
                 </button>

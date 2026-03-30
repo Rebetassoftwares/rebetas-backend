@@ -33,6 +33,7 @@ import Subscriptions from "./pages/admin/Subscriptions/Subscriptions";
 import SystemSettings from "./pages/admin/System/SystemSettings";
 import PromoDetails from "./pages/admin/PromoDetails/PromoDetails";
 import Withdrawals from "./pages/admin/Withdrawals";
+import UserDetail from "./pages/admin/UserDetail/UserDetail";
 
 /* 🔥 NEW SCREENS */
 import PlatformPage from "./pages/admin/platforms/PlatformPage";
@@ -133,6 +134,7 @@ function App() {
           <Route path="system" element={<SystemSettings />} />
           <Route path="promos/:id" element={<PromoDetails />} />
           <Route path="withdrawals" element={<Withdrawals />} />
+          <Route path="/admin/users/:id" element={<UserDetail />} />
 
           {/* 🔥 PLATFORM SYSTEM */}
           <Route path="platforms" element={<PlatformPage />} />
