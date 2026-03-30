@@ -48,16 +48,13 @@ const app = express();
 app.use(
   cors({
     origin: [
-      "http://localhost:5173",
-      "https://rebetas.com",
+      "http://localhost:5173", // development
+      "https://rebetas.com", // production
       "https://www.rebetas.com",
     ],
     credentials: true,
   }),
 );
-
-// 🔥🔥🔥 ADD THIS LINE
-app.options("*", cors());
 
 /*
 PAYMENT WEBHOOK ROUTE (RAW BODY REQUIRED)
