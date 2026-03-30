@@ -58,8 +58,8 @@ async function request(endpoint, options = {}) {
 }
 
 const api = {
-  get(endpoint) {
-    return request(endpoint, { method: "GET" });
+  get(endpoint, options = {}) {
+    return request(endpoint, { method: "GET", ...options });
   },
 
   post(endpoint, body) {

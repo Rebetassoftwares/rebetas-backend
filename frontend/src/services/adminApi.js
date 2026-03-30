@@ -14,7 +14,8 @@ function authConfig() {
 
 /* ---------------- DASHBOARD ---------------- */
 
-export const fetchDashboard = () => api.get("/admin/dashboard", authConfig());
+export const fetchDashboard = () =>
+  api.get("/admin/analytics/dashboard", authConfig());
 
 /* ---------------- PRICING ---------------- */
 
