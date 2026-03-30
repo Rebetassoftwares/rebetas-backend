@@ -116,7 +116,7 @@ export default function Predictions() {
         const predictionResponse = await api.get(
           `/public/predictions/live/${league}`,
         );
-        setPrediction(predictionResponse?.data || null);
+        setPrediction(predictionResponse || null);
       } catch (error) {
         console.error(error);
         setPrediction(null);
@@ -129,8 +129,7 @@ export default function Predictions() {
           `/history/${platformKey}/${leagueKey}`,
         );
 
-        const data = historyResponse?.data || [];
-        setHistory(Array.isArray(data) ? data : []);
+        setHistory(Array.isArray(historyResponse) ? historyResponse : []);
       } catch (error) {
         setHistory([]);
         console.error("history load error:", error);
@@ -152,14 +151,13 @@ export default function Predictions() {
           const predictionResponse = await api.get(
             `/public/predictions/live/${league}`,
           );
-          setPrediction(predictionResponse?.data || null);
+          setPrediction(predictionResponse || null);
 
           const historyResponse = await api.get(
             `/history/${platformKey}/${leagueKey}`,
           );
 
-          const data = historyResponse?.data || [];
-          setHistory(Array.isArray(data) ? data : []);
+          setHistory(Array.isArray(historyResponse) ? historyResponse : []);
         } catch (err) {
           console.error("Auto refresh error:", err);
         }
@@ -269,7 +267,8 @@ export default function Predictions() {
     ...new Set(history.map((item) => item.month).filter(Boolean)),
   ];
 
-  const selectedLogo = leagueOptions.find((l) => l._id === league)?.logo;
+  const selectedLogo = leagueOptions.find((l) => l._id === league)?.platformId
+    ?.logo;
 
   const homeTeam =
     prediction?.homeTeam ||
@@ -593,7 +592,11 @@ export default function Predictions() {
                 ) : filteredPredictions.length > 0 ? (
                   filteredPredictions.map((item) => (
                     <tr key={item._id}>
-                      <td>{item.date || "-"}</td>
+                      <td>
+                        {item.date
+                          ? new Date(item.date).toLocaleDateString()
+                          : "-"}
+                      </td>
                       <td>{item.week || "-"}</td>
                       <td>{item.match || "-"}</td>
                       <td>{item.odd ?? "-"}</td>

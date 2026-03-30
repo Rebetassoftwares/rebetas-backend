@@ -170,7 +170,12 @@ export default function Landing() {
 
     if (timeframe === "custom" && customStartDate && customEndDate) {
       data = data.filter((item) => {
-        return item.date >= customStartDate && item.date <= customEndDate;
+        const itemDate = new Date(item.date);
+
+        return (
+          itemDate >= new Date(customStartDate) &&
+          itemDate <= new Date(customEndDate)
+        );
       });
     }
 
@@ -463,7 +468,11 @@ export default function Landing() {
               ) : filteredPredictions.length > 0 ? (
                 filteredPredictions.map((item) => (
                   <tr key={item._id}>
-                    <td>{item.date || "-"}</td>
+                    <td>
+                      {item.date
+                        ? new Date(item.date).toLocaleDateString()
+                        : "-"}
+                    </td>
                     <td>{item.week || "-"}</td>
                     <td>{item.match || "-"}</td>
                     <td>{item.odd ?? "-"}</td>
@@ -474,7 +483,7 @@ export default function Landing() {
 
                     <td
                       className={
-                        Number(item.resultAmount || 0) > 0
+                        item.resultStatus === "WIN"
                           ? "result-win"
                           : "result-loss"
                       }
