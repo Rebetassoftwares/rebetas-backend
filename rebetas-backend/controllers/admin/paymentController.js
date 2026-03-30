@@ -4,8 +4,7 @@ async function getPayments(req, res) {
   try {
     const payments = await Payment.find({})
       .populate("userId", "username email fullName country") // 🔥 ADD THIS
-      .sort({ createdAt: -1 })
-      .lean();
+      .sort({ createdAt: -1 });
 
     res.json(payments);
   } catch (error) {
