@@ -160,7 +160,7 @@ function App() {
             element={<LeaguePredictions />}
           />
 
-          <Route path="/users/:id" element={<UserDetail />} />
+          <Route path="users/:id" element={<UserDetail />} />
 
           {/* 🔥 LIVE MONITOR */}
           <Route path="predictions/live" element={<LivePredictions />} />
