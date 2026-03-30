@@ -149,6 +149,25 @@
   border: 1px solid #ddd;
 }
 
+.status.pending {
+  color: orange;
+}
+.status.approved {
+  color: blue;
+}
+.status.processing {
+  color: purple;
+}
+.status.paid {
+  color: green;
+}
+.status.failed {
+  color: red;
+}
+.status.rejected {
+  color: gray;
+}
+
 /* ================================
    📱 MOBILE (≤ 768px)
 ================================ */

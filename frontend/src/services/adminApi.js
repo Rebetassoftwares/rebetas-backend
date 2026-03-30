@@ -93,7 +93,7 @@ export const getAllWithdrawals = () => api.get("/admin/withdrawals");
 
 /* PROCESS WITHDRAWAL (APPROVE / REJECT) */
 export const processWithdrawal = (id, data) =>
-  api.put(`/admin/withdrawals/${id}`, data);
+  api.patch(`/admin/withdrawals/${id}/${data.action}`, data);
 
 /* ================================
    🟤 PLATFORMS

@@ -85,8 +85,11 @@ export default function PayoutDetails() {
       [name]: value,
     }));
 
-    if (name === "accountNumber") {
-      verifyAccount(value, form.bankCode);
+    if (name === "accountNumber" || name === "bankCode") {
+      verifyAccount(
+        name === "accountNumber" ? value : form.accountNumber,
+        name === "bankCode" ? value : form.bankCode,
+      );
     }
   }
 
@@ -101,6 +104,7 @@ export default function PayoutDetails() {
       bankName: bank?.name || "",
       accountName: "", // reset
     }));
+    verifyAccount(form.accountNumber, code);
   }
 
   /* ================= SAVE ================= */

@@ -1,15 +1,27 @@
 const express = require("express");
-const router = express.Router();
-
-const authenticateUser = require("../middleware/authenticateUser");
-const requireAdmin = require("../middleware/requireAdmin");
-
 const {
   getAllWithdrawals,
-  processWithdrawal,
+  approveWithdrawalController,
+  rejectWithdrawalController,
+  payWithdrawalController,
+  getWithdrawalAuditLogs,
 } = require("../controllers/adminWithdrawalController");
+const {
+  getWithdrawalAnalytics,
+} = require("../controllers/withdrawalAnalyticsController");
+const auth = require("../middleware/auth");
+const requireAdmin = require("../middleware/requireAdmin");
 
-router.get("/", authenticateUser, requireAdmin, getAllWithdrawals);
-router.put("/:id", authenticateUser, requireAdmin, processWithdrawal);
+const router = express.Router();
+
+router.use(auth, requireAdmin);
+
+router.get("/", getAllWithdrawals);
+router.get("/analytics", getWithdrawalAnalytics);
+router.get("/:id/audit", getWithdrawalAuditLogs);
+
+router.patch("/:id/approve", approveWithdrawalController);
+router.patch("/:id/reject", rejectWithdrawalController);
+router.patch("/:id/pay", payWithdrawalController);
 
 module.exports = router;

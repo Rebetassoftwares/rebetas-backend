@@ -181,11 +181,17 @@ export default function PromoDashboard() {
 
               <div className="wallet-footer">
                 <button
-                  disabled={wallet.balance <= 0}
+                  disabled={wallet.balance <= 0 || wallet.pendingBalance > 0}
                   onClick={() => openWithdraw(wallet)}
                 >
                   Withdraw
                 </button>
+
+                {wallet.pendingBalance > 0 && (
+                  <p className="warning">
+                    You already have a pending withdrawal
+                  </p>
+                )}
               </div>
             </div>
           ))}

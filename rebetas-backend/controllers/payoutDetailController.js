@@ -22,7 +22,23 @@ exports.getMyPayoutDetail = async (req, res) => {
 ========================= */
 exports.saveMyPayoutDetail = async (req, res) => {
   try {
-    const { accountName, accountNumber, bankName, bankCode } = req.body;
+    const { accountNumber, bankName, bankCode } = req.body;
+
+    // 🔥 VERIFY AGAIN ON SERVER (SOURCE OF TRUTH)
+    const response = await axios.post(
+      "https://api.flutterwave.com/v3/accounts/resolve",
+      {
+        account_number: accountNumber,
+        account_bank: bankCode,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.FLUTTERWAVE_SECRET}`,
+        },
+      },
+    );
+
+    const accountName = response.data.data.account_name;
 
     if (!accountName || !accountNumber || !bankName || !bankCode) {
       return res.status(400).json({ message: "All fields required" });

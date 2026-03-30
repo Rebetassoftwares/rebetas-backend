@@ -8,6 +8,7 @@ const { startRoundScheduler } = require("./services/roundScheduler");
 const { recoverPendingPayments } = require("./services/paymentRecoveryService");
 const runSemiAuto = require("./services/semiAutoService");
 const startCleanupScheduler = require("./services/cleanupScheduler");
+const webhookRoutes = require("./routes/webhookRoutes");
 
 const SystemState = require("./models/SystemState");
 
@@ -26,6 +27,7 @@ const adminPricingRoutes = require("./routes/adminPricingRoutes");
 
 const paymentRoutes = require("./routes/paymentRoutes");
 const paymentWebhookRoutes = require("./routes/paymentWebhookRoutes");
+const settingsRoutes = require("./routes/settingsRoutes");
 
 const adminUserRoutes = require("./routes/admin/userRoutes");
 const adminSubscriptionRoutes = require("./routes/admin/subscriptionRoutes");
@@ -59,6 +61,13 @@ PAYMENT WEBHOOK ROUTE (RAW BODY REQUIRED)
 */
 app.use("/api/payments/webhook", express.raw({ type: "application/json" }));
 app.use("/api/payments/webhook", paymentWebhookRoutes);
+
+/*
+🔥 NEW: FLUTTERWAVE TRANSFER WEBHOOK (RAW BODY REQUIRED)
+*/
+app.use("/api/webhooks/flutterwave", express.raw({ type: "application/json" }));
+app.use("/api/webhooks/flutterwave", webhookRoutes);
+
 /*
 NORMAL JSON ROUTES
 */
@@ -87,7 +96,7 @@ app.use("/api/admin/payments", adminPaymentRoutes);
 app.use("/api/admin/analytics", adminAnalyticsRoutes);
 app.use("/api/pricing", pricingRoutes);
 
-app.use("/api/withdrawals", promoWithdrawalRoutes);
+app.use("/api/promo/withdrawals", promoWithdrawalRoutes);
 app.use("/api/admin/withdrawals", adminWithdrawalRoutes);
 app.use("/api/promo", promoRoutes);
 
@@ -97,6 +106,7 @@ app.use("/api/prediction-settings", predictionSettingsRoutes);
 app.use("/api/manual-leagues", manualLeagueRoutes);
 app.use("/api/manual-predictions", manualPredictionRoutes);
 app.use("/api/public/predictions", publicPredictionRoutes);
+app.use("/api/settings", settingsRoutes);
 
 /*
 HEALTH CHECK

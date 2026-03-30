@@ -1,5 +1,11 @@
 const PromoWithdrawal = require("../models/PromoWithdrawal");
-const PromoWallet = require("../models/PromoWallet");
+const WithdrawalAuditLog = require("../models/WithdrawalAuditLog");
+const User = require("../models/User");
+const {
+  approveWithdrawal,
+  rejectWithdrawal,
+  payWithdrawal,
+} = require("../services/withdrawalOrchestratorService");
 
 /* ================================
    GET ALL WITHDRAWALS (ADMIN)
@@ -7,11 +13,30 @@ const PromoWallet = require("../models/PromoWallet");
 async function getAllWithdrawals(req, res) {
   try {
     const withdrawals = await PromoWithdrawal.find({})
-      .populate("ownerId", "fullName email username")
       .sort({ createdAt: -1 })
       .lean();
 
-    res.json(withdrawals);
+    const userIds = [
+      ...new Set(withdrawals.map((w) => w.ownerId?.toString()).filter(Boolean)),
+    ];
+
+    const users = await User.find({
+      _id: { $in: userIds },
+    })
+      .select("fullName email username")
+      .lean();
+
+    const userMap = {};
+    users.forEach((user) => {
+      userMap[user._id.toString()] = user;
+    });
+
+    const enriched = withdrawals.map((withdrawal) => ({
+      ...withdrawal,
+      owner: userMap[withdrawal.ownerId?.toString()] || null,
+    }));
+
+    res.json(enriched);
   } catch (error) {
     console.error("Admin withdrawals error:", error.message);
 
@@ -22,61 +47,95 @@ async function getAllWithdrawals(req, res) {
 }
 
 /* ================================
-   PROCESS WITHDRAWAL (ADMIN)
+   APPROVE WITHDRAWAL
 ================================ */
-async function processWithdrawal(req, res) {
+async function approveWithdrawalController(req, res) {
   try {
     const { id } = req.params;
-    const { action, adminNote } = req.body;
+    const { adminNote } = req.body;
 
-    const withdrawal = await PromoWithdrawal.findById(id);
-
-    if (!withdrawal) {
-      return res.status(404).json({
-        message: "Withdrawal not found",
-      });
-    }
-
-    if (withdrawal.status !== "pending") {
-      return res.status(400).json({
-        message: "Already processed",
-      });
-    }
-
-    const wallet = await PromoWallet.findById(withdrawal.walletId);
-
-    if (!wallet) {
-      return res.status(404).json({
-        message: "Wallet not found",
-      });
-    }
-
-    if (action === "approve") {
-      wallet.pendingBalance -= withdrawal.amount;
-      wallet.totalWithdrawn += withdrawal.amount;
-
-      withdrawal.status = "approved";
-    } else if (action === "reject") {
-      wallet.pendingBalance -= withdrawal.amount;
-      wallet.balance += withdrawal.amount;
-
-      withdrawal.status = "rejected";
-    } else {
-      return res.status(400).json({
-        message: "Invalid action",
-      });
-    }
-
-    withdrawal.adminNote = adminNote || "";
-    withdrawal.processedBy = req.user._id;
-    withdrawal.processedAt = new Date();
-
-    await wallet.save();
-    await withdrawal.save();
+    const withdrawal = await approveWithdrawal({
+      withdrawalId: id,
+      adminId: req.user._id,
+      adminNote,
+    });
 
     res.json(withdrawal);
   } catch (error) {
-    console.error("Process withdrawal error:", error.message);
+    console.error("Approve withdrawal error:", error.message);
+
+    res.status(400).json({
+      message: error.message || "Failed to approve withdrawal",
+    });
+  }
+}
+
+/* ================================
+   REJECT WITHDRAWAL
+================================ */
+async function rejectWithdrawalController(req, res) {
+  try {
+    const { id } = req.params;
+    const { adminNote } = req.body;
+
+    const withdrawal = await rejectWithdrawal({
+      withdrawalId: id,
+      adminId: req.user._id,
+      adminNote,
+    });
+
+    res.json(withdrawal);
+  } catch (error) {
+    console.error("Reject withdrawal error:", error.message);
+
+    res.status(400).json({
+      message: error.message || "Failed to reject withdrawal",
+    });
+  }
+}
+
+/* ================================
+   PAY WITHDRAWAL
+================================ */
+async function payWithdrawalController(req, res) {
+  try {
+    const { id } = req.params;
+    const { adminNote, mockSuccess, mockFailure } = req.body;
+
+    const withdrawal = await payWithdrawal({
+      withdrawalId: id,
+      adminId: req.user._id,
+      adminNote,
+      mockSuccess: !!mockSuccess,
+      mockFailure: !!mockFailure,
+    });
+
+    res.json(withdrawal);
+  } catch (error) {
+    console.error("Pay withdrawal error:", error.message);
+
+    res.status(400).json({
+      message: error.message || "Failed to initiate payout",
+    });
+  }
+}
+
+/* ================================
+   GET AUDIT LOGS
+================================ */
+async function getWithdrawalAuditLogs(req, res) {
+  try {
+    const { id } = req.params;
+
+    const logs = await WithdrawalAuditLog.find({
+      withdrawalId: id,
+    })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    res.json(logs);
+  } catch (error) {
+    console.error("Withdrawal audit logs error:", error.message);
 
     res.status(500).json({
       message: "Server error",
@@ -86,5 +145,8 @@ async function processWithdrawal(req, res) {
 
 module.exports = {
   getAllWithdrawals,
-  processWithdrawal,
+  approveWithdrawalController,
+  rejectWithdrawalController,
+  payWithdrawalController,
+  getWithdrawalAuditLogs,
 };

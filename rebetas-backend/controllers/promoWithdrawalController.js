@@ -1,91 +1,48 @@
-const PromoWallet = require("../models/PromoWallet");
 const PromoWithdrawal = require("../models/PromoWithdrawal");
-const PayoutDetail = require("../models/PayoutDetail");
+const SystemSettings = require("../models/SystemSettings"); // ✅ ADD THIS
+const {
+  requestWithdrawal,
+} = require("../services/withdrawalOrchestratorService");
 
 /* ================================
    REQUEST WITHDRAWAL (USER)
 ================================ */
-async function requestWithdrawal(req, res) {
+async function requestWithdrawalController(req, res) {
   try {
     const userId = req.user._id;
-
     const { currency, amount } = req.body;
 
-    if (!currency || !amount) {
-      return res.status(400).json({
-        message: "currency and amount are required",
-      });
-    }
-
-    if (amount <= 0) {
-      return res.status(400).json({
-        message: "Invalid withdrawal amount",
-      });
-    }
+    const normalizedCurrency = String(currency || "")
+      .toUpperCase()
+      .trim();
 
     /* ============================
-       CHECK PAYOUT DETAILS
+       🔥 GET MIN WITHDRAWAL FROM SETTINGS
     ============================ */
-    const payout = await PayoutDetail.findOne({ ownerId: userId });
+    const settings = await SystemSettings.findOne().lean();
 
-    if (!payout) {
-      return res.status(400).json({
-        message: "Please set your payment details before withdrawing",
-      });
-    }
+    const minMap = settings?.minWithdrawal || {};
 
-    /* ============================
-       GET WALLET
-    ============================ */
-    const wallet = await PromoWallet.findOne({
-      ownerId: userId,
-      currency: currency.toUpperCase(),
-    });
+    const minimumAmount =
+      minMap[normalizedCurrency] ||
+      (typeof minMap.get === "function"
+        ? minMap.get(normalizedCurrency)
+        : undefined) ||
+      1;
 
-    if (!wallet) {
-      return res.status(404).json({
-        message: "Wallet not found",
-      });
-    }
-
-    if (wallet.balance < amount) {
-      return res.status(400).json({
-        message: "Insufficient balance",
-      });
-    }
-
-    /* ============================
-       MOVE FUNDS TO PENDING
-    ============================ */
-    wallet.balance -= amount;
-    wallet.pendingBalance += amount;
-
-    await wallet.save();
-
-    /* ============================
-       CREATE WITHDRAWAL
-    ============================ */
-    const withdrawal = await PromoWithdrawal.create({
-      ownerId: userId,
-      walletId: wallet._id,
-      currency: wallet.currency,
+    const withdrawal = await requestWithdrawal({
+      userId,
+      currency: normalizedCurrency,
       amount,
-
-      // 🔥 SNAPSHOT FROM DB (NOT FRONTEND)
-      payoutDetails: {
-        accountName: payout.accountName,
-        accountNumber: payout.accountNumber,
-        bankName: payout.bankName,
-        bankCode: payout.bankCode,
-      },
+      minimumAmount, // ✅ dynamic now
     });
 
     res.status(201).json(withdrawal);
   } catch (error) {
     console.error("Withdrawal request error:", error.message);
 
-    res.status(500).json({
-      message: "Server error",
+    res.status(400).json({
+      message: error.message || "Failed to request withdrawal",
     });
   }
 }
@@ -114,6 +71,6 @@ async function getMyWithdrawals(req, res) {
 }
 
 module.exports = {
-  requestWithdrawal,
+  requestWithdrawalController,
   getMyWithdrawals,
 };

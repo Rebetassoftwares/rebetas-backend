@@ -78,14 +78,18 @@ export default function Withdrawals() {
     let total = 0;
     let pending = 0;
     let approved = 0;
+    let paid = 0;
+    let failed = 0;
 
     data.forEach((w) => {
       total += w.amount;
       if (w.status === "pending") pending += w.amount;
       if (w.status === "approved") approved += w.amount;
+      if (w.status === "paid") paid += w.amount;
+      if (w.status === "failed") failed += w.amount;
     });
 
-    return { total, pending, approved };
+    return { total, pending, approved, paid, failed };
   }, [data]);
 
   if (loading) return <div className="loading">Loading...</div>;
@@ -98,7 +102,15 @@ export default function Withdrawals() {
         <h1>Withdrawals</h1>
 
         <div className="filters">
-          {["all", "pending", "approved", "rejected"].map((f) => (
+          {[
+            "all",
+            "pending",
+            "approved",
+            "processing",
+            "paid",
+            "failed",
+            "rejected",
+          ].map((f) => (
             <button
               key={f}
               className={filter === f ? "active" : ""}
@@ -169,6 +181,16 @@ export default function Withdrawals() {
           <p>Approved</p>
           <h2>{summary.approved}</h2>
         </div>
+
+        <div className="card paid">
+          <p>Paid</p>
+          <h2>{summary.paid}</h2>
+        </div>
+
+        <div className="card failed">
+          <p>Failed</p>
+          <h2>{summary.failed}</h2>
+        </div>
       </div>
 
       {/* TABLE */}
@@ -189,7 +211,7 @@ export default function Withdrawals() {
           <tbody>
             {filtered.map((w) => (
               <tr key={w._id}>
-                <td>{w.ownerId?.username || "-"}</td>
+                <td>{w.owner?.username || "-"}</td>
                 <td>{w.currency}</td>
                 <td>{w.amount}</td>
 
@@ -209,14 +231,15 @@ export default function Withdrawals() {
                 </td>
 
                 <td>
-                  {w.status === "pending" ? (
+                  {/* PENDING */}
+                  {w.status === "pending" && (
                     <div className="actions">
                       <button
                         disabled={processingId === w._id}
                         className="approve"
                         onClick={() => handleAction(w._id, "approve", w._note)}
                       >
-                        {processingId === w._id ? "..." : "Approve"}
+                        Approve
                       </button>
 
                       <button
@@ -227,8 +250,41 @@ export default function Withdrawals() {
                         Reject
                       </button>
                     </div>
-                  ) : (
-                    <span className="done">Done</span>
+                  )}
+
+                  {/* APPROVED → PAY */}
+                  {w.status === "approved" && (
+                    <button
+                      className="pay"
+                      disabled={processingId === w._id}
+                      onClick={() => {
+                        if (
+                          confirm("Are you sure you want to send this payment?")
+                        ) {
+                          handleAction(w._id, "pay", w._note);
+                        }
+                      }}
+                    >
+                      Pay
+                    </button>
+                  )}
+
+                  {/* PROCESSING */}
+                  {w.status === "processing" && (
+                    <span className="processing">Processing...</span>
+                  )}
+
+                  {/* PAID */}
+                  {w.status === "paid" && <span className="done">Paid</span>}
+
+                  {/* FAILED */}
+                  {w.status === "failed" && (
+                    <span className="failed">Failed</span>
+                  )}
+
+                  {/* REJECTED */}
+                  {w.status === "rejected" && (
+                    <span className="done">Rejected</span>
                   )}
                 </td>
               </tr>
