@@ -5,8 +5,22 @@ import "./Payments.css";
 
 function getUserDisplay(user) {
   if (!user) return "N/A";
+
   if (typeof user === "string") return user;
-  return user.username || user.email || user.fullName || "N/A";
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column" }}>
+      <span>{user.fullName || user.username || "N/A"}</span>
+
+      {user.username && (
+        <small style={{ opacity: 0.6 }}>@{user.username}</small>
+      )}
+
+      {user.email && <small style={{ opacity: 0.6 }}>{user.email}</small>}
+
+      {user.country && <small style={{ opacity: 0.6 }}>{user.country}</small>}
+    </div>
+  );
 }
 
 export default function Payments() {
