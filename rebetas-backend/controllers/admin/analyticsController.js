@@ -1,7 +1,7 @@
 const User = require("../../models/User");
 const Subscription = require("../../models/Subscription");
 const Payment = require("../../models/Payment");
-const PromoCode = require("../../models/PromoCode");
+const PromoWallet = require("../../models/PromoWallet"); // ✅ FIXED SOURCE
 
 async function getDashboard(req, res) {
   console.log("🔥 DASHBOARD CONTROLLER HIT");
@@ -16,17 +16,17 @@ async function getDashboard(req, res) {
       endDate: { $gt: now },
     });
 
-    /* ---------------- SAFE PAYMENT AGGREGATION ---------------- */
+    /* ---------------- REVENUE (GROUP BY CURRENCY) ---------------- */
 
-    let revenue = 0;
+    let revenue = [];
 
     try {
       const payments = await Payment.aggregate([
         { $match: { status: "success" } },
         {
           $group: {
-            _id: null,
-            revenue: {
+            _id: "$currency",
+            total: {
               $sum: {
                 $cond: [{ $isNumber: "$amount" }, "$amount", 0],
               },
@@ -35,34 +35,38 @@ async function getDashboard(req, res) {
         },
       ]);
 
-      revenue = payments.length ? payments[0].revenue : 0;
+      revenue = payments.map((item) => ({
+        currency: item._id,
+        total: item.total,
+      }));
     } catch (err) {
       console.error("Payment aggregation error:", err.message);
-      revenue = 0;
+      revenue = [];
     }
 
-    /* ---------------- SAFE PROMO AGGREGATION ---------------- */
+    /* ---------------- PROMO EARNINGS (FROM WALLET) ---------------- */
 
-    let promoEarnings = 0;
+    /* ---------------- PROMO WALLET BREAKDOWN ---------------- */
+
+    let promoStats = [];
 
     try {
-      const promoAgg = await PromoCode.aggregate([
-        {
-          $group: {
-            _id: null,
-            total: {
-              $sum: {
-                $cond: [{ $isNumber: "$totalEarned" }, "$totalEarned", 0],
-              },
-            },
-          },
-        },
-      ]);
+      const wallets = await PromoWallet.find().lean();
 
-      promoEarnings = promoAgg.length ? promoAgg[0].total : 0;
+      promoStats = wallets.map((wallet) => ({
+        currency: wallet.currency,
+
+        totalEarned: wallet.totalEarned || 0,
+        balance: wallet.balance || 0,
+        pending: wallet.pendingBalance || 0,
+        withdrawn: wallet.totalWithdrawn || 0,
+
+        // optional alias (same as withdrawn)
+        paidOut: wallet.totalWithdrawn || 0,
+      }));
     } catch (err) {
-      console.error("Promo aggregation error:", err.message);
-      promoEarnings = 0;
+      console.error("Promo wallet error:", err.message);
+      promoStats = [];
     }
 
     /* ---------------- RESPONSE ---------------- */
@@ -71,7 +75,7 @@ async function getDashboard(req, res) {
       users: totalUsers || 0,
       activeSubscriptions: activeSubscriptions || 0,
       revenue,
-      promoEarnings,
+      promoStats, // 🔥 NEW STRUCTURE
     });
   } catch (error) {
     console.error("Dashboard error:", error.message);
