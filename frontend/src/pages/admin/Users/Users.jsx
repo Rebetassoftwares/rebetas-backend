@@ -271,10 +271,20 @@ export default function Users() {
                 >
                   Ban
                 </button>
-                <button onClick={() => confirmAction("reset", user._id)}>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    confirmAction("reset", user._id);
+                  }}
+                >
                   Reset
                 </button>
-                <button onClick={() => confirmAction("delete", user._id)}>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    confirmAction("delete", user._id);
+                  }}
+                >
                   Delete
                 </button>
               </div>
