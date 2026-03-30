@@ -15,13 +15,7 @@ import { useState, useEffect, useMemo } from "react";
 import api from "../../services/api";
 
 import heroBg from "../../assets/hero_sport.jpg";
-
-import bet9jaLogo from "../../assets/bet9ja.png";
-import sportybetLogo from "../../assets/sportybet.png";
-import betkingLogo from "../../assets/betking.png";
-import oneXbetLogo from "../../assets/1xbet.png";
-import betwayLogo from "../../assets/betway.png";
-import bangbetLogo from "../../assets/bangbet.png";
+import { getImageUrl } from "../../utils/getImageUrl";
 
 import predictionScreen from "../../assets/prediction-screen.png";
 
@@ -71,7 +65,11 @@ export default function Landing() {
       try {
         const res = await api.get("/platforms");
 
-        const data = Array.isArray(res) ? res : [];
+        const data = Array.isArray(res?.data)
+          ? res.data
+          : Array.isArray(res)
+            ? res
+            : [];
 
         setPlatforms(data);
 
@@ -274,9 +272,12 @@ export default function Landing() {
               {platforms.map((p) => (
                 <img
                   key={p._id}
-                  src={p.logo || ""}
+                  src={getImageUrl(p.logo)}
                   alt={p.name}
                   onClick={() => setPlatformId(p._id)}
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none";
+                  }}
                   style={{
                     cursor: "pointer",
                     opacity: platformId === p._id ? 1 : 0.6,
@@ -748,12 +749,16 @@ export default function Landing() {
           </p>
 
           <div className="platform-logos">
-            <img src={betwayLogo} alt="Betway" />
-            <img src={oneXbetLogo} alt="1xBet" />
-            <img src={sportybetLogo} alt="SportyBet" />
-            <img src={betkingLogo} alt="BetKing" />
-            <img src={bet9jaLogo} alt="Bet9ja" />
-            <img src={bangbetLogo} alt="BangBet" />
+            {platforms.map((p) => (
+              <img
+                key={p._id}
+                src={getImageUrl(p.logo)}
+                alt={p.name}
+                onError={(e) => {
+                  e.currentTarget.style.display = "none";
+                }}
+              />
+            ))}
           </div>
         </div>
       </section>

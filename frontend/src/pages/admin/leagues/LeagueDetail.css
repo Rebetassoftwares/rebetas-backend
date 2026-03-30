@@ -33,21 +33,45 @@
   align-items: center;
 }
 
-.logo {
-  width: 50px;
-  height: 50px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.2);
+/* LEAGUE BANNER */
+.league-banner {
+  width: 100%;
+  height: 150px;
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 14px;
+  background: rgba(255, 255, 255, 0.04);
+}
 
+.league-banner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* PLATFORM SUB IMAGE */
+.logo {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .logo img {
   width: 100%;
   height: 100%;
-  border-radius: 10px;
+  object-fit: contain;
+}
+
+.logo span {
+  font-size: 20px;
+  font-weight: 600;
+  color: #fff;
+  opacity: 0.7;
 }
 
 /* GRID */

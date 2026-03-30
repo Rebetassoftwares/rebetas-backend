@@ -6,7 +6,7 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <nav className="navbar">
+    <nav className="navbar rebetas-navbar">
       <div className="navbar-container">
         <Link to="/" className="logo">
           Rebetas

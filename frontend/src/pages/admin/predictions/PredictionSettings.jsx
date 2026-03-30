@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getPlatforms, getLeaguesByPlatform } from "../../../services/adminApi";
 import "./PredictionSettings.css";
+import { getImageUrl } from "../../../utils/getImageUrl";
 
 export default function PredictionSettings() {
   const [platforms, setPlatforms] = useState([]);
@@ -133,7 +134,7 @@ export default function PredictionSettings() {
             <div className="platform-top">
               <div className="platform-logo">
                 {p.logo ? (
-                  <img src={p.logo} alt={p.name} />
+                  <img src={getImageUrl(p.logo)} />
                 ) : (
                   <span>{p.name?.charAt(0)}</span>
                 )}

@@ -6,6 +6,7 @@ import "./Dashboard.css";
 import Footer from "../../components/Footer/Footer";
 import api from "../../services/api";
 import { getStoredUser } from "../../utils/auth";
+import { getImageUrl } from "../../utils/getImageUrl";
 
 export default function Dashboard() {
   const user = getStoredUser();
@@ -46,7 +47,11 @@ export default function Dashboard() {
       try {
         const res = await api.get("/platforms");
 
-        const data = Array.isArray(res) ? res : [];
+        const data = Array.isArray(res?.data)
+          ? res.data
+          : Array.isArray(res)
+            ? res
+            : [];
 
         // ✅ show all platforms (dashboard is interactive page → optional filter later)
         setPlatforms(data);
@@ -170,7 +175,13 @@ export default function Dashboard() {
                 onClick={() => navigate(`/prediction/${platform._id}`)}
               >
                 {platform.logo ? (
-                  <img src={platform.logo} alt={platform.name} />
+                  <img
+                    src={getImageUrl(platform.logo)}
+                    alt={platform.name}
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                    }}
+                  />
                 ) : (
                   <div className="platform-placeholder">{platform.name}</div>
                 )}

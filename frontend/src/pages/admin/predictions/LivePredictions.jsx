@@ -2,13 +2,16 @@ import { useEffect, useState, useCallback } from "react";
 import {
   getLivePredictions,
   updatePredictionResult,
+  getPlatforms,
 } from "../../../services/adminApi";
 import "./LivePredictions.css";
+import { getImageUrl } from "../../../utils/getImageUrl";
 
 export default function LivePredictions() {
   const [grouped, setGrouped] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [platformMap, setPlatformMap] = useState({});
 
   // GROUPING LOGIC
   const groupPredictions = useCallback((data) => {
@@ -61,6 +64,32 @@ export default function LivePredictions() {
     loadData();
   }, [loadData]);
 
+  useEffect(() => {
+    async function loadPlatformsData() {
+      try {
+        const res = await getPlatforms();
+
+        const data = Array.isArray(res?.data)
+          ? res.data
+          : Array.isArray(res)
+            ? res
+            : [];
+
+        const map = {};
+
+        data.forEach((p) => {
+          map[p.name] = p; // 🔥 key = platform name
+        });
+
+        setPlatformMap(map);
+      } catch (err) {
+        console.error("Platform map load error", err);
+      }
+    }
+
+    loadPlatformsData();
+  }, []);
+
   // RESULT UPDATE
   const handleResult = useCallback(
     async (id, status) => {
@@ -89,7 +118,19 @@ export default function LivePredictions() {
       {/* PLATFORM GROUP */}
       {Object.entries(grouped).map(([platform, leagues]) => (
         <div key={platform} className="platform-block">
-          <h3>{platform}</h3>
+          <div className="platform-header">
+            {platformMap[platform]?.logo && (
+              <img
+                src={getImageUrl(platformMap[platform].logo)}
+                alt={platform}
+                onError={(e) => {
+                  e.currentTarget.style.display = "none";
+                }}
+              />
+            )}
+
+            <h3>{platform}</h3>
+          </div>
 
           {/* LEAGUE GROUP */}
           {Object.entries(leagues).map(([league, preds]) => (

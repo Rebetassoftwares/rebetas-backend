@@ -64,6 +64,17 @@ export default function Login() {
     return `${firstChar}${hidden}@${domain}`;
   }
 
+  function getDeviceToken() {
+    let token = localStorage.getItem("device_token");
+
+    if (!token) {
+      token = crypto.randomUUID();
+      localStorage.setItem("device_token", token);
+    }
+
+    return token;
+  }
+
   // 🔢 OTP INPUT HANDLER
   function handleOtpChange(value, index) {
     if (!/^[0-9]?$/.test(value)) return;
@@ -104,14 +115,33 @@ export default function Login() {
     setSuccess("");
 
     try {
-      const res = await api.post("/user/login", formData);
+      const deviceToken = getDeviceToken();
 
+      const res = await api.post("/user/login", {
+        ...formData,
+        deviceToken,
+      });
+
+      // ✅ SAME DEVICE → DIRECT LOGIN
+      if (res.token && res.user) {
+        saveAuth(res);
+
+        const role = res?.user?.role;
+
+        if (role === "admin") {
+          navigate("/admin");
+        } else {
+          navigate("/dashboard");
+        }
+
+        return;
+      }
+
+      // 🔐 NEW DEVICE → OTP FLOW
       setUserId(res.userId);
-      setUserEmail(res.email); // ✅ IMPORTANT
+      setUserEmail(res.email);
       setStep("otp");
-
       setCountdown(60);
-
       setSuccess("Verification code sent to your email");
     } catch (err) {
       setError(err.message || "Login failed");
@@ -133,9 +163,12 @@ export default function Login() {
     setSuccess("");
 
     try {
+      const deviceToken = getDeviceToken();
+
       const res = await api.post("/user/verify-login-otp", {
         userId,
         otp,
+        deviceToken,
       });
 
       saveAuth(res);

@@ -2,64 +2,10 @@ const ManualPrediction = require("../models/ManualPrediction");
 const ManualLeague = require("../models/ManualLeague");
 const SystemState = require("../models/SystemState");
 const { calculateCycles } = require("../utils/cycleCalculator");
-const { storePrediction } = require("./historyController");
+const { calculateBaseStake } = require("../services/martingaleService");
 const {
-  getStake,
-  updateStake,
-  getTrackerKey,
-} = require("../services/martingaleService");
-
-function getISOWeek(dateInput) {
-  const date = new Date(dateInput);
-
-  if (Number.isNaN(date.getTime())) {
-    return null;
-  }
-
-  const utcDate = new Date(
-    Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()),
-  );
-
-  const dayNum = utcDate.getUTCDay() || 7;
-  utcDate.setUTCDate(utcDate.getUTCDate() + 4 - dayNum);
-
-  const yearStart = new Date(Date.UTC(utcDate.getUTCFullYear(), 0, 1));
-  const weekNo = Math.ceil(((utcDate - yearStart) / 86400000 + 1) / 7);
-
-  return String(weekNo);
-}
-
-function formatHistoryDate(dateInput) {
-  const date = new Date(dateInput);
-
-  if (Number.isNaN(date.getTime())) {
-    return null;
-  }
-
-  return date.toISOString().split("T")[0];
-}
-
-function formatHistoryMonth(dateInput) {
-  const date = new Date(dateInput);
-
-  if (Number.isNaN(date.getTime())) {
-    return null;
-  }
-
-  return date.toLocaleString("default", { month: "long" });
-}
-
-function buildHistoryMatch(prediction) {
-  if (prediction.homeTeam && prediction.awayTeam) {
-    return `${prediction.homeTeam} vs ${prediction.awayTeam}`;
-  }
-
-  if (prediction.team) {
-    return prediction.team;
-  }
-
-  return "Unknown Match";
-}
+  recomputeMartingale,
+} = require("../services/martingaleRecomputeService");
 
 exports.createManualPrediction = async (req, res) => {
   try {
@@ -122,8 +68,11 @@ exports.createManualPrediction = async (req, res) => {
       return res.status(500).json({ message: "System state not initialized" });
     }
 
-    const trackerKey = getTrackerKey(league.platform, league.leagueName);
-    const stake = getStake(trackerKey, systemState);
+    // ✅ base stake only at creation
+    const stake = calculateBaseStake(
+      Number(systemState.initialCapital || systemState.capital || 0),
+      systemState.baseStakePercent,
+    );
 
     const matchNumber =
       Math.floor(Math.random() * Number(league.totalMatches)) + 1;
@@ -189,14 +138,6 @@ exports.updatePredictionResult = async (req, res) => {
       });
     }
 
-    prediction.status = status;
-    await prediction.save();
-
-    const systemState = await SystemState.findOne({ key: "main" });
-    if (!systemState) {
-      return res.status(500).json({ message: "System state not initialized" });
-    }
-
     const win = status === "won";
     const stake = Number(prediction.stake || 0);
     const odd = Number(prediction.odd || 0);
@@ -204,42 +145,21 @@ exports.updatePredictionResult = async (req, res) => {
     const resultAmount = win ? Math.round(stake * odd) : 0;
     const profit = resultAmount - stake;
 
-    systemState.capital += profit;
-    await systemState.save();
+    prediction.status = status;
+    prediction.resultAmount = resultAmount;
+    prediction.profit = profit;
+    prediction.resultStatus = win ? "WIN" : "LOSS";
 
-    const trackerKey = getTrackerKey(
-      prediction.platform,
-      prediction.leagueName,
-    );
-    updateStake(trackerKey, win, systemState);
+    await prediction.save();
 
-    const historyDateSource = prediction.scheduledFor || new Date();
+    await recomputeMartingale(prediction.platform, prediction.leagueName);
 
-    await storePrediction({
-      platform: prediction.platform,
-      league: prediction.leagueName,
-      season: null,
-      week: getISOWeek(historyDateSource),
-      matchId: String(prediction._id),
-      match: buildHistoryMatch(prediction),
-      prediction:
-        prediction.type === "SEMI_AUTO" ? prediction.team : "OVER 1.5",
-      odd,
-      stake,
-      resultAmount,
-      profit,
-      capitalAfter: systemState.capital,
-      resultStatus: win ? "WIN" : "LOSS",
-      homeScore: null,
-      awayScore: null,
-      date: formatHistoryDate(historyDateSource),
-      month: formatHistoryMonth(historyDateSource),
-    });
+    const systemState = await SystemState.findOne({ key: "main" });
 
     res.json({
       message: "Prediction result updated successfully",
       prediction,
-      capitalAfter: systemState.capital,
+      capitalAfter: systemState?.capital || 0,
       resultAmount,
       profit,
     });

@@ -3,6 +3,7 @@ import Navbar from "../../components/Navbar/Navbar";
 import Footer from "../../components/Footer/Footer";
 import DashboardNavbar from "../../components/DashboardNavbar/DashboardNavbar";
 import api from "../../services/api";
+import { getImageUrl } from "../../utils/getImageUrl";
 import "./SupportedPlatforms.css";
 
 export default function SupportedPlatforms() {
@@ -21,10 +22,13 @@ export default function SupportedPlatforms() {
         setLoading(true);
         setError("");
 
-        const data = await api.get("/manual-leagues");
+        const res = await api.get("/manual-leagues");
 
-        // ✅ ensure array
-        const safeData = Array.isArray(data) ? data : [];
+        const safeData = Array.isArray(res?.data)
+          ? res.data
+          : Array.isArray(res)
+            ? res
+            : [];
 
         // ✅ DO NOT FILTER (info page)
         const validLeagues = safeData;
@@ -125,7 +129,13 @@ export default function SupportedPlatforms() {
               {Object.values(groupedPlatforms).map((platform) => (
                 <div key={platform._id} className="platform-card">
                   {platform.logo ? (
-                    <img src={platform.logo} alt={platform.name} />
+                    <img
+                      src={getImageUrl(platform.logo)}
+                      alt={platform.name}
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                      }}
+                    />
                   ) : (
                     <div className="platform-placeholder">{platform.name}</div>
                   )}
@@ -146,7 +156,21 @@ export default function SupportedPlatforms() {
               {Object.values(groupedPlatforms).map((platform) =>
                 platform.leagues.map((league) => (
                   <div key={league._id} className="league-card">
-                    {league.leagueName}
+                    {league.logo ? (
+                      <img
+                        src={getImageUrl(league.logo)}
+                        alt={league.leagueName}
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                        }}
+                      />
+                    ) : (
+                      <div className="league-placeholder">
+                        {league.leagueName?.charAt(0)}
+                      </div>
+                    )}
+
+                    <span>{league.leagueName}</span>
                   </div>
                 )),
               )}

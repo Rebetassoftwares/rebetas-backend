@@ -21,7 +21,7 @@ export default function PromoDashboard() {
 
       const res = await api.get("/promo/my");
 
-      setData(res);
+      setData(res?.data || res);
     } catch (err) {
       console.error(err);
       setError(err.message);
@@ -79,6 +79,43 @@ export default function PromoDashboard() {
         </div>
       </div>
 
+      <div className="promo-info-box">
+        <h3>Promo Details</h3>
+
+        <p>
+          <strong>Code:</strong> {promo.code || "-"}
+        </p>
+
+        <p>
+          <strong>Commission:</strong> {promo.commissionPercent || 0}%
+        </p>
+
+        {/* 🔥 CONDITIONAL BENEFITS */}
+
+        {promo.discountPercent > 0 && (
+          <p>
+            <strong>Discount:</strong> {promo.discountPercent}%
+          </p>
+        )}
+
+        {(promo.freeDays > 0 || promo.freeWeeks > 0) && (
+          <p>
+            <strong>Free Time:</strong> {promo.freeDays || 0} days /{" "}
+            {promo.freeWeeks || 0} weeks
+          </p>
+        )}
+
+        {/* 🔥 NOTHING SET */}
+
+        {promo.discountPercent === 0 &&
+          promo.freeDays === 0 &&
+          promo.freeWeeks === 0 && <p>No additional benefits configured</p>}
+
+        <p>
+          <strong>Max Uses Per User:</strong> {promo.maxUsesPerUser || 1}
+        </p>
+      </div>
+
       {/* SUMMARY */}
       <div className="summary-grid">
         <div className="summary-card">
@@ -99,6 +136,20 @@ export default function PromoDashboard() {
         <div className="summary-card">
           <p>Commission</p>
           <h2>{promo.commissionPercent}%</h2>
+        </div>
+
+        <div className="summary-card">
+          <p>Promo Power</p>
+
+          <h3 style={{ fontSize: "14px", lineHeight: "1.4" }}>
+            {promo.discountPercent > 0 && `${promo.discountPercent}% OFF `}
+            {(promo.freeDays > 0 || promo.freeWeeks > 0) &&
+              `+ ${promo.freeDays || 0}d / ${promo.freeWeeks || 0}w`}
+          </h3>
+        </div>
+        <div className="summary-card">
+          <p>Usage Limit</p>
+          <h2>{promo.maxUsesPerUser || 1}</h2>
         </div>
       </div>
 

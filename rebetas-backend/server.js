@@ -7,6 +7,7 @@ const connectDB = require("./database/connectDB");
 const { startRoundScheduler } = require("./services/roundScheduler");
 const { recoverPendingPayments } = require("./services/paymentRecoveryService");
 const runSemiAuto = require("./services/semiAutoService");
+const startCleanupScheduler = require("./services/cleanupScheduler");
 
 const SystemState = require("./models/SystemState");
 
@@ -150,6 +151,8 @@ async function startServer() {
     setInterval(() => {
       runSemiAuto();
     }, 60 * 1000);
+
+    startCleanupScheduler();
 
     /*
     PAYMENT RECOVERY SERVICE

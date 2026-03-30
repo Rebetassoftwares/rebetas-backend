@@ -158,7 +158,11 @@
 .platform-logo img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain; /* 🔥 FIX */
+}
+
+.platform-logo img {
+  display: block; /* prevents inline gaps */
 }
 
 .platform-top h3 {
@@ -175,6 +179,15 @@
   color: rgba(255, 255, 255, 0.68);
 }
 
+.modal img {
+  width: 60px;
+  height: 60px;
+  object-fit: contain; /* 🔥 FIX */
+  border-radius: 10px;
+  display: block;
+  margin-bottom: 10px;
+  background: rgba(255, 255, 255, 0.05);
+}
 /* STATUS */
 
 .status {

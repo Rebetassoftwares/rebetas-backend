@@ -29,6 +29,34 @@ const promoCodeSchema = new mongoose.Schema(
       min: 0,
     },
 
+    /* ================= NEW ================= */
+
+    discountPercent: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    freeDays: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    freeWeeks: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    maxUsesPerUser: {
+      type: Number,
+      default: 1,
+      min: 1,
+    },
+
+    /* ================= EXISTING ================= */
+
     active: {
       type: Boolean,
       default: true,

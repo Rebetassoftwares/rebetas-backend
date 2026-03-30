@@ -29,6 +29,18 @@
   transition: all 0.25s ease;
 }
 
+.promo-benefits {
+  margin-top: 16px;
+  padding: 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.promo-benefits h4 {
+  margin-bottom: 6px;
+  color: #d8ccff;
+}
+
 .promo-info:hover,
 .wallet-section:hover,
 .earnings-section:hover {

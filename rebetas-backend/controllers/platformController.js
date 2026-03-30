@@ -18,7 +18,7 @@ exports.createPlatform = async (req, res) => {
     }
 
     // ✅ handle file upload OR fallback string
-    const logo = req.file ? `/uploads/logos/${req.file.filename}` : bodyLogo;
+    const logo = req.file ? req.file.path : bodyLogo;
 
     const platform = await Platform.create({
       name: name.trim(),
@@ -72,7 +72,7 @@ exports.updatePlatform = async (req, res) => {
 
     // ✅ file upload takes priority
     if (req.file) {
-      platform.logo = `/uploads/logos/${req.file.filename}`;
+      platform.logo = req.file.path;
     } else if (bodyLogo !== undefined) {
       platform.logo = bodyLogo;
     }

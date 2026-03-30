@@ -96,8 +96,12 @@
 /* LOGO */
 
 .platform-card img {
-  max-width: 150px;
-  height: auto;
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  border-radius: 12px;
+  padding: 6px;
+  background: rgba(255, 255, 255, 0.08);
 
   transition: transform 0.2s ease;
 }
@@ -155,4 +159,38 @@
   border-color: rgba(160, 32, 240, 0.5);
 
   box-shadow: 0 18px 45px rgba(160, 32, 240, 0.18);
+}
+
+.platform-card img {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  border-radius: 12px;
+  padding: 6px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.league-card img {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+  border-radius: 10px;
+  margin-bottom: 8px;
+}
+
+.league-card span {
+  display: block;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.league-placeholder {
+  width: 50px;
+  height: 50px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
 }

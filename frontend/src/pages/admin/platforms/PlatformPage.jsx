@@ -9,6 +9,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import PlatformFormModal from "./PlatformFormModal";
 import "./PlatformPage.css";
+import { getImageUrl } from "../../../utils/getImageUrl";
 
 export default function PlatformPage() {
   const [platforms, setPlatforms] = useState([]);
@@ -167,7 +168,7 @@ export default function PlatformPage() {
             <div className="platform-top">
               <div className="platform-logo">
                 {p.logo ? (
-                  <img src={p.logo} alt={p.name} />
+                  <img src={getImageUrl(p.logo)} alt={p.name} />
                 ) : (
                   <span>{p.name?.charAt(0)}</span>
                 )}

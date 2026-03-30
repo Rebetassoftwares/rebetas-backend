@@ -4,7 +4,16 @@ const PromoWallet = require("../models/PromoWallet");
 /* CREATE PROMO CODE */
 async function createPromoCode(req, res) {
   try {
-    const { code, ownerId, ownerName, commissionPercent } = req.body;
+    const {
+      code,
+      ownerId,
+      ownerName,
+      commissionPercent,
+      discountPercent,
+      freeDays,
+      freeWeeks,
+      maxUsesPerUser,
+    } = req.body;
 
     if (!code || !ownerId || !ownerName || commissionPercent === undefined) {
       return res.status(400).json({
@@ -26,7 +35,12 @@ async function createPromoCode(req, res) {
       code: code.toUpperCase(),
       ownerId,
       ownerName,
-      commissionPercent,
+      commissionPercent: Number(commissionPercent),
+      discountPercent:
+        discountPercent !== undefined ? Number(discountPercent) : 0,
+      freeDays: freeDays !== undefined ? Number(freeDays) : 0,
+      freeWeeks: freeWeeks !== undefined ? Number(freeWeeks) : 0,
+      maxUsesPerUser: maxUsesPerUser !== undefined ? Number(maxUsesPerUser) : 1,
     });
 
     res.status(201).json(promo);
@@ -77,15 +91,35 @@ async function getPromoCodes(req, res) {
 async function updatePromoCode(req, res) {
   try {
     const { id } = req.params;
-    const { ownerId, ownerName, commissionPercent, active } = req.body;
+    const {
+      ownerId,
+      ownerName,
+      commissionPercent,
+      active,
+      discountPercent,
+      freeDays,
+      freeWeeks,
+      maxUsesPerUser,
+    } = req.body;
 
     const updated = await PromoCode.findByIdAndUpdate(
       id,
       {
         ...(ownerId !== undefined && { ownerId }),
         ...(ownerName !== undefined && { ownerName }),
-        ...(commissionPercent !== undefined && { commissionPercent }),
+        ...(commissionPercent !== undefined && {
+          commissionPercent: Number(commissionPercent),
+        }),
         ...(active !== undefined && { active }),
+
+        ...(discountPercent !== undefined && {
+          discountPercent: Number(discountPercent),
+        }),
+        ...(freeDays !== undefined && { freeDays: Number(freeDays) }),
+        ...(freeWeeks !== undefined && { freeWeeks: Number(freeWeeks) }),
+        ...(maxUsesPerUser !== undefined && {
+          maxUsesPerUser: Number(maxUsesPerUser),
+        }),
       },
       { new: true },
     );

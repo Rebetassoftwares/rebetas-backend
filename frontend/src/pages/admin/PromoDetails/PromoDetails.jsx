@@ -80,14 +80,46 @@ export default function PromoDetails() {
         <p>
           <strong>Owner:</strong> {promo.ownerName || "N/A"}
         </p>
+
         <p>
           <strong>Commission:</strong> {promo.commissionPercent || 0}%
         </p>
+
         <p>
           <strong>Status:</strong> {promo.active ? "Active" : "Inactive"}
         </p>
+
         <p>
-          <strong>Usage:</strong> {promo.usageCount || 0}
+          <strong>Total Usage:</strong> {promo.usageCount || 0}
+        </p>
+
+        {/* 🔥 NEW SECTION: BENEFITS */}
+
+        <div className="promo-benefits">
+          <h4>Benefits</h4>
+
+          {promo.discountPercent > 0 && (
+            <p>
+              <strong>Discount:</strong> {promo.discountPercent}%
+            </p>
+          )}
+
+          {(promo.freeDays > 0 || promo.freeWeeks > 0) && (
+            <p>
+              <strong>Free Time:</strong> {promo.freeDays || 0} days /{" "}
+              {promo.freeWeeks || 0} weeks
+            </p>
+          )}
+
+          {promo.discountPercent === 0 &&
+            promo.freeDays === 0 &&
+            promo.freeWeeks === 0 && <p>No additional benefits</p>}
+        </div>
+
+        {/* 🔥 USAGE LIMIT */}
+
+        <p>
+          <strong>Max Uses Per User:</strong> {promo.maxUsesPerUser || 1}
         </p>
       </div>
 

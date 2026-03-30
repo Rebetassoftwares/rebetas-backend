@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { getImageUrl } from "../../../utils/getImageUrl";
 
 export default function PlatformFormModal({ initialData, onClose, onSubmit }) {
   const [form, setForm] = useState(() => ({
@@ -59,6 +60,13 @@ export default function PlatformFormModal({ initialData, onClose, onSubmit }) {
         {error && <p className="error">{error}</p>}
 
         <form onSubmit={handleSubmit}>
+          {typeof form.logo === "string" && form.logo && (
+            <img
+              src={getImageUrl(form.logo)}
+              alt="preview"
+              style={{ width: 60, height: 60, objectFit: "cover" }}
+            />
+          )}
           {/* NAME */}
           <input
             name="name"

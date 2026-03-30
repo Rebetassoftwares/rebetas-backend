@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import DashboardNavbar from "../../components/DashboardNavbar/DashboardNavbar";
 import Footer from "../../components/Footer/Footer";
 import "./Predictions.css";
+import { getImageUrl } from "../../utils/getImageUrl";
 
 import api from "../../services/api";
 
@@ -79,7 +80,14 @@ export default function Predictions() {
     async function loadLeagues() {
       setPageError("");
       try {
-        const leagues = await api.get(`/manual-leagues?platformId=${platform}`);
+        const res = await api.get(`/manual-leagues?platformId=${platform}`);
+
+        const leagues = Array.isArray(res?.data)
+          ? res.data
+          : Array.isArray(res)
+            ? res
+            : [];
+
         setLeagueOptions(leagues);
 
         if (leagues.length > 0) {
@@ -108,7 +116,7 @@ export default function Predictions() {
         const predictionResponse = await api.get(
           `/public/predictions/live/${league}`,
         );
-        setPrediction(predictionResponse || null);
+        setPrediction(predictionResponse?.data || null);
       } catch (error) {
         console.error(error);
         setPrediction(null);
@@ -121,7 +129,8 @@ export default function Predictions() {
           `/history/${platformKey}/${leagueKey}`,
         );
 
-        setHistory(Array.isArray(historyResponse) ? historyResponse : []);
+        const data = historyResponse?.data || [];
+        setHistory(Array.isArray(data) ? data : []);
       } catch (error) {
         setHistory([]);
         console.error("history load error:", error);
@@ -143,13 +152,14 @@ export default function Predictions() {
           const predictionResponse = await api.get(
             `/public/predictions/live/${league}`,
           );
-          setPrediction(predictionResponse || null);
+          setPrediction(predictionResponse?.data || null);
 
           const historyResponse = await api.get(
             `/history/${platformKey}/${leagueKey}`,
           );
 
-          setHistory(Array.isArray(historyResponse) ? historyResponse : []);
+          const data = historyResponse?.data || [];
+          setHistory(Array.isArray(data) ? data : []);
         } catch (err) {
           console.error("Auto refresh error:", err);
         }
@@ -185,7 +195,12 @@ export default function Predictions() {
 
     if (timeframe === "custom" && customStartDate && customEndDate) {
       data = data.filter((item) => {
-        return item.date >= customStartDate && item.date <= customEndDate;
+        const itemDate = new Date(item.date);
+
+        return (
+          itemDate >= new Date(customStartDate) &&
+          itemDate <= new Date(customEndDate)
+        );
       });
     }
 
@@ -254,8 +269,7 @@ export default function Predictions() {
     ...new Set(history.map((item) => item.month).filter(Boolean)),
   ];
 
-  const selectedLogo = leagueOptions.find((l) => l._id === league)?.platformId
-    ?.logo;
+  const selectedLogo = leagueOptions.find((l) => l._id === league)?.logo;
 
   const homeTeam =
     prediction?.homeTeam ||
@@ -280,28 +294,34 @@ export default function Predictions() {
 
       <div className="container prediction-container">
         <div className="platform-banner">
-          <div className="platform-banner-logo">
-            {platformLogo ? (
-              <img src={platformLogo} alt={platformName} />
-            ) : (
-              <div className="logo-placeholder">No Logo</div>
-            )}
-          </div>
+          {platformLogo && (
+            <div className="platform-banner-bg">
+              <img
+                src={getImageUrl(platformLogo)}
+                alt={platformName}
+                onError={(e) => {
+                  e.currentTarget.style.display = "none";
+                }}
+              />
+            </div>
+          )}
 
-          <div className="platform-name">{platformName.toUpperCase()}</div>
+          <div className="platform-banner-content">
+            <div className="platform-name">{platformName.toUpperCase()}</div>
 
-          <div className="league-bar">
-            {leagueOptions.map((item) => (
-              <button
-                key={item._id}
-                className={
-                  league === item._id ? "league-btn active" : "league-btn"
-                }
-                onClick={() => setLeague(item._id)}
-              >
-                {item.leagueName}
-              </button>
-            ))}
+            <div className="league-bar">
+              {leagueOptions.map((item) => (
+                <button
+                  key={item._id}
+                  className={
+                    league === item._id ? "league-btn active" : "league-btn"
+                  }
+                  onClick={() => setLeague(item._id)}
+                >
+                  {item.leagueName}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -323,9 +343,14 @@ export default function Predictions() {
               </span>
             </div>
 
-            <div className="badge time-badge">{time.toLocaleTimeString()}</div>
-            <div className="badge live-badge">
-              <span className="live-dot"></span> LIVE
+            <div className="badge time-badge live-time">
+              {time.toLocaleTimeString()}
+            </div>
+            <div
+              className={`badge live-badge ${prediction ? "active" : "inactive"}`}
+            >
+              <span className="live-dot"></span>
+              {prediction ? "LIVE" : "OFF"}
             </div>
           </div>
 
@@ -361,7 +386,13 @@ export default function Predictions() {
               </div>
 
               <div className="center-block">
-                <img src={selectedLogo} className="center-logo" />
+                <img
+                  src={getImageUrl(selectedLogo)}
+                  className="center-logo"
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none";
+                  }}
+                />
 
                 <div
                   className={`prediction-circle ${isLocked ? "locked" : ""}`}
@@ -573,7 +604,7 @@ export default function Predictions() {
 
                       <td
                         className={
-                          Number(item.resultAmount || 0) > 0
+                          item.resultStatus === "WIN"
                             ? "result-win"
                             : "result-loss"
                         }

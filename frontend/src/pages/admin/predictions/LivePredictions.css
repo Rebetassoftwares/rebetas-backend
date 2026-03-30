@@ -55,3 +55,16 @@
   gap: 5px;
   font-size: 12px;
 }
+
+.platform-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.platform-header img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  border-radius: 6px;
+}

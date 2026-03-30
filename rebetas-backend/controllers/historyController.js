@@ -1,9 +1,10 @@
 const Prediction = require("../models/Prediction");
+const ManualPrediction = require("../models/ManualPrediction");
 
 /*
-GET HISTORY
-- Strictly tied to platform + league (martingale key alignment)
-- Sorted by real-world time (createdAt)
+GET HISTORY (NEW ENGINE)
+- Uses ManualPrediction (REAL SOURCE)
+- Keeps frontend format intact
 */
 async function getHistory(req, res) {
   try {
@@ -12,12 +13,56 @@ async function getHistory(req, res) {
     const normalizedPlatform = String(platform).toLowerCase();
     const normalizedLeague = String(league).trim();
 
-    const history = await Prediction.find({
+    const predictions = await ManualPrediction.find({
       platform: normalizedPlatform,
-      league: normalizedLeague,
+      leagueName: normalizedLeague,
+      status: { $in: ["won", "loss"] }, // only resolved
     })
-      .sort({ createdAt: -1 })
+      .sort({ scheduledFor: -1, createdAt: -1 })
       .lean();
+
+    // 🔥 MAP TO FRONTEND FORMAT (IMPORTANT)
+    const history = predictions.map((p) => {
+      const match =
+        p.homeTeam && p.awayTeam
+          ? `${p.homeTeam} vs ${p.awayTeam}`
+          : p.team || "Unknown Match";
+
+      const safeDate = p.scheduledFor ? new Date(p.scheduledFor) : new Date();
+
+      const formattedDate = safeDate.toISOString().split("T")[0];
+
+      const month = safeDate.toLocaleString("default", {
+        month: "long",
+      });
+
+      function getISOWeek(dateInput) {
+        const d = new Date(dateInput);
+        const utc = new Date(
+          Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()),
+        );
+        const dayNum = utc.getUTCDay() || 7;
+        utc.setUTCDate(utc.getUTCDate() + 4 - dayNum);
+        const yearStart = new Date(Date.UTC(utc.getUTCFullYear(), 0, 1));
+        return String(Math.ceil(((utc - yearStart) / 86400000 + 1) / 7));
+      }
+
+      return {
+        _id: p._id,
+        platform: normalizedPlatform,
+        league: normalizedLeague,
+        match,
+        odd: p.odd,
+        stake: p.stake,
+        resultAmount: p.resultAmount,
+        profit: p.profit,
+        capitalAfter: p.capitalAfter,
+        resultStatus: p.status === "won" ? "WIN" : "LOSS",
+        date: formattedDate,
+        month,
+        week: getISOWeek(safeDate),
+      };
+    });
 
     res.json(history);
   } catch (error) {

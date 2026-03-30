@@ -222,6 +222,10 @@
 .platform-card img {
   max-width: 120px;
   height: auto;
+  object-fit: contain;
+  border-radius: 12px;
+  padding: 6px;
+  background: rgba(255, 255, 255, 0.08);
 
   margin-bottom: 14px;
 

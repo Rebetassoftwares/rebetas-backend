@@ -7,6 +7,7 @@ import {
   getPlatforms,
 } from "../../../services/adminApi";
 import "./LeagueForm.css";
+import { getImageUrl } from "../../../utils/getImageUrl";
 
 export default function LeagueForm() {
   const { leagueId } = useParams();
@@ -249,6 +250,23 @@ export default function LeagueForm() {
   return (
     <div className="league-page">
       <div className="league-header">
+        {/* PLATFORM BANNER */}
+        {form.platformId && (
+          <div className="platform-banner">
+            {platforms.find((p) => p._id === form.platformId)?.logo && (
+              <img
+                src={getImageUrl(
+                  platforms.find((p) => p._id === form.platformId).logo,
+                )}
+                alt="platform"
+                onError={(e) => {
+                  e.currentTarget.style.display = "none";
+                }}
+              />
+            )}
+          </div>
+        )}
+
         <h2>{leagueId ? "Edit League" : "Create League"}</h2>
         <p>Configure league settings and prediction behavior</p>
       </div>
@@ -328,7 +346,27 @@ export default function LeagueForm() {
           </div>
 
           <div className="field">
-            <label>Logo URL</label>
+            <label>League Logo</label>
+
+            {/* PREVIEW */}
+            {typeof form.logo === "string" && form.logo && (
+              <div className="league-logo-preview">
+                <img
+                  src={getImageUrl(form.logo)}
+                  alt="league"
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none";
+                  }}
+                />
+              </div>
+            )}
+
+            {form.logo instanceof File && (
+              <div className="league-logo-preview">
+                <img src={URL.createObjectURL(form.logo)} alt="preview" />
+              </div>
+            )}
+
             <input
               type="file"
               accept="image/*"

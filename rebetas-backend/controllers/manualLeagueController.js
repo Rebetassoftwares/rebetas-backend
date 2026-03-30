@@ -195,7 +195,7 @@ exports.createLeague = async (req, res) => {
       isActive,
     } = req.body;
 
-    const logo = req.file ? `/uploads/logos/${req.file.filename}` : bodyLogo;
+    const logo = req.file ? req.file.path : bodyLogo;
 
     const league = await ManualLeague.create({
       platform: platform.trim(),
@@ -309,9 +309,8 @@ exports.updateLeague = async (req, res) => {
       platform: req.body.platform ?? existing.platform,
       platformId: req.body.platformId ?? existing.platformId,
       leagueName: req.body.leagueName ?? existing.leagueName,
-      logo: req.file
-        ? `/uploads/logos/${req.file.filename}`
-        : (req.body.logo ?? existing.logo),
+      logo: req.file ? req.file.path : (req.body.logo ?? existing.logo),
+
       mode: req.body.mode ?? existing.mode,
       totalMatches: req.body.totalMatches ?? existing.totalMatches,
       intervalMinutes: req.body.intervalMinutes ?? existing.intervalMinutes,

@@ -7,18 +7,28 @@ const systemStateSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
+
+    // 🔥 NEW (CRITICAL)
+    initialCapital: {
+      type: Number,
+      default: 500000,
+    },
+
     capital: {
       type: Number,
       default: 500000,
     },
+
     bettingSimulationActive: {
       type: Boolean,
       default: true,
     },
+
     baseStakePercent: {
       type: Number,
       default: 0.2,
     },
+
     multiplier: {
       type: Number,
       default: 7,

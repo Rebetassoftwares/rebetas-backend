@@ -54,6 +54,16 @@ const userSchema = new mongoose.Schema(
       default: null,
     },
 
+    promoUsage: [
+      {
+        code: String,
+        count: {
+          type: Number,
+          default: 0,
+        },
+      },
+    ],
+
     activeDeviceToken: {
       type: String,
       default: null,

@@ -8,6 +8,7 @@ import {
 } from "../../../services/adminApi";
 import api from "../../../services/api";
 import "./LeaguePredictions.css";
+import { getImageUrl } from "../../../utils/getImageUrl";
 
 export default function LeaguePredictions() {
   const { leagueId } = useParams();
@@ -120,7 +121,29 @@ export default function LeaguePredictions() {
 
   return (
     <div className="predictions-page">
-      <h2>{league.leagueName} Predictions</h2>
+      <div className="league-header">
+        {/* LEAGUE BANNER */}
+        {league.logo && (
+          <div className="league-banner">
+            <img src={getImageUrl(league.logo)} alt={league.leagueName} />
+          </div>
+        )}
+
+        {/* PLATFORM PROFILE */}
+        <div className="league-profile">
+          {league.platformId?.logo && (
+            <img
+              src={getImageUrl(league.platformId.logo)}
+              alt={league.platformId.name}
+            />
+          )}
+
+          <div>
+            <h2>{league.leagueName} Predictions</h2>
+            <p>{league.platformId?.name}</p>
+          </div>
+        </div>
+      </div>
 
       {error && <p className="error">{error}</p>}
 

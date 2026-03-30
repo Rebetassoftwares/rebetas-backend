@@ -58,27 +58,72 @@ async function createSubscription(req, res) {
       });
     }
 
-    /* ---------------- CHECK USER PROMO CODE ---------------- */
+    /* ---------------- CHECK & APPLY PROMO ---------------- */
 
     const user = await User.findById(userId);
 
     let promoCode = null;
+    let discountPercent = 0;
+    let extraDays = 0;
+    let promo = null;
 
     if (user.promoCodeUsed) {
-      const promo = await PromoCode.findOne({
+      promo = await PromoCode.findOne({
         code: user.promoCodeUsed,
         active: true,
       });
 
       if (promo) {
         promoCode = promo.code;
+
+        // ✅ CHECK USER USAGE LIMIT
+        let usage = user.promoUsage?.find((p) => p.code === promo.code);
+
+        if (usage && usage.count >= promo.maxUsesPerUser) {
+          return res.status(400).json({
+            message: "You have exhausted this promo code",
+          });
+        }
+
+        // ✅ APPLY DISCOUNT
+        discountPercent = promo.discountPercent || 0;
+
+        // ✅ APPLY FREE TIME
+        extraDays += promo.freeDays || 0;
+        extraDays += (promo.freeWeeks || 0) * 7;
+
+        // ✅ UPDATE USER USAGE
+        if (usage) {
+          usage.count += 1;
+        } else {
+          if (!user.promoUsage) user.promoUsage = [];
+
+          user.promoUsage.push({
+            code: promo.code,
+            count: 1,
+          });
+        }
+
+        await user.save();
       }
+    }
+
+    /* ---------------- APPLY DISCOUNT ---------------- */
+
+    if (discountPercent > 0) {
+      amount = amount - (amount * discountPercent) / 100;
     }
 
     /* ---------------- CREATE SUBSCRIPTION ---------------- */
 
     const startDate = new Date();
-    const endDate = calculateEndDate(plan, startDate);
+
+    let endDate = calculateEndDate(plan, startDate);
+
+    // ✅ APPLY EXTRA DAYS
+    if (extraDays > 0) {
+      endDate.setDate(endDate.getDate() + extraDays);
+    }
 
     const subscription = await Subscription.create({
       userId,
@@ -87,39 +132,31 @@ async function createSubscription(req, res) {
       currency: pricing.currency,
       amount,
       promoCode,
-      commissionAmount: 0, // will be updated after wallet logic
+      commissionAmount: 0,
       startDate,
       endDate,
       status: "active",
     });
 
-    /* ---------------- CREDIT PROMO (NEW SYSTEM) ---------------- */
+    /* ---------------- CREDIT PROMO (UNCHANGED LOGIC) ---------------- */
 
     let commissionAmount = 0;
 
-    if (promoCode) {
-      const promo = await PromoCode.findOne({
-        code: promoCode,
-        active: true,
+    if (promoCode && promo) {
+      const result = await creditPromoCommission({
+        promoCodeId: promo._id,
+        subscribedUserId: user._id,
+        subscriptionId: subscription._id,
+        paymentId: null,
+        amount,
+        currency: pricing.currency,
+        note: "Subscription commission",
       });
 
-      if (promo) {
-        const result = await creditPromoCommission({
-          promoCodeId: promo._id,
-          subscribedUserId: user._id,
-          subscriptionId: subscription._id,
-          paymentId: null,
-          amount,
-          currency: pricing.currency,
-          note: "Subscription commission",
-        });
+      commissionAmount = result.commissionAmount;
 
-        commissionAmount = result.commissionAmount;
-
-        // ✅ update subscription with correct commission
-        subscription.commissionAmount = commissionAmount;
-        await subscription.save();
-      }
+      subscription.commissionAmount = commissionAmount;
+      await subscription.save();
     }
 
     /* ---------------- RESPONSE ---------------- */

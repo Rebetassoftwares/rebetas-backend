@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getLeagueById, updateLeague } from "../../../services/adminApi";
 import "./LeagueDetail.css";
+import { getImageUrl } from "../../../utils/getImageUrl";
 
 export default function LeagueDetail() {
   const { leagueId } = useParams();
@@ -112,18 +113,38 @@ export default function LeagueDetail() {
 
       {/* TOP CARD */}
       <div className="detail-card">
+        {/* LEAGUE BANNER */}
+        {league.logo && (
+          <div className="league-banner">
+            <img
+              src={getImageUrl(league.logo)}
+              alt={league.leagueName}
+              onError={(e) => {
+                e.currentTarget.style.display = "none";
+              }}
+            />
+          </div>
+        )}
+
         <div className="top">
+          {/* PLATFORM SUB-IMAGE */}
           <div className="logo">
-            {league.logo ? (
-              <img src={league.logo} alt="logo" />
+            {league.platformId?.logo ? (
+              <img
+                src={getImageUrl(league.platformId.logo)}
+                alt={league.platformId.name}
+                onError={(e) => {
+                  e.currentTarget.style.display = "none";
+                }}
+              />
             ) : (
-              <span>{league.leagueName?.charAt(0)}</span>
+              <span>{league.platform?.charAt(0)}</span>
             )}
           </div>
 
           <div>
             <h3>{league.leagueName}</h3>
-            <p>{league.platform}</p>
+            <p>{league.platformId?.name || league.platform}</p>
           </div>
         </div>
 

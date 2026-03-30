@@ -47,3 +47,60 @@
   gap: 5px;
   font-size: 12px;
 }
+
+/* ================= HEADER WRAPPER ================= */
+.league-header {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+/* ================= BANNER ================= */
+.league-banner {
+  width: 100%;
+  height: 140px;
+
+  border-radius: 14px;
+  overflow: hidden;
+
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* banner image */
+.league-banner img {
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover; /* 🔥 fills like real banner */
+}
+
+/* ================= PROFILE ROW ================= */
+.league-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* platform logo */
+.league-profile img {
+  width: 48px;
+  height: 48px;
+
+  border-radius: 10px;
+  object-fit: contain;
+
+  background: rgba(255, 255, 255, 0.05);
+  padding: 6px;
+}
+
+/* text block */
+.league-profile h2 {
+  margin: 0;
+}
+
+.league-profile p {
+  margin: 0;
+  font-size: 13px;
+  opacity: 0.7;
+}

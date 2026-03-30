@@ -29,6 +29,12 @@ export default function PromoCodes() {
     ownerId: "",
     ownerName: "",
     commissionPercent: "",
+
+    // 🔥 NEW
+    discountPercent: "",
+    freeDays: "",
+    freeWeeks: "",
+    maxUsesPerUser: "",
   });
 
   const [editingId, setEditingId] = useState(null);
@@ -117,6 +123,12 @@ export default function PromoCodes() {
         await updatePromoCode(editingId, {
           ownerName: form.ownerName,
           commissionPercent: form.commissionPercent,
+
+          // 🔥 NEW
+          discountPercent: Number(form.discountPercent || 0),
+          freeDays: Number(form.freeDays || 0),
+          freeWeeks: Number(form.freeWeeks || 0),
+          maxUsesPerUser: Number(form.maxUsesPerUser || 1),
         });
       } else {
         await createPromoCode({
@@ -124,6 +136,12 @@ export default function PromoCodes() {
           ownerId: form.ownerId,
           ownerName: form.ownerName,
           commissionPercent: form.commissionPercent,
+
+          // 🔥 NEW
+          discountPercent: Number(form.discountPercent || 0),
+          freeDays: Number(form.freeDays || 0),
+          freeWeeks: Number(form.freeWeeks || 0),
+          maxUsesPerUser: Number(form.maxUsesPerUser || 1),
         });
       }
 
@@ -132,6 +150,11 @@ export default function PromoCodes() {
         ownerId: "",
         ownerName: "",
         commissionPercent: "",
+
+        discountPercent: "",
+        freeDays: "",
+        freeWeeks: "",
+        maxUsesPerUser: "",
       });
 
       setUserSearch("");
@@ -151,6 +174,12 @@ export default function PromoCodes() {
       ownerId: "",
       ownerName: item.ownerName,
       commissionPercent: item.commissionPercent,
+
+      // 🔥 NEW
+      discountPercent: item.discountPercent || "",
+      freeDays: item.freeDays || "",
+      freeWeeks: item.freeWeeks || "",
+      maxUsesPerUser: item.maxUsesPerUser || 1,
     });
 
     setUserSearch(item.ownerName);
@@ -311,6 +340,38 @@ export default function PromoCodes() {
           required
         />
 
+        <input
+          name="discountPercent"
+          type="number"
+          placeholder="Discount % (optional)"
+          value={form.discountPercent}
+          onChange={handleChange}
+        />
+
+        <input
+          name="freeDays"
+          type="number"
+          placeholder="Free Days (optional)"
+          value={form.freeDays}
+          onChange={handleChange}
+        />
+
+        <input
+          name="freeWeeks"
+          type="number"
+          placeholder="Free Weeks (optional)"
+          value={form.freeWeeks}
+          onChange={handleChange}
+        />
+
+        <input
+          name="maxUsesPerUser"
+          type="number"
+          placeholder="Max Uses Per User"
+          value={form.maxUsesPerUser}
+          onChange={handleChange}
+        />
+
         <button type="submit">
           {editingId ? "Update Promo" : "Create Promo"}
         </button>
@@ -333,6 +394,17 @@ export default function PromoCodes() {
 
               <p>Owner: {item.ownerName}</p>
               <p>Commission: {item.commissionPercent}%</p>
+              {item.discountPercent > 0 && (
+                <p>Discount: {item.discountPercent}%</p>
+              )}
+
+              {(item.freeDays > 0 || item.freeWeeks > 0) && (
+                <p>
+                  Free Time: {item.freeDays || 0}d / {item.freeWeeks || 0}w
+                </p>
+              )}
+
+              <p>Usage Limit: {item.maxUsesPerUser || 1}</p>
               <p>Status: {item.active ? "Active" : "Inactive"}</p>
 
               {/* 🔥 WALLET DISPLAY */}

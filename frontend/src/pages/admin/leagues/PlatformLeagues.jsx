@@ -5,6 +5,7 @@ import {
   getLeaguesByPlatform,
 } from "../../../services/adminApi";
 import "./PlatformLeagues.css";
+import { getImageUrl } from "../../../utils/getImageUrl";
 
 export default function PlatformLeagues() {
   const { platformId } = useParams();
@@ -92,9 +93,23 @@ export default function PlatformLeagues() {
       <div className="page-header">
         <button onClick={goBack}>← Back</button>
 
-        <div>
-          <h2>{platform?.name || "Platform"}</h2>
-          <p>Manage leagues under this platform</p>
+        <div className="platform-header-content">
+          {platform?.logo && (
+            <div className="platform-banner">
+              <img
+                src={getImageUrl(platform.logo)}
+                alt={platform?.name || "Platform"}
+                onError={(e) => {
+                  e.currentTarget.style.display = "none";
+                }}
+              />
+            </div>
+          )}
+
+          <div>
+            <h2>{platform?.name || "Platform"}</h2>
+            <p>Manage leagues under this platform</p>
+          </div>
         </div>
 
         <button className="btn-primary" onClick={goToCreate}>
@@ -118,7 +133,13 @@ export default function PlatformLeagues() {
               <div className="league-top">
                 <div className="league-logo">
                   {l.logo ? (
-                    <img src={l.logo} alt={l.leagueName} />
+                    <img
+                      src={getImageUrl(l.logo)}
+                      alt={l.leagueName}
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                      }}
+                    />
                   ) : (
                     <span>{l.leagueName?.charAt(0)}</span>
                   )}

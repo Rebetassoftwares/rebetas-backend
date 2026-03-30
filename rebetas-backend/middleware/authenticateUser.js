@@ -19,6 +19,7 @@ async function authenticateUser(req, res, next) {
       });
     }
 
+    // ✅ FIND USER BY TOKEN
     const user = await User.findOne({
       activeDeviceToken: deviceToken,
     });
@@ -29,7 +30,23 @@ async function authenticateUser(req, res, next) {
       });
     }
 
+    // 🔥 CRITICAL: HARD SESSION VALIDATION
+    if (user.activeDeviceToken !== deviceToken) {
+      return res.status(401).json({
+        message: "Session expired (logged in on another device)",
+      });
+    }
+
+    // 🔥 OPTIONAL BUT IMPORTANT (future-proof)
+    if (!user.isActive && user.isActive !== undefined) {
+      return res.status(403).json({
+        message: "Account is deactivated",
+      });
+    }
+
+    // ✅ ATTACH USER
     req.user = user;
+    req.deviceToken = deviceToken;
 
     next();
   } catch (error) {

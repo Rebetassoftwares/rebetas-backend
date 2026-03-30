@@ -328,14 +328,27 @@ async function loginUser(req, res) {
     }
 
     // ✅ PRESERVE ONE-DEVICE-ONE-ACCOUNT RULE
-    // If a device is already logged in, do not issue another login from here.
-    if (user.activeDeviceToken) {
-      return res.status(403).json({
-        message:
-          "This account is already active on another device. Please log out from the current device first.",
-        sessionActive: true,
+    // ✅ DEVICE CHECK
+    const { deviceToken } = req.body;
+
+    // SAME DEVICE → DIRECT LOGIN (NO OTP)
+    if (user.activeDeviceToken && user.activeDeviceToken === deviceToken) {
+      return res.json({
+        message: "Login successful",
+        token: user.activeDeviceToken,
+        user: {
+          id: user._id,
+          username: user.username,
+          fullName: user.fullName,
+          email: user.email,
+          phone: user.phone,
+          country: user.country,
+          role: user.role,
+        },
       });
     }
+
+    // NEW DEVICE → REQUIRE OTP (continue below)
 
     // ✅ GENERATE OTP
     const otp = generateOtp();
@@ -457,7 +470,7 @@ async function loginUser(req, res) {
 
 async function verifyLoginOtp(req, res) {
   try {
-    const { userId, otp } = req.body;
+    const { userId, otp, deviceToken } = req.body;
 
     if (!userId || !otp) {
       return res.status(400).json({
@@ -490,7 +503,7 @@ async function verifyLoginOtp(req, res) {
     user.loginOtpExpires = null;
 
     // ✅ CREATE SESSION TOKEN
-    const deviceToken = generateToken(32);
+    // 🔥 USE REAL DEVICE TOKEN FROM FRONTEND
     user.activeDeviceToken = deviceToken;
 
     await user.save();
