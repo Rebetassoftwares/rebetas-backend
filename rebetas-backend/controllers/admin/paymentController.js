@@ -2,7 +2,10 @@ const Payment = require("../../models/Payment");
 
 async function getPayments(req, res) {
   try {
-    const payments = await Payment.find({}).sort({ createdAt: -1 }).lean();
+    const payments = await Payment.find({})
+      .populate("userId", "username email fullName country") // 🔥 ADD THIS
+      .sort({ createdAt: -1 })
+      .lean();
 
     res.json(payments);
   } catch (error) {
@@ -13,7 +16,9 @@ async function getPayments(req, res) {
 
 async function getPaymentById(req, res) {
   try {
-    const payment = await Payment.findById(req.params.id).lean();
+    const payment = await Payment.findById(req.params.id)
+      .populate("userId", "username email fullName country")
+      .lean();
 
     if (!payment) {
       return res.status(404).json({ message: "Payment not found" });
@@ -30,7 +35,9 @@ async function getUserPayments(req, res) {
   try {
     const payments = await Payment.find({
       userId: req.params.userId,
-    }).lean();
+    })
+      .populate("userId", "username email fullName country")
+      .lean();
 
     res.json(payments);
   } catch (error) {
