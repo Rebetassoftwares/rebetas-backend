@@ -23,6 +23,17 @@ function getUserDisplay(user) {
   );
 }
 
+function getUserSearchText(user) {
+  if (!user) return "";
+
+  if (typeof user === "string") return user.toLowerCase();
+
+  return [user.fullName, user.username, user.email, user.country]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+}
+
 export default function Payments() {
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -66,7 +77,7 @@ export default function Payments() {
 
   const filteredPayments = useMemo(() => {
     return payments.filter((p) => {
-      const userText = getUserDisplay(p.userId).toLowerCase();
+      const userText = getUserSearchText(p.userId);
       const emailText =
         typeof p.userId === "object" && p.userId?.email
           ? p.userId.email.toLowerCase()
