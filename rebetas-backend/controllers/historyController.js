@@ -15,11 +15,9 @@ async function getHistory(req, res) {
     const normalizedLeague = String(league).trim();
 
     const predictions = await ManualPrediction.find({
-      platform: {
-        $in: [rawPlatform, rawPlatform.toLowerCase()],
-      },
-      leagueName: normalizedLeague,
-      status: { $in: ["won", "loss"] }, // only resolved
+      platform: { $regex: new RegExp(`^${rawPlatform}$`, "i") },
+      leagueName: { $regex: new RegExp(`^${normalizedLeague}$`, "i") },
+      status: { $in: ["won", "loss"] },
     })
       .sort({ scheduledFor: -1, createdAt: -1 })
       .lean();
