@@ -3,21 +3,33 @@ export default function HistorySection({
   leagueKey,
   timeframe,
   setTimeframe,
-  selectedWeek,
-  setSelectedWeek,
-  selectedMonth,
-  setSelectedMonth,
   customStartDate,
   setCustomStartDate,
   customEndDate,
   setCustomEndDate,
-  availableWeeks,
-  availableMonths,
   summary,
   formatCurrency,
   filteredPredictions,
   loadingHistory,
 }) {
+  function formatCycles(cycles) {
+    if (!Array.isArray(cycles) || cycles.length === 0) return "-";
+
+    return cycles.map((cycle) => `${cycle.name}: ${cycle.value}`).join(" | ");
+  }
+
+  function formatDateTime(value) {
+    if (!value) return "-";
+
+    return new Date(value).toLocaleString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }
+
   return (
     <div className="history-section">
       {/* HEADER */}
@@ -37,45 +49,12 @@ export default function HistorySection({
             onChange={(e) => setTimeframe(e.target.value)}
           >
             <option value="all">All Time</option>
-            <option value="week">By Week</option>
-            <option value="month">By Month</option>
+            <option value="today">Today</option>
+            <option value="yesterday">Yesterday</option>
+            <option value="this_week">This Week</option>
             <option value="custom">Custom Date</option>
           </select>
         </div>
-
-        {timeframe === "week" && (
-          <div className="filter-group">
-            <label>Select Week</label>
-            <select
-              value={selectedWeek}
-              onChange={(e) => setSelectedWeek(e.target.value)}
-            >
-              <option value="all">All Weeks</option>
-              {availableWeeks.map((week) => (
-                <option key={week} value={week}>
-                  Week {week}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-
-        {timeframe === "month" && (
-          <div className="filter-group">
-            <label>Select Month</label>
-            <select
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(e.target.value)}
-            >
-              <option value="all">All Months</option>
-              {availableMonths.map((month) => (
-                <option key={month} value={month}>
-                  {month}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
 
         {timeframe === "custom" && (
           <>
@@ -153,8 +132,8 @@ export default function HistorySection({
         <table className="past-table">
           <thead>
             <tr>
-              <th>Date</th>
-              <th>Week</th>
+              <th>Date & Time</th>
+              <th>Cycles</th>
               <th>Match</th>
               <th>Odd</th>
               <th>Stake</th>
@@ -173,10 +152,8 @@ export default function HistorySection({
             ) : filteredPredictions.length > 0 ? (
               filteredPredictions.map((item) => (
                 <tr key={item._id}>
-                  <td>
-                    {item.date ? new Date(item.date).toLocaleDateString() : "-"}
-                  </td>
-                  <td>{item.week || "-"}</td>
+                  <td>{formatDateTime(item.date)}</td>
+                  <td>{formatCycles(item.cycles)}</td>
                   <td>{item.match || "-"}</td>
                   <td>{item.odd ?? "-"}</td>
 
@@ -207,7 +184,7 @@ export default function HistorySection({
             ) : (
               <tr>
                 <td colSpan="7" className="empty-state">
-                  No prediction history found for this filter.
+                  No prediction history found.
                 </td>
               </tr>
             )}
