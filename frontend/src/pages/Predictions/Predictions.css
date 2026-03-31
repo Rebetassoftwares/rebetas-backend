@@ -28,6 +28,11 @@
   padding: 120px 0;
 }
 
+.match-layout {
+  display: flex;
+  justify-content: space-between;
+}
+
 /* PLATFORM BANNER */
 
 .platform-banner {
@@ -180,7 +185,7 @@
   background: rgba(255, 255, 255, 0.07);
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 18px;
-  padding: 42px 120px 48px;
+  padding: 42px 40px 48px;
   text-align: center;
   margin-bottom: 80px;
   backdrop-filter: blur(14px);
