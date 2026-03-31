@@ -328,19 +328,21 @@ export default function Predictions() {
           <div className="platform-title">{platformName.toUpperCase()}</div>
 
           <div className="badge-row">
-            <div className="badge">
-              Season:
-              <span className={isLocked ? "blurred" : ""}>
-                {isLocked ? "..." : prediction?.season || "-"}
-              </span>
-            </div>
-
-            <div className="badge">
-              Week:
-              <span className={isLocked ? "blurred" : ""}>
-                {isLocked ? "..." : prediction?.week || "-"}
-              </span>
-            </div>
+            {prediction?.cycles?.length > 0 ? (
+              prediction.cycles.map((c, i) => (
+                <div key={i} className="badge">
+                  {c.name}:
+                  <span className={isLocked ? "blurred" : ""}>
+                    {isLocked ? "..." : c.value}
+                  </span>
+                </div>
+              ))
+            ) : (
+              <div className="badge">
+                Cycle:
+                <span>-</span>
+              </div>
+            )}
 
             <div className="badge time-badge live-time">
               {time.toLocaleTimeString()}
