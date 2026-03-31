@@ -356,8 +356,8 @@ export default function Predictions() {
                 {isLocked ? "🔒 TEAM" : prediction?.team || "-"}
               </div>
 
-              <div className={`prediction-circle ${isLocked ? "locked" : ""}`}>
-                {isLocked ? "🔒" : prediction?.prediction || "-"}
+              <div className={`prediction-text ${isLocked ? "locked" : ""}`}>
+                {isLocked ? "🔒 LOCKED" : prediction?.prediction || "-"}
               </div>
 
               <div className="prediction-odds-row">

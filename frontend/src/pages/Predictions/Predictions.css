@@ -192,6 +192,26 @@
   box-shadow: 0 0 30px rgba(160, 32, 240, 0.12);
 }
 
+.prediction-text {
+  font-size: 42px;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: 1px;
+  text-align: center;
+  margin: 10px 0;
+
+  /* 🔥 premium glow */
+  text-shadow:
+    0 0 10px rgba(160, 32, 240, 0.6),
+    0 0 20px rgba(160, 32, 240, 0.4),
+    0 0 30px rgba(160, 32, 240, 0.3);
+}
+
+.prediction-text.locked {
+  color: #aaa;
+  text-shadow: none;
+}
+
 .prediction-card-top {
   margin-bottom: 26px;
 }
