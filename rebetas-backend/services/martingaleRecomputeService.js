@@ -30,8 +30,12 @@ async function recomputeMartingale(platform, leagueName) {
 
     // 🔥 FETCH ALL RESOLVED PREDICTIONS IN ORDER
     const predictions = await ManualPrediction.find({
-      platform: normalizedPlatform,
-      leagueName: normalizedLeague,
+      platform: {
+        $regex: new RegExp(`^${platform}$`, "i"),
+      },
+      leagueName: {
+        $regex: new RegExp(`^${leagueName}$`, "i"),
+      },
       status: { $in: ["won", "loss"] },
     }).sort({
       scheduledFor: 1,

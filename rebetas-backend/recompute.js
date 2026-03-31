@@ -18,6 +18,7 @@ async function run() {
     await recomputeMartingale("BET9JA", "Bundesliga");
 
     console.log("✅ Recompute completed successfully");
+    console.log("Predictions found:", predictions.length);
   } catch (err) {
     console.error("❌ Recompute failed:", err);
   } finally {
