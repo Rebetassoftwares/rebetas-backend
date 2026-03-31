@@ -94,7 +94,7 @@ async function runSemiAuto() {
           stake,
           scheduledFor,
           cycles, // 🔥 add this line only
-          prediction: "O1.5",
+          prediction: "Over 1.5",
           status: "pending",
         });
       } catch (err) {
