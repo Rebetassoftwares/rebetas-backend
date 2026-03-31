@@ -49,13 +49,19 @@ export default function usePrediction(league) {
     return () => clearInterval(interval);
   }, [league]);
 
-  // 🔥 COUNTDOWN
+  // 🔥 COUNTDOWN (FIXED)
   useEffect(() => {
     if (!prediction?.scheduledFor) return;
 
     const interval = setInterval(() => {
       const now = new Date();
-      const next = new Date(prediction.scheduledFor);
+      const scheduled = new Date(prediction.scheduledFor);
+
+      // ⚠️ TEMP fallback (until backend sends interval)
+      const intervalMinutes = prediction?.intervalMinutes || 3;
+
+      const next = new Date(scheduled.getTime() + intervalMinutes * 60 * 1000);
+
       const diff = Math.max(0, next - now);
       setCountdown(diff);
     }, 1000);
