@@ -47,6 +47,11 @@ const manualPredictionSchema = new mongoose.Schema(
       trim: true,
     },
 
+    prediction: {
+      type: String,
+      default: "O1.5",
+    },
+
     odd: {
       type: Number,
       required: true,
