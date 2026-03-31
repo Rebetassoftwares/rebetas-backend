@@ -53,12 +53,11 @@ async function recomputeMartingale(platform, leagueName) {
       let profit = 0;
 
       if (p.status === "won") {
-        resultAmount = Math.round(stake * odd);
-        profit = resultAmount - stake;
+        resultAmount = Number((stake * odd).toFixed(2));
+        profit = Number((resultAmount - stake).toFixed(2));
 
         capital += profit;
 
-        // ✅ RESET AFTER WIN
         currentStake = calculateBaseStake(
           capital,
           systemState.baseStakePercent,
