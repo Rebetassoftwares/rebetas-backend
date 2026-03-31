@@ -5,8 +5,6 @@ export default function useHistory({
   platformKey,
   leagueKey,
   timeframe,
-  selectedWeek,
-  selectedMonth,
   customStartDate,
   customEndDate,
 }) {
@@ -63,12 +61,28 @@ export default function useHistory({
   const filteredPredictions = useMemo(() => {
     let data = [...history];
 
-    if (timeframe === "week" && selectedWeek !== "all") {
-      data = data.filter((item) => String(item.week) === selectedWeek);
+    if (timeframe === "today") {
+      const today = new Date().toDateString();
+      data = data.filter(
+        (item) => new Date(item.date).toDateString() === today,
+      );
     }
 
-    if (timeframe === "month" && selectedMonth !== "all") {
-      data = data.filter((item) => item.month === selectedMonth);
+    if (timeframe === "yesterday") {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      data = data.filter(
+        (item) =>
+          new Date(item.date).toDateString() === yesterday.toDateString(),
+      );
+    }
+
+    if (timeframe === "this_week") {
+      const now = new Date();
+      const start = new Date(now.setDate(now.getDate() - now.getDay()));
+
+      data = data.filter((item) => new Date(item.date) >= start);
     }
 
     if (timeframe === "custom" && customStartDate && customEndDate) {
@@ -82,14 +96,7 @@ export default function useHistory({
     }
 
     return data;
-  }, [
-    history,
-    timeframe,
-    selectedWeek,
-    selectedMonth,
-    customStartDate,
-    customEndDate,
-  ]);
+  }, [history, timeframe, customStartDate, customEndDate]);
 
   // 🔥 SUMMARY
   const summary = useMemo(() => {

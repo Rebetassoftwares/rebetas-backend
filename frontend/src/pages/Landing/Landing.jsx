@@ -1,6 +1,7 @@
 import Navbar from "../../components/Navbar/Navbar";
 import { Link } from "react-router-dom";
 import "./Landing.css";
+import { useState } from "react";
 
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination } from "swiper/modules";
@@ -9,10 +10,6 @@ import Footer from "../../components/Footer/Footer";
 
 import "swiper/css";
 import "swiper/css/pagination";
-
-import { useState, useEffect, useMemo } from "react";
-
-import api from "../../services/api";
 
 import heroBg from "../../assets/hero_sport.jpg";
 import { getImageUrl } from "../../utils/getImageUrl";
@@ -24,223 +21,38 @@ import atmImage from "../../assets/atm-betting.jpg";
 import videoTutorial from "../../assets/video-tutorial.jpg";
 import timeMoney from "../../assets/time-money.jpg";
 
+import usePlatforms from "../../hooks/usePlatforms";
+import useLeagues from "../../hooks/useLeagues";
+import useHistory from "../../hooks/useHistory";
+import HistorySection from "../../components/history/HistorySection";
+
 export default function Landing() {
-  /* -------------------------
-     PLATFORM / LEAGUE STATE
-  --------------------------*/
-
-  const [platforms, setPlatforms] = useState([]);
-  const [platformId, setPlatformId] = useState("");
-  const [leagueOptions, setLeagueOptions] = useState([]);
-  const [league, setLeague] = useState("");
-
-  const [history, setHistory] = useState([]);
-  const [loadingHistory, setLoadingHistory] = useState(false);
   const formatCurrency = (value) => {
     return `$${Number(value || 0).toLocaleString()}`;
   };
+  const { platforms, platformId, setPlatformId } = usePlatforms();
 
-  /* -------------------------
-     FILTER STATE
-  --------------------------*/
+  const { leagueOptions, league, setLeague } = useLeagues(platformId);
 
-  const [timeframe, setTimeframe] = useState("all");
-  const [selectedWeek, setSelectedWeek] = useState("all");
-  const [selectedMonth, setSelectedMonth] = useState("all");
-  const [customStartDate, setCustomStartDate] = useState("");
-  const [customEndDate, setCustomEndDate] = useState("");
   const selectedLeague = leagueOptions.find((item) => item._id === league);
 
   const platformKey = selectedLeague?.platformId?.name?.toLowerCase();
+
   const leagueKey = selectedLeague?.leagueName;
 
   const platformName = selectedLeague?.platformId?.name || "";
 
-  /* -------------------------
-     LOAD LEAGUES
-  --------------------------*/
+  const [timeframe, setTimeframe] = useState("all");
+  const [customStartDate, setCustomStartDate] = useState("");
+  const [customEndDate, setCustomEndDate] = useState("");
 
-  useEffect(() => {
-    async function loadPlatforms() {
-      try {
-        const res = await api.get("/platforms");
-
-        const data = Array.isArray(res?.data)
-          ? res.data
-          : Array.isArray(res)
-            ? res
-            : [];
-
-        setPlatforms(data);
-
-        if (data.length > 0) {
-          setPlatformId(data[0]._id); // 🔥 THIS IS KEY
-        }
-      } catch (err) {
-        console.error("Platform load error:", err);
-      }
-    }
-
-    loadPlatforms();
-  }, []);
-
-  useEffect(() => {
-    if (!platformId) return;
-
-    async function loadLeagues() {
-      try {
-        const response = await api.get(
-          `/manual-leagues?platformId=${platformId}`,
-        );
-
-        const leagues = Array.isArray(response) ? response : [];
-
-        setLeagueOptions(leagues);
-
-        if (leagues.length > 0) {
-          setLeague(leagues[0]._id);
-        }
-      } catch (error) {
-        console.error("League load error:", error);
-      }
-    }
-
-    loadLeagues();
-  }, [platformId]);
-
-  /* -------------------------
-     LOAD HISTORY
-  --------------------------*/
-
-  useEffect(() => {
-    if (!league || !platformKey || !leagueKey) return;
-
-    async function loadHistory() {
-      setLoadingHistory(true);
-
-      try {
-        const response = await api.get(`/history/${platformKey}/${leagueKey}`);
-
-        setHistory(Array.isArray(response) ? response : []);
-      } catch (error) {
-        console.error("History load error:", error);
-        setHistory([]);
-      } finally {
-        setLoadingHistory(false);
-      }
-    }
-
-    loadHistory();
-  }, [league, platformKey, leagueKey]);
-
-  useEffect(() => {
-    if (!league || !platformKey || !leagueKey) return;
-
-    const interval = setInterval(() => {
-      (async () => {
-        try {
-          const response = await api.get(
-            `/history/${platformKey}/${leagueKey}`,
-          );
-
-          setHistory(Array.isArray(response) ? response : []);
-        } catch (error) {
-          console.error("Auto refresh error:", error);
-        }
-      })();
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [league, platformKey, leagueKey]);
-
-  /* -------------------------
-     FILTERED DATA
-  --------------------------*/
-
-  const filteredPredictions = useMemo(() => {
-    let data = [...history];
-
-    if (timeframe === "week" && selectedWeek !== "all") {
-      data = data.filter((item) => String(item.week) === selectedWeek);
-    }
-
-    if (timeframe === "month" && selectedMonth !== "all") {
-      data = data.filter((item) => item.month === selectedMonth);
-    }
-
-    if (timeframe === "custom" && customStartDate && customEndDate) {
-      data = data.filter((item) => {
-        const itemDate = new Date(item.date);
-
-        return (
-          itemDate >= new Date(customStartDate) &&
-          itemDate <= new Date(customEndDate)
-        );
-      });
-    }
-
-    return data;
-  }, [
-    history,
+  const { filteredPredictions, summary, loadingHistory } = useHistory({
+    platformKey,
+    leagueKey,
     timeframe,
-    selectedWeek,
-    selectedMonth,
     customStartDate,
     customEndDate,
-  ]);
-
-  /* -------------------------
-     SUMMARY
-  --------------------------*/
-
-  const summary = useMemo(() => {
-    const totalBets = filteredPredictions.length;
-
-    const totalReturns = filteredPredictions.reduce(
-      (sum, item) => sum + Number(item.resultAmount || 0),
-      0,
-    );
-
-    const totalProfit = filteredPredictions.reduce(
-      (sum, item) => sum + Number(item.profit || 0),
-      0,
-    );
-
-    let openingBalance = 0;
-    let closingBalance = 0;
-
-    if (filteredPredictions.length > 0) {
-      const oldest = filteredPredictions[filteredPredictions.length - 1];
-      const latest = filteredPredictions[0];
-
-      openingBalance =
-        Number(oldest.capitalAfter || 0) - Number(oldest.profit || 0);
-
-      closingBalance = Number(latest.capitalAfter || 0);
-    }
-
-    let roi = 0;
-    if (openingBalance > 0) {
-      roi = (totalProfit / openingBalance) * 100;
-    }
-
-    return {
-      totalBets,
-      openingBalance,
-      closingBalance,
-      totalReturns,
-      totalProfit,
-      roi,
-    };
-  }, [filteredPredictions]);
-
-  const availableWeeks = [
-    ...new Set(history.map((item) => item.week).filter(Boolean)),
-  ];
-
-  const availableMonths = [
-    ...new Set(history.map((item) => item.month).filter(Boolean)),
-  ];
+  });
 
   return (
     <div className="landing-page">
@@ -312,208 +124,20 @@ export default function Landing() {
 
       {/* PREDICTION PERFORMANCE */}
 
-      <div className="history-section">
-        <div className="history-header">
-          <h2>Prediction Performance</h2>
-          <span className="history-filter">
-            {platformName} - {leagueKey}
-          </span>
-        </div>
-
-        <div className="filter-controls">
-          <div className="filter-group">
-            <label>Time Frame</label>
-            <select
-              value={timeframe}
-              onChange={(e) => setTimeframe(e.target.value)}
-            >
-              <option value="all">All Time</option>
-              <option value="week">By Week</option>
-              <option value="month">By Month</option>
-              <option value="custom">Custom Date</option>
-            </select>
-          </div>
-
-          {timeframe === "week" && (
-            <div className="filter-group">
-              <label>Select Week</label>
-              <select
-                value={selectedWeek}
-                onChange={(e) => setSelectedWeek(e.target.value)}
-              >
-                <option value="all">All Weeks</option>
-                {availableWeeks.map((week) => (
-                  <option key={week} value={week}>
-                    Week {week}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          {timeframe === "month" && (
-            <div className="filter-group">
-              <label>Select Month</label>
-              <select
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(e.target.value)}
-              >
-                <option value="all">All Months</option>
-                {availableMonths.map((month) => (
-                  <option key={month} value={month}>
-                    {month}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          {timeframe === "custom" && (
-            <>
-              <div className="filter-group">
-                <label>Start Date</label>
-                <input
-                  type="date"
-                  value={customStartDate}
-                  onChange={(e) => setCustomStartDate(e.target.value)}
-                />
-              </div>
-
-              <div className="filter-group">
-                <label>End Date</label>
-                <input
-                  type="date"
-                  value={customEndDate}
-                  onChange={(e) => setCustomEndDate(e.target.value)}
-                />
-              </div>
-            </>
-          )}
-        </div>
-
-        <div className="summary-table-wrapper">
-          <table className="summary-table">
-            <thead>
-              <tr>
-                <th>Number of Bets</th>
-                <th>Opening Balance</th>
-                <th>Closing Balance</th>
-                <th>Total Returns</th>
-                <th>Total Profit</th>
-                <th>ROI (%)</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              <tr>
-                <td>{summary.totalBets}</td>
-
-                <td className="result-neutral">
-                  {formatCurrency(summary.openingBalance)}
-                </td>
-
-                <td className="result-neutral">
-                  {formatCurrency(summary.closingBalance)}
-                </td>
-
-                <td
-                  className={
-                    summary.totalReturns >= summary.openingBalance
-                      ? "result-win"
-                      : "result-loss"
-                  }
-                >
-                  {formatCurrency(summary.totalReturns)}
-                </td>
-
-                <td
-                  className={
-                    summary.totalProfit >= 0 ? "result-win" : "result-loss"
-                  }
-                >
-                  {summary.totalProfit >= 0 ? "+" : "-"}
-                  {formatCurrency(Math.abs(summary.totalProfit))}
-                </td>
-
-                <td className={summary.roi >= 0 ? "result-win" : "result-loss"}>
-                  {summary.roi >= 0 ? "+" : ""}
-                  {Number(summary.roi || 0).toFixed(2)}%
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div className="table-scroll-box">
-          <table className="past-table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Week</th>
-                <th>Match</th>
-                <th>Odd</th>
-                <th>Stake</th>
-                <th>Result</th>
-                <th>Profit</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {loadingHistory ? (
-                <tr>
-                  <td colSpan="7" className="empty-state">
-                    Loading history...
-                  </td>
-                </tr>
-              ) : filteredPredictions.length > 0 ? (
-                filteredPredictions.map((item) => (
-                  <tr key={item._id}>
-                    <td>
-                      {item.date
-                        ? new Date(item.date).toLocaleDateString()
-                        : "-"}
-                    </td>
-                    <td>{item.week || "-"}</td>
-                    <td>{item.match || "-"}</td>
-                    <td>{item.odd ?? "-"}</td>
-
-                    <td className="result-outgoing">
-                      {formatCurrency(item.stake)}
-                    </td>
-
-                    <td
-                      className={
-                        item.resultStatus === "WIN"
-                          ? "result-win"
-                          : "result-loss"
-                      }
-                    >
-                      {formatCurrency(item.resultAmount)}
-                    </td>
-
-                    <td
-                      className={
-                        Number(item.profit || 0) >= 0
-                          ? "result-win"
-                          : "result-loss"
-                      }
-                    >
-                      {Number(item.profit || 0) >= 0 ? "+" : "-"}
-                      {formatCurrency(Math.abs(item.profit))}
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="7" className="empty-state">
-                    No prediction history found for this filter.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <HistorySection
+        platformName={platformName}
+        leagueKey={leagueKey}
+        timeframe={timeframe}
+        setTimeframe={setTimeframe}
+        customStartDate={customStartDate}
+        setCustomStartDate={setCustomStartDate}
+        customEndDate={customEndDate}
+        setCustomEndDate={setCustomEndDate}
+        summary={summary}
+        formatCurrency={formatCurrency}
+        filteredPredictions={filteredPredictions}
+        loadingHistory={loadingHistory}
+      />
 
       {/* ABOUT / WHO WE ARE */}
 
