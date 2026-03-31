@@ -83,6 +83,22 @@ const manualPredictionSchema = new mongoose.Schema(
       enum: ["pending", "won", "loss"],
       default: "pending",
     },
+
+    // 🔥 ADD THIS
+    resultAmount: {
+      type: Number,
+      default: 0,
+    },
+
+    profit: {
+      type: Number,
+      default: 0,
+    },
+
+    capitalAfter: {
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true },
 );
