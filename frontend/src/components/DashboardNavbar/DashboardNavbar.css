@@ -11,8 +11,10 @@
 }
 
 .dashboard-navbar-inner {
-  width: min(1200px, 92%);
-  margin: auto;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px; /* keeps spacing */
 
   height: 70px;
 
