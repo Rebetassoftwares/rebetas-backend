@@ -5,16 +5,19 @@ const ManualPrediction = require("../models/ManualPrediction");
 GET HISTORY (NEW ENGINE)
 - Uses ManualPrediction (REAL SOURCE)
 - Keeps frontend format intact
+- Supports stored platform values in original case or lowercase
 */
 async function getHistory(req, res) {
   try {
     const { platform, league } = req.params;
 
-    const normalizedPlatform = String(platform).toLowerCase();
+    const rawPlatform = String(platform).trim();
     const normalizedLeague = String(league).trim();
 
     const predictions = await ManualPrediction.find({
-      platform: normalizedPlatform,
+      platform: {
+        $in: [rawPlatform, rawPlatform.toLowerCase()],
+      },
       leagueName: normalizedLeague,
       status: { $in: ["won", "loss"] }, // only resolved
     })
@@ -49,7 +52,7 @@ async function getHistory(req, res) {
 
       return {
         _id: p._id,
-        platform: normalizedPlatform,
+        platform: p.platform,
         league: normalizedLeague,
         match,
         odd: p.odd,
