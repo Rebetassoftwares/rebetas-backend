@@ -126,13 +126,7 @@ export default function HistorySection({
                 {formatCurrency(summary.closingBalance)}
               </td>
 
-              <td
-                className={
-                  summary.totalReturns >= summary.openingBalance
-                    ? "result-win"
-                    : "result-loss"
-                }
-              >
+              <td className="result-neutral">
                 {formatCurrency(summary.totalReturns)}
               </td>
 
