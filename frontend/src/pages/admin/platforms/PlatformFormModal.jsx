@@ -4,7 +4,6 @@ import { getImageUrl } from "../../../utils/getImageUrl";
 export default function PlatformFormModal({ initialData, onClose, onSubmit }) {
   const [form, setForm] = useState(() => ({
     name: initialData?.name || "",
-    country: initialData?.country || "",
     logo: initialData?.logo || "",
     isActive: initialData?.isActive ?? true,
   }));
@@ -36,7 +35,6 @@ export default function PlatformFormModal({ initialData, onClose, onSubmit }) {
       const formData = new FormData();
 
       formData.append("name", form.name.trim());
-      formData.append("country", form.country.trim());
       formData.append("isActive", form.isActive);
 
       if (form.logo) {
@@ -67,19 +65,12 @@ export default function PlatformFormModal({ initialData, onClose, onSubmit }) {
               style={{ width: 60, height: 60, objectFit: "cover" }}
             />
           )}
+
           {/* NAME */}
           <input
             name="name"
             placeholder="Platform Name"
             value={form.name}
-            onChange={handleChange}
-          />
-
-          {/* COUNTRY */}
-          <input
-            name="country"
-            placeholder="Country"
-            value={form.country}
             onChange={handleChange}
           />
 

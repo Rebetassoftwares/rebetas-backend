@@ -57,9 +57,9 @@ export default function useHistory({
     return () => clearInterval(interval);
   }, [platformKey, leagueKey]);
 
-  // 🔥 FILTERING
+  // 🔥 FILTERING + SORTING (FIXED)
   const filteredPredictions = useMemo(() => {
-    let data = [...history];
+    let data = [...history].sort((a, b) => new Date(b.date) - new Date(a.date)); // ✅ CRITICAL FIX
 
     if (timeframe === "today") {
       const today = new Date().toDateString();
@@ -98,7 +98,7 @@ export default function useHistory({
     return data;
   }, [history, timeframe, customStartDate, customEndDate]);
 
-  // 🔥 SUMMARY
+  // 🔥 SUMMARY (USING BACKEND CAPITAL CORRECTLY)
   const summary = useMemo(() => {
     const totalBets = filteredPredictions.length;
 
@@ -119,10 +119,10 @@ export default function useHistory({
       const oldest = filteredPredictions[filteredPredictions.length - 1];
       const latest = filteredPredictions[0];
 
-      const oldestCapitalAfter = Number(oldest.capitalAfter || 0);
-      const oldestProfit = Number(oldest.profit || 0);
+      // ✅ SAFE CAPITAL USAGE
+      openingBalance =
+        Number(oldest.capitalAfter || 0) - Number(oldest.profit || 0);
 
-      openingBalance = oldestCapitalAfter - oldestProfit;
       closingBalance = Number(latest.capitalAfter || 0);
     }
 

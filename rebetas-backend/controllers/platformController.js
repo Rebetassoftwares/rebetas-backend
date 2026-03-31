@@ -5,14 +5,14 @@ const mongoose = require("mongoose");
 
 exports.createPlatform = async (req, res) => {
   try {
-    let { name, country, logo: bodyLogo, isActive } = req.body;
+    let { name, logo: bodyLogo, isActive } = req.body;
 
     // ✅ normalize boolean (FormData sends string)
     if (typeof isActive === "string") {
       isActive = isActive === "true";
     }
 
-    // ✅ basic validation (safe)
+    // ✅ validation
     if (!name || !name.trim()) {
       return res.status(400).json({ message: "Platform name is required" });
     }
@@ -22,7 +22,6 @@ exports.createPlatform = async (req, res) => {
 
     const platform = await Platform.create({
       name: name.trim(),
-      country: country?.trim() || "",
       logo,
       isActive: typeof isActive === "boolean" ? isActive : true,
     });
@@ -59,7 +58,7 @@ exports.updatePlatform = async (req, res) => {
       return res.status(404).json({ message: "Platform not found" });
     }
 
-    let { name, country, logo: bodyLogo, isActive } = req.body;
+    let { name, logo: bodyLogo, isActive } = req.body;
 
     // ✅ normalize boolean
     if (typeof isActive === "string") {
@@ -68,7 +67,6 @@ exports.updatePlatform = async (req, res) => {
 
     // ✅ safe updates
     if (name !== undefined) platform.name = name.trim();
-    if (country !== undefined) platform.country = country?.trim() || "";
 
     // ✅ file upload takes priority
     if (req.file) {
@@ -111,7 +109,6 @@ exports.getLeaguesByPlatform = async (req, res) => {
   try {
     const { platformId } = req.params;
 
-    // 🔥 ensure valid ObjectId
     if (!mongoose.Types.ObjectId.isValid(platformId)) {
       return res.status(400).json({ message: "Invalid platformId" });
     }
@@ -119,7 +116,8 @@ exports.getLeaguesByPlatform = async (req, res) => {
     const leagues = await ManualLeague.find({
       platformId: new mongoose.Types.ObjectId(platformId),
     })
-      .populate("platformId", "name logo country")
+      // ✅ REMOVED country
+      .populate("platformId", "name logo")
       .sort({ leagueName: 1 });
 
     res.json(leagues);
