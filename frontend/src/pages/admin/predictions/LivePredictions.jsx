@@ -12,6 +12,7 @@ export default function LivePredictions() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [platformMap, setPlatformMap] = useState({});
+  const [updatingIds, setUpdatingIds] = useState(new Set());
 
   // GROUPING LOGIC
   const groupPredictions = useCallback((data) => {
@@ -43,7 +44,6 @@ export default function LivePredictions() {
 
       const res = await getLivePredictions();
 
-      // ✅ FIX: consistent response handling
       const data = Array.isArray(res?.data)
         ? res.data
         : Array.isArray(res)
@@ -78,7 +78,7 @@ export default function LivePredictions() {
         const map = {};
 
         data.forEach((p) => {
-          map[p.name] = p; // 🔥 key = platform name
+          map[p.name] = p;
         });
 
         setPlatformMap(map);
@@ -90,18 +90,45 @@ export default function LivePredictions() {
     loadPlatformsData();
   }, []);
 
-  // RESULT UPDATE
+  // ✅ FIXED RESULT UPDATE (NO FULL RELOAD)
   const handleResult = useCallback(
     async (id, status) => {
+      // prevent double click
+      if (updatingIds.has(id)) return;
+
       try {
+        // mark as updating
+        setUpdatingIds((prev) => new Set(prev).add(id));
+
+        // 🔥 optimistic UI update
+        setGrouped((prev) => {
+          const updated = { ...prev };
+
+          for (const platform in updated) {
+            for (const league in updated[platform]) {
+              updated[platform][league] = updated[platform][league].map((p) =>
+                (p._id || p.id) === id ? { ...p, status } : p,
+              );
+            }
+          }
+
+          return updated;
+        });
+
         await updatePredictionResult(id, { status });
-        loadData();
       } catch (err) {
         console.error(err);
         setError("Update failed");
+      } finally {
+        // remove updating state
+        setUpdatingIds((prev) => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
       }
     },
-    [loadData],
+    [updatingIds],
   );
 
   if (loading) return <p>Loading live predictions...</p>;
@@ -112,10 +139,8 @@ export default function LivePredictions() {
 
       {error && <p className="error">{error}</p>}
 
-      {/* EMPTY */}
       {Object.keys(grouped).length === 0 && <p>No active predictions</p>}
 
-      {/* PLATFORM GROUP */}
       {Object.entries(grouped).map(([platform, leagues]) => (
         <div key={platform} className="platform-block">
           <div className="platform-header">
@@ -132,7 +157,6 @@ export default function LivePredictions() {
             <h3>{platform}</h3>
           </div>
 
-          {/* LEAGUE GROUP */}
           {Object.entries(leagues).map(([league, preds]) => (
             <div key={league} className="league-block">
               <h4>{league}</h4>
@@ -142,7 +166,6 @@ export default function LivePredictions() {
 
                 {preds.map((p) => (
                   <div key={p._id || p.id} className="prediction-card">
-                    {/* TYPE */}
                     {p.type === "MANUAL" && (
                       <p>
                         #{p.matchNumber || "-"} — {p.homeTeam || "?"} vs{" "}
@@ -157,7 +180,6 @@ export default function LivePredictions() {
                     <p>Odd: {p.odd ?? "-"}</p>
                     <p>Stake: {p.stake ?? "-"}</p>
 
-                    {/* CYCLES */}
                     <div className="cycles">
                       {p.cycles?.map((c, i) => (
                         <span key={i}>
@@ -168,7 +190,6 @@ export default function LivePredictions() {
 
                     <p>Status: {p.status || "unknown"}</p>
 
-                    {/* ACTIONS */}
                     {p.status === "pending" && (
                       <div className="actions">
                         <button onClick={() => handleResult(p._id, "won")}>
