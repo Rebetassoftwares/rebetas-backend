@@ -142,8 +142,8 @@ exports.updatePredictionResult = async (req, res) => {
     const stake = Number(prediction.stake || 0);
     const odd = Number(prediction.odd || 0);
 
-    const resultAmount = win ? Math.round(stake * odd) : 0;
-    const profit = resultAmount - stake;
+    const resultAmount = Number((stake * odd).toFixed(2));
+    const profit = Number((resultAmount - stake).toFixed(2));
 
     prediction.status = status;
     prediction.resultAmount = resultAmount;
