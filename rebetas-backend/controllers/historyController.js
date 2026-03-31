@@ -22,7 +22,6 @@ async function getHistory(req, res) {
       .sort({ scheduledFor: -1, createdAt: -1 })
       .lean();
 
-    // 🔥 MAP TO FRONTEND FORMAT (IMPORTANT)
     const history = predictions.map((p) => {
       const match =
         p.homeTeam && p.awayTeam
@@ -30,12 +29,6 @@ async function getHistory(req, res) {
           : p.team || "Unknown Match";
 
       const safeDate = p.scheduledFor ? new Date(p.scheduledFor) : new Date();
-
-      const formattedDate = safeDate.toISOString().split("T")[0];
-
-      const month = safeDate.toLocaleString("default", {
-        month: "long",
-      });
 
       function getISOWeek(dateInput) {
         const d = new Date(dateInput);
@@ -59,9 +52,19 @@ async function getHistory(req, res) {
         profit: p.profit,
         capitalAfter: p.capitalAfter,
         resultStatus: p.status === "won" ? "WIN" : "LOSS",
-        date: formattedDate,
-        month,
-        week: getISOWeek(safeDate),
+
+        // ✅ FIXED: FULL TIMESTAMP (NOT JUST DATE)
+        date: safeDate,
+
+        month: safeDate.toLocaleString("default", {
+          month: "long",
+        }),
+
+        // ❌ REMOVE THIS LINE
+        // week: getISOWeek(safeDate),
+
+        // ✅ ADD THIS (CRITICAL)
+        cycles: Array.isArray(p.cycles) ? p.cycles : [],
       };
     });
 
