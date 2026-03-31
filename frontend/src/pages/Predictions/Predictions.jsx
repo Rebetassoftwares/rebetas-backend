@@ -328,22 +328,18 @@ export default function Predictions() {
           <div className="platform-title">{platformName.toUpperCase()}</div>
 
           <div className="badge-row">
-            {prediction?.cycles?.length > 0 ? (
-              prediction.cycles.map((c, i) => (
-                <div key={i} className="badge">
-                  {c.name}:<span>{c.value ?? "-"}</span>
-                </div>
-              ))
-            ) : (
-              <div className="badge">
-                Cycle:
-                <span>-</span>
-              </div>
-            )}
+            {prediction?.cycles?.length > 0
+              ? prediction.cycles.map((c, i) => (
+                  <div key={i} className="badge">
+                    {c.name}:<span>{c.value ?? "-"}</span>
+                  </div>
+                ))
+              : null}
 
             <div className="badge time-badge live-time">
               {time.toLocaleTimeString()}
             </div>
+
             <div
               className={`badge live-badge ${prediction ? "active" : "inactive"}`}
             >
