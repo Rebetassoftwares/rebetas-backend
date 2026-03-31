@@ -331,10 +331,7 @@ export default function Predictions() {
             {prediction?.cycles?.length > 0 ? (
               prediction.cycles.map((c, i) => (
                 <div key={i} className="badge">
-                  {c.name}:
-                  <span className={isLocked ? "blurred" : ""}>
-                    {isLocked ? "..." : c.value}
-                  </span>
+                  {c.name}:<span>{c.value ?? "-"}</span>
                 </div>
               ))
             ) : (
