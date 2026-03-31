@@ -49,8 +49,11 @@ export const getPromoDetails = (id) =>
   api.get(`/admin/promo/${id}`, authConfig());
 
 /* ---------------- USERS ---------------- */
+/* ---------------- USERS ---------------- */
 
 export const getUsers = () => api.get("/admin/users", authConfig());
+
+export const getUserById = (id) => api.get(`/admin/users/${id}`, authConfig());
 
 export const deleteUser = (id) =>
   api.delete(`/admin/users/${id}`, authConfig());
@@ -58,7 +61,6 @@ export const deleteUser = (id) =>
 export const resetUserDevice = (id) =>
   api.patch(`/admin/users/${id}/reset-device`, {}, authConfig());
 
-// ✅ NEW
 export const updateUserStatus = (id, status) =>
   api.patch(`/admin/users/${id}/status`, { status });
 
