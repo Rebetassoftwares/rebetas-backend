@@ -68,10 +68,8 @@ function validateLeaguePayload(payload, isUpdate = false) {
     }
   }
 
-  if (!isUpdate || totalMatches !== undefined) {
-    if (![8, 10].includes(Number(totalMatches))) {
-      errors.push("totalMatches must be 8 or 10");
-    }
+  if (!Number.isFinite(Number(totalMatches)) || Number(totalMatches) < 1) {
+    errors.push("totalMatches must be a number greater than 0");
   }
 
   if (!isUpdate || intervalMinutes !== undefined) {

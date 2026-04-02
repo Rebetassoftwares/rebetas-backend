@@ -46,8 +46,8 @@ const manualLeagueSchema = new mongoose.Schema(
 
     totalMatches: {
       type: Number,
-      enum: [8, 10],
       required: true,
+      min: 1,
     },
 
     intervalMinutes: {
