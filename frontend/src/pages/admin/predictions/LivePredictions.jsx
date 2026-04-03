@@ -354,11 +354,11 @@ export default function LivePredictions() {
                         <div className="actions">
                           <button
                             type="button"
-                            className={
+                            className={`action-btn ${
                               pendingUpdates[p._id || p.id] === "won"
                                 ? "selected-win"
                                 : ""
-                            }
+                            }`}
                             onClick={() => handleResult(p._id || p.id, "won")}
                           >
                             WON
@@ -366,11 +366,11 @@ export default function LivePredictions() {
 
                           <button
                             type="button"
-                            className={
+                            className={`action-btn ${
                               pendingUpdates[p._id || p.id] === "loss"
                                 ? "selected-loss"
                                 : ""
-                            }
+                            }`}
                             onClick={() => handleResult(p._id || p.id, "loss")}
                           >
                             LOSS
