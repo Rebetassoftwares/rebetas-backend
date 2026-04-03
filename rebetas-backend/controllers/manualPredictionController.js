@@ -173,19 +173,19 @@ exports.getLiveManualPredictions = async (req, res) => {
   try {
     const now = new Date();
 
-    const activeLeagues = await ManualLeague.find({ isActive: true }).select(
-      "_id platform leagueName mode",
-    );
-
-    const activeLeagueIds = activeLeagues.map((league) => league._id);
-
     const predictions = await ManualPrediction.find({
-      leagueId: { $in: activeLeagueIds },
       scheduledFor: { $lte: now },
       type: { $in: ["MANUAL", "SEMI_AUTO"] },
-    }).sort({ scheduledFor: -1, createdAt: -1 });
+    })
+      .sort({ scheduledFor: -1, createdAt: -1 })
+      .populate("leagueId"); // 🔥 IMPORTANT
 
-    res.json(predictions);
+    const result = predictions.map((p) => ({
+      ...p.toObject(),
+      intervalMinutes: p.leagueId?.intervalMinutes || 0,
+    }));
+
+    res.json(result);
   } catch (err) {
     console.error("Fetch live manual predictions error:", err);
     res.status(500).json({ message: "Failed to fetch live predictions" });
