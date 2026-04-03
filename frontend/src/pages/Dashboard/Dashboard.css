@@ -237,6 +237,29 @@
   );
 }
 
+.platform-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+
+  background: radial-gradient(
+    circle at 50% 40%,
+    rgba(160, 32, 240, 0.18),
+    transparent 60%
+  );
+
+  z-index: 1;
+}
+
+.platform-card img {
+  position: relative;
+  z-index: 2;
+}
+
+.platform-overlay {
+  z-index: 3;
+}
+
 .platform-card:hover img {
   transform: scale(1.04);
 }
