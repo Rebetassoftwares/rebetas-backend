@@ -17,7 +17,7 @@ export default function usePrediction(league) {
 
       try {
         const res = await api.get(`/public/predictions/live/${league}`);
-        if (isMounted) setPrediction(res || null);
+        if (isMounted) setPrediction(Array.isArray(res) ? res[0] : res);
       } catch (err) {
         console.error("Prediction load error:", err);
         if (isMounted) setPrediction(null);
