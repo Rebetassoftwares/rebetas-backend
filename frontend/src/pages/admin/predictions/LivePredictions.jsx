@@ -136,37 +136,10 @@ export default function LivePredictions() {
 
   // RESULT UPDATE
   const handleResult = useCallback((id, status) => {
-    // store change locally
     setPendingUpdates((prev) => ({
       ...prev,
       [id]: status,
     }));
-
-    // optimistic UI update (no API call)
-    setGrouped((prev) => {
-      const next = { ...prev };
-
-      for (const platform in next) {
-        for (const league in next[platform]) {
-          const index = next[platform][league].findIndex(
-            (p) => (p._id || p.id) === id,
-          );
-
-          if (index !== -1) {
-            const updatedLeague = [...next[platform][league]];
-            updatedLeague[index] = {
-              ...updatedLeague[index],
-              status,
-            };
-
-            next[platform][league] = updatedLeague;
-            return next; // 🔥 stop early (important)
-          }
-        }
-      }
-
-      return next;
-    });
   }, []);
 
   const handleBatchUpdate = async () => {

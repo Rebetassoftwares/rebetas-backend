@@ -218,7 +218,7 @@
 
 .actions .action-btn.selected-loss {
   background: #e11d48;
-  box-shadow: 0 0 0 2px rgba(225, 29, 72, 0.35);
+  box-shadow: 0 0 0 2px rgba(184, 3, 3, 0.5);
   transform: translateY(-1px);
 }
 
