@@ -34,6 +34,7 @@ exports.getLivePrediction = async (req, res) => {
     res.json({
       ...prediction.toObject(),
       type: prediction.type,
+      intervalMinutes: Number(league.intervalMinutes || 0), // 🔥 ADD THIS
     });
   } catch (err) {
     console.error("Public live prediction error:", err);
