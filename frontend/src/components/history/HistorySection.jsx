@@ -1,3 +1,5 @@
+import { useEffect, useMemo, useState } from "react";
+
 export default function HistorySection({
   platformName,
   leagueKey,
@@ -12,6 +14,65 @@ export default function HistorySection({
   filteredPredictions,
   loadingHistory,
 }) {
+  const [startingCapital, setStartingCapital] = useState(
+    Number(summary?.openingBalance || 0),
+  );
+  const [selectedCurrency, setSelectedCurrency] = useState("USD");
+  const [exchangeRate, setExchangeRate] = useState(1);
+
+  const currencyList = useMemo(() => {
+    if (
+      typeof Intl !== "undefined" &&
+      typeof Intl.supportedValuesOf === "function"
+    ) {
+      return Intl.supportedValuesOf("currency");
+    }
+
+    return [
+      "USD",
+      "NGN",
+      "GHS",
+      "EUR",
+      "GBP",
+      "KES",
+      "UGX",
+      "ZAR",
+      "CAD",
+      "AUD",
+    ];
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function fetchRate() {
+      try {
+        if (selectedCurrency === "USD") {
+          if (isMounted) setExchangeRate(1);
+          return;
+        }
+
+        const res = await fetch(
+          `https://api.frankfurter.app/latest?from=USD&to=${selectedCurrency}`,
+        );
+        const data = await res.json();
+
+        if (isMounted) {
+          setExchangeRate(Number(data?.rates?.[selectedCurrency] || 1));
+        }
+      } catch (err) {
+        console.error("Currency rate fetch error:", err);
+        if (isMounted) setExchangeRate(1);
+      }
+    }
+
+    fetchRate();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedCurrency]);
+
   function formatCycles(cycles) {
     if (!Array.isArray(cycles) || cycles.length === 0) return "-";
 
@@ -29,6 +90,85 @@ export default function HistorySection({
       minute: "2-digit",
     });
   }
+
+  function formatDisplayCurrency(value) {
+    if (selectedCurrency === "USD") {
+      return formatCurrency(value);
+    }
+
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: selectedCurrency,
+      maximumFractionDigits: 2,
+    }).format(Number(value || 0));
+  }
+
+  const scaleFactor = useMemo(() => {
+    const originalOpeningUsd = Number(summary?.openingBalance || 0);
+    const rate = Number(exchangeRate || 1);
+
+    const userOpeningUsd =
+      selectedCurrency === "USD"
+        ? Number(startingCapital || 0)
+        : Number(startingCapital || 0) / rate;
+
+    if (originalOpeningUsd <= 0 || userOpeningUsd <= 0) {
+      return 1;
+    }
+
+    return userOpeningUsd / originalOpeningUsd;
+  }, [
+    summary?.openingBalance,
+    startingCapital,
+    exchangeRate,
+    selectedCurrency,
+  ]);
+
+  const scaledSummary = useMemo(() => {
+    const rate = Number(exchangeRate || 1);
+
+    const convertUsdToSelected = (value) =>
+      selectedCurrency === "USD"
+        ? Number(value || 0)
+        : Number(value || 0) * rate;
+
+    return {
+      totalBets: Number(summary?.totalBets || 0),
+      openingBalance: convertUsdToSelected(
+        Number(summary?.openingBalance || 0) * scaleFactor,
+      ),
+      closingBalance: convertUsdToSelected(
+        Number(summary?.closingBalance || 0) * scaleFactor,
+      ),
+      totalReturns: convertUsdToSelected(
+        Number(summary?.totalReturns || 0) * scaleFactor,
+      ),
+      totalProfit: convertUsdToSelected(
+        Number(summary?.totalProfit || 0) * scaleFactor,
+      ),
+      roi: Number(summary?.roi || 0),
+    };
+  }, [summary, scaleFactor, exchangeRate, selectedCurrency]);
+
+  const scaledPredictions = useMemo(() => {
+    const rate = Number(exchangeRate || 1);
+
+    const convertUsdToSelected = (value) =>
+      selectedCurrency === "USD"
+        ? Number(value || 0)
+        : Number(value || 0) * rate;
+
+    return filteredPredictions.map((item) => ({
+      ...item,
+      displayStake: convertUsdToSelected(Number(item.stake || 0) * scaleFactor),
+      displayResult: convertUsdToSelected(
+        Number(item.resultAmount || 0) * scaleFactor,
+      ),
+      displayProfit: convertUsdToSelected(
+        Number(item.profit || 0) * scaleFactor,
+      ),
+    }));
+  }, [filteredPredictions, scaleFactor, exchangeRate, selectedCurrency]);
 
   return (
     <div className="history-section">
@@ -77,6 +217,31 @@ export default function HistorySection({
             </div>
           </>
         )}
+
+        <div className="filter-group">
+          <label>Set Your Capital</label>
+          <input
+            type="number"
+            min="0"
+            step="0.01"
+            value={startingCapital}
+            onChange={(e) => setStartingCapital(Number(e.target.value) || 0)}
+          />
+        </div>
+
+        <div className="filter-group">
+          <label>Currency</label>
+          <select
+            value={selectedCurrency}
+            onChange={(e) => setSelectedCurrency(e.target.value)}
+          >
+            {currencyList.map((currency) => (
+              <option key={currency} value={currency}>
+                {currency}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {/* SUMMARY */}
@@ -95,32 +260,36 @@ export default function HistorySection({
 
           <tbody>
             <tr>
-              <td>{summary.totalBets}</td>
+              <td>{scaledSummary.totalBets}</td>
 
               <td className="result-neutral">
-                {formatCurrency(summary.openingBalance)}
+                {formatDisplayCurrency(scaledSummary.openingBalance)}
               </td>
 
               <td className="result-neutral">
-                {formatCurrency(summary.closingBalance)}
+                {formatDisplayCurrency(scaledSummary.closingBalance)}
               </td>
 
               <td className="result-neutral">
-                {formatCurrency(summary.totalReturns)}
+                {formatDisplayCurrency(scaledSummary.totalReturns)}
               </td>
 
               <td
                 className={
-                  summary.totalProfit >= 0 ? "result-win" : "result-loss"
+                  scaledSummary.totalProfit >= 0 ? "result-win" : "result-loss"
                 }
               >
-                {summary.totalProfit >= 0 ? "+" : "-"}
-                {formatCurrency(Math.abs(summary.totalProfit))}
+                {scaledSummary.totalProfit >= 0 ? "+" : "-"}
+                {formatDisplayCurrency(Math.abs(scaledSummary.totalProfit))}
               </td>
 
-              <td className={summary.roi >= 0 ? "result-win" : "result-loss"}>
-                {summary.roi >= 0 ? "+" : ""}
-                {Number(summary.roi || 0).toFixed(2)}%
+              <td
+                className={
+                  scaledSummary.roi >= 0 ? "result-win" : "result-loss"
+                }
+              >
+                {scaledSummary.roi >= 0 ? "+" : ""}
+                {Number(scaledSummary.roi || 0).toFixed(2)}%
               </td>
             </tr>
           </tbody>
@@ -149,8 +318,8 @@ export default function HistorySection({
                   Loading history...
                 </td>
               </tr>
-            ) : filteredPredictions.length > 0 ? (
-              filteredPredictions.map((item) => (
+            ) : scaledPredictions.length > 0 ? (
+              scaledPredictions.map((item) => (
                 <tr key={item._id}>
                   <td>{formatDateTime(item.date)}</td>
                   <td>{formatCycles(item.cycles)}</td>
@@ -158,7 +327,7 @@ export default function HistorySection({
                   <td>{item.odd ?? "-"}</td>
 
                   <td className="result-outgoing">
-                    {formatCurrency(item.stake)}
+                    {formatDisplayCurrency(item.displayStake)}
                   </td>
 
                   <td
@@ -166,18 +335,18 @@ export default function HistorySection({
                       item.resultStatus === "WIN" ? "result-win" : "result-loss"
                     }
                   >
-                    {formatCurrency(item.resultAmount)}
+                    {formatDisplayCurrency(item.displayResult)}
                   </td>
 
                   <td
                     className={
-                      Number(item.profit || 0) >= 0
+                      Number(item.displayProfit || 0) >= 0
                         ? "result-win"
                         : "result-loss"
                     }
                   >
-                    {Number(item.profit || 0) >= 0 ? "+" : "-"}
-                    {formatCurrency(Math.abs(item.profit))}
+                    {Number(item.displayProfit || 0) >= 0 ? "+" : "-"}
+                    {formatDisplayCurrency(Math.abs(item.displayProfit))}
                   </td>
                 </tr>
               ))
