@@ -206,6 +206,18 @@
   background: #ff4d6d;
 }
 
+.actions button.selected-win {
+  background: #22c55e;
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.35);
+  transform: translateY(-1px);
+}
+
+.actions button.selected-loss {
+  background: #e11d48;
+  box-shadow: 0 0 0 2px rgba(225, 29, 72, 0.35);
+  transform: translateY(-1px);
+}
+
 /* CYCLES */
 .cycles {
   display: flex;
@@ -259,6 +271,11 @@
   color: #ccc;
 }
 
+.batch-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* MOBILE */
 @media (max-width: 768px) {
   .prediction-grid {
@@ -269,5 +286,18 @@
   .league-filter-tab {
     width: 100%;
     justify-content: space-between;
+  }
+
+  .batch-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .batch-actions button {
+    width: 100%;
+  }
+
+  .batch-actions span {
+    text-align: center;
   }
 }
