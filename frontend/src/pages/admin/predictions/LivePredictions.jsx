@@ -154,14 +154,12 @@ export default function LivePredictions() {
         status,
       }));
 
-      // 🔥 TEMP: use existing API one by one (no backend change yet)
       await Promise.all(
         updates.map((u) => updatePredictionResult(u.id, { status: u.status })),
       );
 
-      setPendingUpdates({}); // clear after success
-
-      await loadData(); // refresh once
+      setPendingUpdates({});
+      await loadData();
     } catch (err) {
       console.error(err);
       setError("Batch update failed");
@@ -180,6 +178,7 @@ export default function LivePredictions() {
   return (
     <div className="live-page">
       <h2>Live Predictions</h2>
+
       <div className="batch-actions">
         <button
           disabled={saving || Object.keys(pendingUpdates).length === 0}
@@ -296,62 +295,62 @@ export default function LivePredictions() {
                 <div className="prediction-grid">
                   {selectedPredictions.length === 0 && <p>No predictions</p>}
 
-                  {selectedPredictions.map((p) => (
-                    <div key={p._id || p.id} className="prediction-card">
-                      {p.type === "MANUAL" && (
-                        <p>
-                          #{p.matchNumber || "-"} — {p.homeTeam || "?"} vs{" "}
-                          {p.awayTeam || "?"}
-                        </p>
-                      )}
+                  {selectedPredictions.map((p) => {
+                    const id = p._id || p.id;
+                    const selectedStatus = pendingUpdates[id];
 
-                      {p.type === "SEMI_AUTO" && (
-                        <p>{p.team || "?"} — Over 1.5 Goals</p>
-                      )}
+                    return (
+                      <div key={id} className="prediction-card">
+                        {p.type === "MANUAL" && (
+                          <p>
+                            #{p.matchNumber || "-"} — {p.homeTeam || "?"} vs{" "}
+                            {p.awayTeam || "?"}
+                          </p>
+                        )}
 
-                      <p>Odd: {p.odd ?? "-"}</p>
-                      <p>Stake: {p.stake ?? "-"}</p>
+                        {p.type === "SEMI_AUTO" && (
+                          <p>{p.team || "?"} — Over 1.5 Goals</p>
+                        )}
 
-                      <div className="cycles">
-                        {p.cycles?.map((c, i) => (
-                          <span key={i}>
-                            {c.name}: {c.value}
-                          </span>
-                        ))}
-                      </div>
+                        <p>Odd: {p.odd ?? "-"}</p>
+                        <p>Stake: {p.stake ?? "-"}</p>
 
-                      <p>Status: {getDisplayStatus(p)}</p>
-
-                      {(p.status === "pending" ||
-                        pendingUpdates[p._id || p.id]) && (
-                        <div className="actions">
-                          <button
-                            type="button"
-                            className={`action-btn ${
-                              pendingUpdates[p._id || p.id] === "won"
-                                ? "selected-win"
-                                : ""
-                            }`}
-                            onClick={() => handleResult(p._id || p.id, "won")}
-                          >
-                            WON
-                          </button>
-
-                          <button
-                            type="button"
-                            className={`action-btn ${
-                              pendingUpdates[p._id || p.id] === "loss"
-                                ? "selected-loss"
-                                : ""
-                            }`}
-                            onClick={() => handleResult(p._id || p.id, "loss")}
-                          >
-                            LOSS
-                          </button>
+                        <div className="cycles">
+                          {p.cycles?.map((c, i) => (
+                            <span key={i}>
+                              {c.name}: {c.value}
+                            </span>
+                          ))}
                         </div>
-                      )}
-                    </div>
-                  ))}
+
+                        <p>Status: {getDisplayStatus(p)}</p>
+
+                        {(p.status === "pending" || selectedStatus) && (
+                          <div className="actions">
+                            <button
+                              type="button"
+                              className={`action-btn ${
+                                selectedStatus === "won" ? "selected-win" : ""
+                              }`}
+                              onClick={() => handleResult(id, "won")}
+                            >
+                              WON
+                            </button>
+
+                            <button
+                              type="button"
+                              className={`action-btn ${
+                                selectedStatus === "loss" ? "selected-loss" : ""
+                              }`}
+                              onClick={() => handleResult(id, "loss")}
+                            >
+                              LOSS
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>
