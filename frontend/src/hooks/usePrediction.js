@@ -17,7 +17,7 @@ export default function usePrediction(league) {
 
       try {
         const res = await api.get(`/public/predictions/live/${league}`);
-        if (isMounted) setPrediction(Array.isArray(res) ? res[0] : res);
+        if (isMounted) setPrediction(res || null);
       } catch (err) {
         console.error("Prediction load error:", err);
         if (isMounted) setPrediction(null);
@@ -40,7 +40,7 @@ export default function usePrediction(league) {
     const interval = setInterval(async () => {
       try {
         const res = await api.get(`/public/predictions/live/${league}`);
-        setPrediction(Array.isArray(res) ? res[0] : res);
+        setPrediction(res || null);
       } catch (err) {
         console.error("Auto refresh prediction error:", err);
       }
@@ -51,23 +51,18 @@ export default function usePrediction(league) {
 
   // 🔥 COUNTDOWN (FIXED)
   useEffect(() => {
-    if (!prediction?.scheduledFor || !prediction?.intervalMinutes) return;
+    if (!prediction?.scheduledFor) return;
 
     const interval = setInterval(() => {
       const now = new Date();
       const scheduled = new Date(prediction.scheduledFor);
 
-      const intervalMinutes = prediction.intervalMinutes;
-      const intervalMs = intervalMinutes * 60 * 1000;
+      // ⚠️ TEMP fallback (until backend sends interval)
+      const intervalMinutes = prediction?.intervalMinutes || 0;
 
-      let next = scheduled.getTime();
+      const next = new Date(scheduled.getTime() + intervalMinutes * 60 * 1000);
 
-      while (next <= now.getTime()) {
-        next += intervalMs;
-      }
-
-      const diff = next - now.getTime();
-
+      const diff = Math.max(0, next - now);
       setCountdown(diff);
     }, 1000);
 
