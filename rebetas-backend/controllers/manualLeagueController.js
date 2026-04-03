@@ -132,6 +132,23 @@ function validateLeaguePayload(payload, isUpdate = false) {
             errors.push(`cycleConfig[${index}].max must be greater than 0`);
           }
         }
+
+        // ✅ MOVE THIS HERE
+        if (c.current !== undefined && c.current !== null) {
+          if (!Number.isFinite(Number(c.current))) {
+            errors.push(`cycleConfig[${index}].current must be a number`);
+          }
+
+          if (Number(c.current) < Number(c.start)) {
+            errors.push(
+              `cycleConfig[${index}].current cannot be less than start`,
+            );
+          }
+
+          if (c.max !== undefined && Number(c.current) > Number(c.max)) {
+            errors.push(`cycleConfig[${index}].current cannot exceed max`);
+          }
+        }
       });
     }
   }
