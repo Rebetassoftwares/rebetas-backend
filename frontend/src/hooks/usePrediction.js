@@ -40,7 +40,7 @@ export default function usePrediction(league) {
     const interval = setInterval(async () => {
       try {
         const res = await api.get(`/public/predictions/live/${league}`);
-        setPrediction(res || null);
+        setPrediction(Array.isArray(res) ? res[0] : res);
       } catch (err) {
         console.error("Auto refresh prediction error:", err);
       }
