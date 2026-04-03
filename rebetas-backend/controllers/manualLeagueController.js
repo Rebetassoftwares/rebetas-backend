@@ -133,7 +133,6 @@ function validateLeaguePayload(payload, isUpdate = false) {
           }
         }
 
-        // ✅ MOVE THIS HERE
         if (c.current !== undefined && c.current !== null) {
           if (!Number.isFinite(Number(c.current))) {
             errors.push(`cycleConfig[${index}].current must be a number`);
@@ -173,20 +172,6 @@ function validateLeaguePayload(payload, isUpdate = false) {
       if (min >= max) {
         errors.push("oddRange.min must be less than oddRange.max");
       }
-    }
-  }
-
-  if (c.current !== undefined && c.current !== null) {
-    if (!Number.isFinite(Number(c.current))) {
-      errors.push(`cycleConfig[${index}].current must be a number`);
-    }
-
-    if (Number(c.current) < Number(c.start)) {
-      errors.push(`cycleConfig[${index}].current cannot be less than start`);
-    }
-
-    if (c.max !== undefined && Number(c.current) > Number(c.max)) {
-      errors.push(`cycleConfig[${index}].current cannot exceed max`);
     }
   }
 
