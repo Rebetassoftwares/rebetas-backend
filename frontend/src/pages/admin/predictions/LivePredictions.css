@@ -5,17 +5,158 @@
   gap: 20px;
 }
 
+/* PLATFORM FILTER TOP */
+.platform-filter-wrap {
+  padding: 18px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.platform-filter-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.platform-filter-header img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  border-radius: 6px;
+}
+
+.platform-filter-header h3 {
+  margin: 0;
+  color: #fff;
+}
+
+.platform-filter-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.platform-filter-tab {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: #f3ecff;
+  padding: 12px 20px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.platform-filter-tab:hover {
+  border-color: rgba(168, 85, 247, 0.6);
+  background: rgba(168, 85, 247, 0.14);
+}
+
+.platform-filter-tab.active {
+  background: linear-gradient(135deg, #a855f7, #9333ea);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 0 18px rgba(168, 85, 247, 0.35);
+}
+
+/* LEAGUE FILTER */
+.league-filter-wrap {
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.league-filter-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.league-filter-tab {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: #f3ecff;
+  padding: 10px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.2s ease;
+}
+
+.league-filter-tab:hover {
+  border-color: rgba(168, 85, 247, 0.6);
+  background: rgba(168, 85, 247, 0.12);
+}
+
+.league-filter-tab.active {
+  background: rgba(168, 85, 247, 0.2);
+  border-color: #a855f7;
+  color: #fff;
+  box-shadow: 0 0 14px rgba(168, 85, 247, 0.2);
+}
+
+.league-filter-name {
+  font-weight: 600;
+  color: #fff;
+}
+
+.league-filter-count {
+  min-width: 24px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: rgba(74, 222, 128, 0.18);
+  border: 1px solid rgba(74, 222, 128, 0.35);
+  color: #86efac;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+}
+
 /* PLATFORM */
 .platform-block {
   padding: 15px;
   border-radius: 16px;
-
   background: rgba(255, 255, 255, 0.08);
 }
 
 /* LEAGUE */
 .league-block {
   margin-top: 10px;
+}
+
+.league-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.league-title-row h4 {
+  margin: 0;
+  color: #fff;
+}
+
+.league-pending-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(74, 222, 128, 0.14);
+  border: 1px solid rgba(74, 222, 128, 0.28);
+  color: #86efac;
+  font-size: 13px;
+  font-weight: 700;
 }
 
 /* GRID */
@@ -29,8 +170,11 @@
 .prediction-card {
   padding: 12px;
   border-radius: 12px;
-
   background: rgba(255, 255, 255, 0.08);
+}
+
+.prediction-card p {
+  color: #fff;
 }
 
 /* ACTIONS */
@@ -38,6 +182,20 @@
   display: flex;
   gap: 10px;
   margin-top: 8px;
+}
+
+.actions button {
+  border: none;
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.actions button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 .actions button:first-child {
@@ -56,6 +214,11 @@
   font-size: 12px;
 }
 
+.cycles span {
+  color: #fff;
+}
+
+/* PLATFORM HEADER */
 .platform-header {
   display: flex;
   align-items: center;
@@ -67,4 +230,22 @@
   height: 32px;
   object-fit: contain;
   border-radius: 6px;
+}
+
+.platform-header h3 {
+  margin: 0;
+  color: #fff;
+}
+
+/* MOBILE */
+@media (max-width: 768px) {
+  .prediction-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .platform-filter-tab,
+  .league-filter-tab {
+    width: 100%;
+    justify-content: space-between;
+  }
 }

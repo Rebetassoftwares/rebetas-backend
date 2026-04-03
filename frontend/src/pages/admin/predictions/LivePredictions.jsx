@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import {
   getLivePredictions,
   updatePredictionResult,
@@ -13,6 +13,9 @@ export default function LivePredictions() {
   const [error, setError] = useState("");
   const [platformMap, setPlatformMap] = useState({});
   const [updatingIds, setUpdatingIds] = useState(new Set());
+
+  const [selectedPlatform, setSelectedPlatform] = useState("");
+  const [selectedLeague, setSelectedLeague] = useState("");
 
   // GROUPING LOGIC
   const groupPredictions = useCallback((data) => {
@@ -90,27 +93,75 @@ export default function LivePredictions() {
     loadPlatformsData();
   }, []);
 
-  // ✅ FIXED RESULT UPDATE (NO FULL RELOAD)
+  const platformNames = useMemo(() => Object.keys(grouped), [grouped]);
+
+  const leaguesForSelectedPlatform = useMemo(() => {
+    if (!selectedPlatform || !grouped[selectedPlatform]) return [];
+    return Object.entries(grouped[selectedPlatform]);
+  }, [grouped, selectedPlatform]);
+
+  const selectedPredictions = useMemo(() => {
+    if (!selectedPlatform || !selectedLeague) return [];
+    return grouped[selectedPlatform]?.[selectedLeague] || [];
+  }, [grouped, selectedPlatform, selectedLeague]);
+
+  useEffect(() => {
+    if (!platformNames.length) {
+      setSelectedPlatform("");
+      setSelectedLeague("");
+      return;
+    }
+
+    setSelectedPlatform((prev) => {
+      if (prev && grouped[prev]) return prev;
+      return platformNames[0];
+    });
+  }, [platformNames, grouped]);
+
+  useEffect(() => {
+    if (!selectedPlatform || !grouped[selectedPlatform]) {
+      setSelectedLeague("");
+      return;
+    }
+
+    const leagueNames = Object.keys(grouped[selectedPlatform]);
+
+    setSelectedLeague((prev) => {
+      if (prev && grouped[selectedPlatform]?.[prev]) return prev;
+      return leagueNames[0] || "";
+    });
+  }, [grouped, selectedPlatform]);
+
+  // RESULT UPDATE
   const handleResult = useCallback(
     async (id, status) => {
-      // prevent double click
       if (updatingIds.has(id)) return;
 
+      let previousGrouped = null;
+
       try {
-        // mark as updating
-        setUpdatingIds((prev) => new Set(prev).add(id));
+        setError("");
 
-        // 🔥 optimistic UI update
+        setUpdatingIds((prev) => {
+          const next = new Set(prev);
+          next.add(id);
+          return next;
+        });
+
         setGrouped((prev) => {
-          const updated = { ...prev };
+          previousGrouped = prev;
 
-          for (const platform in updated) {
-            for (const league in updated[platform]) {
-              updated[platform][league] = updated[platform][league].map((p) =>
+          const updated = {};
+
+          Object.entries(prev).forEach(([platform, leagues]) => {
+            updated[platform] = {};
+
+            Object.entries(leagues).forEach(([league, predictions]) => {
+              updated[platform][league] = predictions.map((p) =>
                 (p._id || p.id) === id ? { ...p, status } : p,
               );
-            }
-          }
+            });
+          });
 
           return updated;
         });
@@ -119,8 +170,11 @@ export default function LivePredictions() {
       } catch (err) {
         console.error(err);
         setError("Update failed");
+
+        if (previousGrouped) {
+          setGrouped(previousGrouped);
+        }
       } finally {
-        // remove updating state
         setUpdatingIds((prev) => {
           const next = new Set(prev);
           next.delete(id);
@@ -139,75 +193,162 @@ export default function LivePredictions() {
 
       {error && <p className="error">{error}</p>}
 
-      {Object.keys(grouped).length === 0 && <p>No active predictions</p>}
+      {platformNames.length === 0 && <p>No active predictions</p>}
 
-      {Object.entries(grouped).map(([platform, leagues]) => (
-        <div key={platform} className="platform-block">
-          <div className="platform-header">
-            {platformMap[platform]?.logo && (
-              <img
-                src={getImageUrl(platformMap[platform].logo)}
-                alt={platform}
-                onError={(e) => {
-                  e.currentTarget.style.display = "none";
-                }}
-              />
-            )}
+      {platformNames.length > 0 && (
+        <>
+          <div className="platform-filter-wrap">
+            <div className="platform-filter-header">
+              {selectedPlatform && platformMap[selectedPlatform]?.logo && (
+                <img
+                  src={getImageUrl(platformMap[selectedPlatform].logo)}
+                  alt={selectedPlatform}
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none";
+                  }}
+                />
+              )}
 
-            <h3>{platform}</h3>
+              <h3>{selectedPlatform || "Platforms"}</h3>
+            </div>
+
+            <div className="platform-filter-tabs">
+              {platformNames.map((platform) => (
+                <button
+                  key={platform}
+                  type="button"
+                  className={
+                    selectedPlatform === platform
+                      ? "platform-filter-tab active"
+                      : "platform-filter-tab"
+                  }
+                  onClick={() => {
+                    setSelectedPlatform(platform);
+                    const nextLeague =
+                      Object.keys(grouped[platform] || {})[0] || "";
+                    setSelectedLeague(nextLeague);
+                  }}
+                >
+                  {platform}
+                </button>
+              ))}
+            </div>
           </div>
 
-          {Object.entries(leagues).map(([league, preds]) => (
-            <div key={league} className="league-block">
-              <h4>{league}</h4>
+          {!!selectedPlatform && leaguesForSelectedPlatform.length > 0 && (
+            <div className="league-filter-wrap">
+              <div className="league-filter-tabs">
+                {leaguesForSelectedPlatform.map(([league, preds]) => {
+                  const pendingCount = preds.filter(
+                    (p) => p.status === "pending",
+                  ).length;
 
-              <div className="prediction-grid">
-                {preds.length === 0 && <p>No predictions</p>}
-
-                {preds.map((p) => (
-                  <div key={p._id || p.id} className="prediction-card">
-                    {p.type === "MANUAL" && (
-                      <p>
-                        #{p.matchNumber || "-"} — {p.homeTeam || "?"} vs{" "}
-                        {p.awayTeam || "?"}
-                      </p>
-                    )}
-
-                    {p.type === "SEMI_AUTO" && (
-                      <p>{p.team || "?"} — Over 1.5 Goals</p>
-                    )}
-
-                    <p>Odd: {p.odd ?? "-"}</p>
-                    <p>Stake: {p.stake ?? "-"}</p>
-
-                    <div className="cycles">
-                      {p.cycles?.map((c, i) => (
-                        <span key={i}>
-                          {c.name}: {c.value}
-                        </span>
-                      ))}
-                    </div>
-
-                    <p>Status: {p.status || "unknown"}</p>
-
-                    {p.status === "pending" && (
-                      <div className="actions">
-                        <button onClick={() => handleResult(p._id, "won")}>
-                          WON
-                        </button>
-
-                        <button onClick={() => handleResult(p._id, "loss")}>
-                          LOSS
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                ))}
+                  return (
+                    <button
+                      key={league}
+                      type="button"
+                      className={
+                        selectedLeague === league
+                          ? "league-filter-tab active"
+                          : "league-filter-tab"
+                      }
+                      onClick={() => setSelectedLeague(league)}
+                    >
+                      <span className="league-filter-name">{league}</span>
+                      <span className="league-filter-count">
+                        {pendingCount}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
-          ))}
-        </div>
-      ))}
+          )}
+
+          {!!selectedPlatform && !!selectedLeague && (
+            <div className="platform-block">
+              <div className="platform-header">
+                {platformMap[selectedPlatform]?.logo && (
+                  <img
+                    src={getImageUrl(platformMap[selectedPlatform].logo)}
+                    alt={selectedPlatform}
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                    }}
+                  />
+                )}
+
+                <h3>{selectedPlatform}</h3>
+              </div>
+
+              <div className="league-block">
+                <div className="league-title-row">
+                  <h4>{selectedLeague}</h4>
+                  <span className="league-pending-badge">
+                    Pending:{" "}
+                    {
+                      selectedPredictions.filter((p) => p.status === "pending")
+                        .length
+                    }
+                  </span>
+                </div>
+
+                <div className="prediction-grid">
+                  {selectedPredictions.length === 0 && <p>No predictions</p>}
+
+                  {selectedPredictions.map((p) => (
+                    <div key={p._id || p.id} className="prediction-card">
+                      {p.type === "MANUAL" && (
+                        <p>
+                          #{p.matchNumber || "-"} — {p.homeTeam || "?"} vs{" "}
+                          {p.awayTeam || "?"}
+                        </p>
+                      )}
+
+                      {p.type === "SEMI_AUTO" && (
+                        <p>{p.team || "?"} — Over 1.5 Goals</p>
+                      )}
+
+                      <p>Odd: {p.odd ?? "-"}</p>
+                      <p>Stake: {p.stake ?? "-"}</p>
+
+                      <div className="cycles">
+                        {p.cycles?.map((c, i) => (
+                          <span key={i}>
+                            {c.name}: {c.value}
+                          </span>
+                        ))}
+                      </div>
+
+                      <p>Status: {p.status || "unknown"}</p>
+
+                      {p.status === "pending" && (
+                        <div className="actions">
+                          <button
+                            type="button"
+                            disabled={updatingIds.has(p._id)}
+                            onClick={() => handleResult(p._id, "won")}
+                          >
+                            {updatingIds.has(p._id) ? "Updating..." : "WON"}
+                          </button>
+
+                          <button
+                            type="button"
+                            disabled={updatingIds.has(p._id)}
+                            onClick={() => handleResult(p._id, "loss")}
+                          >
+                            {updatingIds.has(p._id) ? "Updating..." : "LOSS"}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }
