@@ -12,10 +12,12 @@ export default function LivePredictions() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [platformMap, setPlatformMap] = useState({});
-  const [updatingIds, setUpdatingIds] = useState(new Set());
 
   const [selectedPlatform, setSelectedPlatform] = useState("");
   const [selectedLeague, setSelectedLeague] = useState("");
+
+  const [pendingUpdates, setPendingUpdates] = useState({});
+  const [saving, setSaving] = useState(false);
 
   // GROUPING LOGIC
   const groupPredictions = useCallback((data) => {
@@ -133,63 +135,88 @@ export default function LivePredictions() {
   }, [grouped, selectedPlatform]);
 
   // RESULT UPDATE
-  const handleResult = useCallback(
-    async (id, status) => {
-      if (updatingIds.has(id)) return;
+  const handleResult = useCallback((id, status) => {
+    // store change locally
+    setPendingUpdates((prev) => ({
+      ...prev,
+      [id]: status,
+    }));
 
-      let previousGrouped = null;
+    // optimistic UI update (no API call)
+    setGrouped((prev) => {
+      const next = { ...prev };
 
-      try {
-        setError("");
+      for (const platform in next) {
+        for (const league in next[platform]) {
+          const index = next[platform][league].findIndex(
+            (p) => (p._id || p.id) === id,
+          );
 
-        setUpdatingIds((prev) => {
-          const next = new Set(prev);
-          next.add(id);
-          return next;
-        });
+          if (index !== -1) {
+            const updatedLeague = [...next[platform][league]];
+            updatedLeague[index] = {
+              ...updatedLeague[index],
+              status,
+            };
 
-        setGrouped((prev) => {
-          previousGrouped = prev;
-
-          const updated = {};
-
-          Object.entries(prev).forEach(([platform, leagues]) => {
-            updated[platform] = {};
-
-            Object.entries(leagues).forEach(([league, predictions]) => {
-              updated[platform][league] = predictions.map((p) =>
-                (p._id || p.id) === id ? { ...p, status } : p,
-              );
-            });
-          });
-
-          return updated;
-        });
-
-        await updatePredictionResult(id, { status });
-      } catch (err) {
-        console.error(err);
-        setError("Update failed");
-
-        if (previousGrouped) {
-          setGrouped(previousGrouped);
+            next[platform][league] = updatedLeague;
+            return next; // 🔥 stop early (important)
+          }
         }
-      } finally {
-        setUpdatingIds((prev) => {
-          const next = new Set(prev);
-          next.delete(id);
-          return next;
-        });
       }
-    },
-    [updatingIds],
-  );
+
+      return next;
+    });
+  }, []);
+
+  const handleBatchUpdate = async () => {
+    if (Object.keys(pendingUpdates).length === 0) return;
+
+    try {
+      setSaving(true);
+      setError("");
+
+      const updates = Object.entries(pendingUpdates).map(([id, status]) => ({
+        id,
+        status,
+      }));
+
+      // 🔥 TEMP: use existing API one by one (no backend change yet)
+      await Promise.all(
+        updates.map((u) => updatePredictionResult(u.id, { status: u.status })),
+      );
+
+      setPendingUpdates({}); // clear after success
+
+      await loadData(); // refresh once
+    } catch (err) {
+      console.error(err);
+      setError("Batch update failed");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const getDisplayStatus = (p) => {
+    const predictionId = p._id || p.id;
+    return pendingUpdates[predictionId] || p.status || "unknown";
+  };
 
   if (loading) return <p>Loading live predictions...</p>;
 
   return (
     <div className="live-page">
       <h2>Live Predictions</h2>
+      <div className="batch-actions">
+        <button
+          disabled={saving || Object.keys(pendingUpdates).length === 0}
+          onClick={handleBatchUpdate}
+        >
+          {saving ? "Updating..." : "Update Results"}
+        </button>
+
+        <span>{Object.keys(pendingUpdates).length} pending changes</span>
+      </div>
 
       {error && <p className="error">{error}</p>}
 
@@ -320,24 +347,33 @@ export default function LivePredictions() {
                         ))}
                       </div>
 
-                      <p>Status: {p.status || "unknown"}</p>
+                      <p>Status: {getDisplayStatus(p)}</p>
 
-                      {p.status === "pending" && (
+                      {(p.status === "pending" ||
+                        pendingUpdates[p._id || p.id]) && (
                         <div className="actions">
                           <button
                             type="button"
-                            disabled={updatingIds.has(p._id)}
-                            onClick={() => handleResult(p._id, "won")}
+                            className={
+                              pendingUpdates[p._id || p.id] === "won"
+                                ? "selected-win"
+                                : ""
+                            }
+                            onClick={() => handleResult(p._id || p.id, "won")}
                           >
-                            {updatingIds.has(p._id) ? "Updating..." : "WON"}
+                            WON
                           </button>
 
                           <button
                             type="button"
-                            disabled={updatingIds.has(p._id)}
-                            onClick={() => handleResult(p._id, "loss")}
+                            className={
+                              pendingUpdates[p._id || p.id] === "loss"
+                                ? "selected-loss"
+                                : ""
+                            }
+                            onClick={() => handleResult(p._id || p.id, "loss")}
                           >
-                            {updatingIds.has(p._id) ? "Updating..." : "LOSS"}
+                            LOSS
                           </button>
                         </div>
                       )}
