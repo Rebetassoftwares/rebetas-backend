@@ -198,21 +198,25 @@
   cursor: not-allowed;
 }
 
-.actions button:first-child {
-  background: #4ade80;
+.actions .action-btn {
+  border: none;
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 700;
+  transition: all 0.2s ease;
+
+  background: rgba(255, 255, 255, 0.08);
 }
 
-.actions button:last-child {
-  background: #ff4d6d;
-}
-
-.actions button.selected-win {
+.actions .action-btn.selected-win {
   background: #22c55e;
   box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.35);
   transform: translateY(-1px);
 }
 
-.actions button.selected-loss {
+.actions .action-btn.selected-loss {
   background: #e11d48;
   box-shadow: 0 0 0 2px rgba(225, 29, 72, 0.35);
   transform: translateY(-1px);
