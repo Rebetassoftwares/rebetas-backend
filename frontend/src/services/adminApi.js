@@ -172,3 +172,7 @@ export const updatePredictionResult = (id, data) =>
 
 export const getLivePredictions = () =>
   api.get("/manual-predictions/live", authConfig());
+
+/* 🔥 BATCH UPDATE RESULTS */
+export const updatePredictionResultsBatch = (updates) =>
+  api.put("/manual-predictions/batch-result", updates, authConfig());

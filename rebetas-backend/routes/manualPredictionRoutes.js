@@ -6,6 +6,7 @@ const {
   getPredictionsByLeague,
   updatePredictionResult,
   getLiveManualPredictions,
+  updatePredictionResultsBatch,
 } = require("../controllers/manualPredictionController");
 
 router.post("/", createManualPrediction);
@@ -16,5 +17,7 @@ router.get("/live", getLiveManualPredictions);
 
 // ✅ UPDATE RESULT
 router.put("/:id/result", updatePredictionResult);
+
+router.put("/batch-result", updatePredictionResultsBatch);
 
 module.exports = router;

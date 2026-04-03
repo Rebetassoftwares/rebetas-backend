@@ -1,7 +1,8 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import {
   getLivePredictions,
-  updatePredictionResult,
+  //updatePredictionResult,
+  updatePredictionResultsBatch, // ✅ ADD THIS
   getPlatforms,
 } from "../../../services/adminApi";
 import "./LivePredictions.css";
@@ -19,7 +20,6 @@ export default function LivePredictions() {
   const [pendingUpdates, setPendingUpdates] = useState({});
   const [saving, setSaving] = useState(false);
 
-  // GROUPING LOGIC
   const groupPredictions = useCallback((data) => {
     const groupedData = {};
 
@@ -41,7 +41,6 @@ export default function LivePredictions() {
     return groupedData;
   }, []);
 
-  // LOAD DATA
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
@@ -134,7 +133,6 @@ export default function LivePredictions() {
     });
   }, [grouped, selectedPlatform]);
 
-  // RESULT UPDATE
   const handleResult = useCallback((id, status) => {
     setPendingUpdates((prev) => ({
       ...prev,
@@ -154,9 +152,8 @@ export default function LivePredictions() {
         status,
       }));
 
-      await Promise.all(
-        updates.map((u) => updatePredictionResult(u.id, { status: u.status })),
-      );
+      // ✅ THIS IS THE ONLY CHANGE
+      await updatePredictionResultsBatch(updates);
 
       setPendingUpdates({});
       await loadData();

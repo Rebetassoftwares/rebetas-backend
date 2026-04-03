@@ -152,8 +152,6 @@ exports.updatePredictionResult = async (req, res) => {
 
     await prediction.save();
 
-    await recomputeMartingale(prediction.platform, prediction.leagueName);
-
     const systemState = await SystemState.findOne({ key: "main" });
 
     res.json({
@@ -166,6 +164,68 @@ exports.updatePredictionResult = async (req, res) => {
   } catch (err) {
     console.error("Update prediction result error:", err);
     res.status(500).json({ message: "Failed to update prediction result" });
+  }
+};
+
+exports.updatePredictionResultsBatch = async (req, res) => {
+  try {
+    const updates = req.body; // [{ id, status }]
+
+    if (!Array.isArray(updates) || updates.length === 0) {
+      return res.status(400).json({ message: "No updates provided" });
+    }
+
+    const updatedPredictions = [];
+
+    for (const u of updates) {
+      if (!["won", "loss"].includes(u.status)) continue;
+
+      const prediction = await ManualPrediction.findById(u.id);
+
+      if (!prediction) continue;
+      if (prediction.status !== "pending") continue;
+
+      const win = u.status === "won";
+      const stake = Number(prediction.stake || 0);
+      const odd = Number(prediction.odd || 0);
+
+      const resultAmount = Number((stake * odd).toFixed(2));
+      const profit = Number((resultAmount - stake).toFixed(2));
+
+      prediction.status = u.status;
+      prediction.resultAmount = resultAmount;
+      prediction.profit = profit;
+      prediction.resultStatus = win ? "WIN" : "LOSS";
+
+      await prediction.save();
+
+      updatedPredictions.push(prediction);
+    }
+
+    // 🔥 CRITICAL: recompute ONCE per league/platform
+    const uniqueKeys = new Set();
+
+    updatedPredictions.forEach((p) => {
+      const key = `${p.platform}_${p.leagueName}`;
+      uniqueKeys.add(key);
+    });
+
+    for (const key of uniqueKeys) {
+      const [platform, leagueName] = key.split("_");
+
+      await recomputeMartingale(platform, leagueName);
+    }
+
+    const systemState = await SystemState.findOne({ key: "main" });
+
+    res.json({
+      message: "Batch update successful",
+      updatedCount: updatedPredictions.length,
+      capitalAfter: systemState?.capital || 0,
+    });
+  } catch (err) {
+    console.error("Batch update error:", err);
+    res.status(500).json({ message: "Batch update failed" });
   }
 };
 
