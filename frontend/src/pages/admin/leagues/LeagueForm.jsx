@@ -251,7 +251,7 @@ export default function LeagueForm() {
       navigate(-1);
     } catch (err) {
       console.error(err);
-      setError("Save failed");
+      setError(err?.response?.data?.message || err?.message || "Save failed");
     } finally {
       setLoading(false);
     }
