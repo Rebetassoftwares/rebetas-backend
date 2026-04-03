@@ -53,7 +53,15 @@ const manualLeagueSchema = new mongoose.Schema(
     intervalMinutes: {
       type: Number,
       required: true,
-      min: 1,
+      min: 0, // ✅ allow 0 now
+      default: 0,
+    },
+
+    // 🔥 NEW FIELD
+    intervalSeconds: {
+      type: Number,
+      default: 0,
+      min: 0,
     },
 
     firstPredictionTime: {
@@ -78,7 +86,7 @@ const manualLeagueSchema = new mongoose.Schema(
     cycleConfig: [
       {
         name: {
-          type: String, // "Season", "Week", "Round"
+          type: String,
           required: true,
         },
 
@@ -87,8 +95,13 @@ const manualLeagueSchema = new mongoose.Schema(
           required: true,
         },
 
+        // 🔥 NEW FIELD (CRITICAL)
+        current: {
+          type: Number,
+        },
+
         max: {
-          type: Number, // null = no limit
+          type: Number,
         },
       },
     ],

@@ -6,18 +6,30 @@ function calculateCycles(league, scheduledFor) {
   const firstTime = new Date(league.firstPredictionTime);
   const currentTime = new Date(scheduledFor);
 
-  const intervalMs = Number(league.intervalMinutes) * 60 * 1000;
+  // 🔥 SUPPORT MINUTES + SECONDS
+  const intervalMinutes = Number(league.intervalMinutes || 0);
+  const intervalSeconds = Number(league.intervalSeconds || 0);
+
+  const intervalMs = intervalMinutes * 60 * 1000 + intervalSeconds * 1000;
 
   if (!intervalMs || intervalMs <= 0) return [];
 
   const steps = Math.floor((currentTime - firstTime) / intervalMs);
 
-  // clone config
-  const result = league.cycleConfig.map((c) => ({
-    name: c.name,
-    value: Number(c.start),
-    max: c.max ? Number(c.max) : null,
-  }));
+  // 🔥 CLONE CONFIG (USE CURRENT IF AVAILABLE)
+  const result = league.cycleConfig.map((c) => {
+    const start = Number(c.start || 0);
+
+    const initial =
+      c.current !== undefined && c.current !== null ? Number(c.current) : start;
+
+    return {
+      name: c.name,
+      value: initial, // ✅ USE CURRENT
+      max: c.max ? Number(c.max) : null,
+      start, // keep for reset reference
+    };
+  });
 
   for (let i = 0; i < steps; i++) {
     for (let j = result.length - 1; j >= 0; j--) {
@@ -31,9 +43,10 @@ function calculateCycles(league, scheduledFor) {
       // still within range
       if (current.value <= current.max) break;
 
-      // overflow → reset
-      current.value = 1;
-      // continue to parent
+      // 🔥 overflow → reset to START (not always 1)
+      current.value = current.start || 1;
+
+      // continue to parent cycle
     }
   }
 

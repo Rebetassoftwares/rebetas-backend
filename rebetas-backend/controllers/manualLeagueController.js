@@ -15,11 +15,18 @@ function sanitizeTeams(teams) {
 function sanitizeCycleConfig(cycleConfig) {
   if (!Array.isArray(cycleConfig)) return [];
 
-  return cycleConfig.map((c) => ({
-    name: c.name,
-    start: Number(c.start),
-    max: c.max !== undefined && c.max !== null ? Number(c.max) : undefined,
-  }));
+  return cycleConfig.map((c) => {
+    const start = Number(c.start);
+    const current =
+      c.current !== undefined && c.current !== null ? Number(c.current) : start;
+
+    return {
+      name: c.name,
+      start,
+      current, // ✅ NEW
+      max: c.max !== undefined && c.max !== null ? Number(c.max) : undefined,
+    };
+  });
 }
 
 function validateLeaguePayload(payload, isUpdate = false) {
@@ -31,6 +38,7 @@ function validateLeaguePayload(payload, isUpdate = false) {
     mode,
     totalMatches,
     intervalMinutes,
+    intervalSeconds,
     firstPredictionTime,
     teams,
     oddRange,
@@ -72,13 +80,15 @@ function validateLeaguePayload(payload, isUpdate = false) {
     errors.push("totalMatches must be a number greater than 0");
   }
 
-  if (!isUpdate || intervalMinutes !== undefined) {
-    if (
-      !Number.isFinite(Number(intervalMinutes)) ||
-      Number(intervalMinutes) < 1
-    ) {
-      errors.push("intervalMinutes must be a number greater than 0");
-    }
+  const minutes = Number(intervalMinutes || 0);
+  const seconds = Number(payload.intervalSeconds || 0);
+
+  if (minutes < 0 || seconds < 0) {
+    errors.push("interval values must not be negative");
+  }
+
+  if (minutes === 0 && seconds === 0) {
+    errors.push("interval must be at least 1 second");
   }
 
   if (!isUpdate || firstPredictionTime !== undefined) {
@@ -149,6 +159,20 @@ function validateLeaguePayload(payload, isUpdate = false) {
     }
   }
 
+  if (c.current !== undefined && c.current !== null) {
+    if (!Number.isFinite(Number(c.current))) {
+      errors.push(`cycleConfig[${index}].current must be a number`);
+    }
+
+    if (Number(c.current) < Number(c.start)) {
+      errors.push(`cycleConfig[${index}].current cannot be less than start`);
+    }
+
+    if (c.max !== undefined && Number(c.current) > Number(c.max)) {
+      errors.push(`cycleConfig[${index}].current cannot exceed max`);
+    }
+  }
+
   return errors;
 }
 
@@ -202,7 +226,8 @@ exports.createLeague = async (req, res) => {
       logo,
       mode,
       totalMatches: Number(totalMatches),
-      intervalMinutes: Number(intervalMinutes),
+      intervalMinutes: Number(intervalMinutes || 0),
+      intervalSeconds: Number(req.body.intervalSeconds || 0), // ✅ NEW
       firstPredictionTime: new Date(firstPredictionTime),
       teams: sanitizeTeams(teams),
 
@@ -312,6 +337,7 @@ exports.updateLeague = async (req, res) => {
       mode: req.body.mode ?? existing.mode,
       totalMatches: req.body.totalMatches ?? existing.totalMatches,
       intervalMinutes: req.body.intervalMinutes ?? existing.intervalMinutes,
+      intervalSeconds: req.body.intervalSeconds ?? existing.intervalSeconds,
       firstPredictionTime:
         req.body.firstPredictionTime ?? existing.firstPredictionTime,
       teams: req.body.teams ?? existing.teams,
@@ -337,6 +363,7 @@ exports.updateLeague = async (req, res) => {
     existing.mode = merged.mode;
     existing.totalMatches = Number(merged.totalMatches);
     existing.intervalMinutes = Number(merged.intervalMinutes);
+    existing.intervalSeconds = Number(merged.intervalSeconds || 0);
     existing.firstPredictionTime = new Date(merged.firstPredictionTime);
     existing.teams = sanitizeTeams(merged.teams);
     existing.isActive = Boolean(merged.isActive);

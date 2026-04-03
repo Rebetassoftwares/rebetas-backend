@@ -25,6 +25,7 @@ export default function LeagueForm() {
     mode: "",
     totalMatches: "",
     intervalMinutes: "",
+    intervalSeconds: "", // ✅ NEW
     firstPredictionTime: "",
     teams: [],
     oddRange: { min: "", max: "" },
@@ -87,15 +88,20 @@ export default function LeagueForm() {
           platformId: data.platformId?._id || data.platformId || "",
           leagueName: data.leagueName || "",
           logo: data.logo || "",
-          mode: (data.mode || "").toUpperCase(), // ✅ FIX
+          mode: (data.mode || "").toUpperCase(),
           totalMatches: data.totalMatches || "",
           intervalMinutes: data.intervalMinutes || "",
+          intervalSeconds: data.intervalSeconds || "", // ✅ NEW
           firstPredictionTime: data.firstPredictionTime
             ? new Date(data.firstPredictionTime).toISOString().slice(0, 16)
             : "",
           teams: data.teams || [],
           oddRange: data.oddRange || { min: "", max: "" },
-          cycleConfig: data.cycleConfig || [],
+          cycleConfig:
+            data.cycleConfig?.map((c) => ({
+              ...c,
+              current: c.current ?? c.start, // ✅ NEW
+            })) || [],
           isActive: data.isActive ?? true,
         });
       } catch (err) {
@@ -159,7 +165,10 @@ export default function LeagueForm() {
   function addCycle() {
     setForm((prev) => ({
       ...prev,
-      cycleConfig: [...prev.cycleConfig, { name: "", start: "", max: "" }],
+      cycleConfig: [
+        ...prev.cycleConfig,
+        { name: "", start: "", current: "", max: "" }, // ✅ NEW
+      ],
     }));
   }
 
@@ -207,6 +216,7 @@ export default function LeagueForm() {
       formData.append("mode", form.mode.toUpperCase());
       formData.append("totalMatches", Number(form.totalMatches));
       formData.append("intervalMinutes", Number(form.intervalMinutes));
+      formData.append("intervalSeconds", Number(form.intervalSeconds || 0));
       formData.append("firstPredictionTime", form.firstPredictionTime);
       formData.append("isActive", form.isActive);
 
@@ -326,13 +336,25 @@ export default function LeagueForm() {
           </div>
 
           <div className="field">
-            <label>Interval (minutes)</label>
-            <input
-              type="number"
-              name="intervalMinutes"
-              value={form.intervalMinutes}
-              onChange={handleChange}
-            />
+            <label>Interval</label>
+
+            <div style={{ display: "flex", gap: "10px" }}>
+              <input
+                type="number"
+                name="intervalMinutes"
+                placeholder="Minutes"
+                value={form.intervalMinutes}
+                onChange={handleChange}
+              />
+
+              <input
+                type="number"
+                name="intervalSeconds"
+                placeholder="Seconds"
+                value={form.intervalSeconds}
+                onChange={handleChange}
+              />
+            </div>
           </div>
 
           <div className="field">
@@ -430,6 +452,13 @@ export default function LeagueForm() {
                 placeholder="Start"
                 value={c.start}
                 onChange={(e) => updateCycle(i, "start", e.target.value)}
+              />
+
+              <input
+                type="number"
+                placeholder="Current"
+                value={c.current || ""}
+                onChange={(e) => updateCycle(i, "current", e.target.value)}
               />
 
               <input

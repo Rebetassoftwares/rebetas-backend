@@ -52,12 +52,19 @@ async function runSemiAuto() {
           continue;
         }
 
-        const intervalMs = Number(league.intervalMinutes) * 60 * 1000;
-        if (!intervalMs || intervalMs < 1) {
+        const intervalMinutes = Number(league.intervalMinutes || 0);
+        const intervalSeconds = Number(league.intervalSeconds || 0);
+
+        const intervalMs = intervalMinutes * 60 * 1000 + intervalSeconds * 1000;
+
+        if (!intervalMs || intervalMs < 1000) {
           continue;
         }
 
         const elapsed = now.getTime() - firstTime.getTime();
+
+        if (elapsed < 0) continue;
+
         const slotIndex = Math.floor(elapsed / intervalMs);
         const scheduledFor = new Date(
           firstTime.getTime() + slotIndex * intervalMs,
@@ -66,7 +73,10 @@ async function runSemiAuto() {
         const existing = await ManualPrediction.findOne({
           leagueId: league._id,
           type: "SEMI_AUTO",
-          scheduledFor,
+          scheduledFor: {
+            $gte: new Date(scheduledFor.getTime() - 500),
+            $lte: new Date(scheduledFor.getTime() + 500),
+          },
         });
 
         if (existing) {
