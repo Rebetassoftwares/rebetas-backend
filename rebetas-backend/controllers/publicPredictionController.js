@@ -10,6 +10,11 @@ exports.getLivePrediction = async (req, res) => {
       return res.status(404).json({ message: "League not found" });
     }
 
+    // ✅ ADD THIS LINE
+    if (!league.isActive) {
+      return res.json(null);
+    }
+
     // 🔵 AUTO MODE
     if (league.mode === "AUTO") {
       // call your existing prediction engine logic here
