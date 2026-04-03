@@ -226,7 +226,7 @@
   object-fit: contain; /* 🔥 IMPORTANT CHANGE */
   object-position: center;
 
-  padding: 40px; /* 🔥 gives logo breathing space */
+  padding: 0px; /* 🔥 gives logo breathing space */
 
   display: block;
 
