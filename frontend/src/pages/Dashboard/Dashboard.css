@@ -186,62 +186,103 @@
 
 /* PLATFORM CARD */
 
+/* PLATFORM CARD */
+
 .platform-card {
+  position: relative;
+  overflow: hidden;
+
+  min-height: 320px;
+
   background: rgba(255, 255, 255, 0.07);
-
   border: 1px solid rgba(255, 255, 255, 0.2);
-
-  padding: 45px 30px;
-
   border-radius: 16px;
 
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  align-items: stretch;
+  justify-content: stretch;
 
   backdrop-filter: blur(14px);
-
   transition: all 0.25s ease;
-
   text-decoration: none;
+  cursor: pointer;
 }
 
 .platform-card:hover {
   transform: translateY(-6px);
-
   border-color: rgba(160, 32, 240, 0.7);
-
   box-shadow:
     0 18px 45px rgba(160, 32, 240, 0.35),
     0 0 20px rgba(160, 32, 240, 0.25);
 }
 
-/* PLATFORM LOGO */
+/* PLATFORM IMAGE */
 
 .platform-card img {
-  max-width: 120px;
-  height: auto;
-  object-fit: contain;
-  border-radius: 12px;
-  padding: 6px;
-  background: rgba(255, 255, 255, 0.08);
+  width: 100%;
+  height: 100%;
+  min-height: 320px;
 
-  margin-bottom: 14px;
+  display: block;
+  object-fit: cover;
+  object-position: center;
 
-  transition: transform 0.2s ease;
+  transition: transform 0.3s ease;
 }
 
 .platform-card:hover img {
-  transform: scale(1.08);
+  transform: scale(1.04);
 }
 
-/* PLATFORM NAME */
+/* PLATFORM OVERLAY */
 
-.platform-card span {
-  font-size: 16px;
-  font-weight: 600;
+.platform-overlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  padding: 18px 16px;
+
+  background: linear-gradient(
+    to top,
+    rgba(8, 2, 18, 0.92),
+    rgba(8, 2, 18, 0.55),
+    transparent
+  );
+
+  text-align: center;
+}
+
+.platform-overlay span {
+  font-size: 22px;
+  font-weight: 700;
   color: #ffffff;
+  letter-spacing: 0.5px;
+}
+
+/* PLATFORM PLACEHOLDER */
+
+.platform-placeholder {
+  width: 100%;
+  min-height: 320px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 24px;
+  text-align: center;
+
+  font-size: 22px;
+  font-weight: 700;
+  color: #ffffff;
+
+  background: linear-gradient(
+    135deg,
+    rgba(160, 32, 240, 0.18),
+    rgba(255, 255, 255, 0.04)
+  );
 }
 
 /* TOOLS SECTION */

@@ -175,18 +175,22 @@ export default function Dashboard() {
                 onClick={() => navigate(`/prediction/${platform._id}`)}
               >
                 {platform.logo ? (
-                  <img
-                    src={getImageUrl(platform.logo)}
-                    alt={platform.name}
-                    onError={(e) => {
-                      e.currentTarget.style.display = "none";
-                    }}
-                  />
+                  <>
+                    <img
+                      src={getImageUrl(platform.logo)}
+                      alt={platform.name}
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                      }}
+                    />
+
+                    <div className="platform-overlay">
+                      <span>{platform.name}</span>
+                    </div>
+                  </>
                 ) : (
                   <div className="platform-placeholder">{platform.name}</div>
                 )}
-
-                <span>{platform.name}</span>
               </div>
             ))}
           </div>
