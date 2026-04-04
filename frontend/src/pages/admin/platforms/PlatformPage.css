@@ -120,6 +120,11 @@
     box-shadow 0.2s ease;
 }
 
+.platform-card {
+  position: relative;
+  z-index: 1;
+}
+
 .platform-card:hover {
   transform: translateY(-3px);
   border-color: rgba(160, 32, 240, 0.42);
@@ -274,6 +279,12 @@
     opacity 0.18s ease,
     box-shadow 0.18s ease,
     background 0.18s ease;
+}
+
+.actions button,
+.view-btn {
+  position: relative;
+  z-index: 10; /* 🔥 bring buttons above card */
 }
 
 .actions button:hover,
