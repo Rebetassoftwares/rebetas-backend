@@ -208,12 +208,32 @@ export default function PlatformPage() {
 
             {/* ACTIONS */}
             <div className="actions">
-              <button onClick={() => openEdit(p)}>Edit</button>
-              <button onClick={() => handleDelete(p._id)}>Delete</button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openEdit(p);
+                }}
+              >
+                Edit
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDelete(p._id);
+                }}
+              >
+                Delete
+              </button>
             </div>
 
             {/* NAV */}
-            <button className="view-btn" onClick={() => goToLeagues(p._id)}>
+            <button
+              className="view-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                goToLeagues(p._id);
+              }}
+            >
               View Leagues →
             </button>
           </div>
