@@ -51,8 +51,8 @@ export default function PlatformFormModal({ initialData, onClose, onSubmit }) {
   }
 
   return (
-    <div className="modal-backdrop">
-      <div className="modal">
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
         <h3>{initialData ? "Edit Platform" : "Create Platform"}</h3>
 
         {error && <p className="error">{error}</p>}

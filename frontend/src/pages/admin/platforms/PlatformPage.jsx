@@ -89,6 +89,7 @@ export default function PlatformPage() {
   }
 
   useEffect(() => {
+    setShowModal(false); // ✅ force modal closed on load
     loadPlatforms();
   }, []);
 
