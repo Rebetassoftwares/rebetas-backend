@@ -43,7 +43,9 @@ export default function PlatformPage() {
             const leaguesRes = await getLeaguesByPlatform(platform._id);
             const leagues = Array.isArray(leaguesRes?.data)
               ? leaguesRes.data
-              : [];
+              : Array.isArray(leaguesRes)
+                ? leaguesRes
+                : [];
 
             const modeCount = {
               AUTO: 0,
