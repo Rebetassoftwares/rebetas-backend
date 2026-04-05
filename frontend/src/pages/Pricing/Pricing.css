@@ -136,8 +136,34 @@
    HIGHLIGHT (MONTHLY)
 ========================= */
 .pricing-card.highlight {
-  border: 1px solid rgba(160, 32, 240, 0.6);
-  box-shadow: 0 0 25px rgba(160, 32, 240, 0.3);
+  border: 2px solid rgba(168, 85, 247, 0.8);
+
+  transform: scale(1.06);
+  z-index: 2;
+
+  box-shadow:
+    0 0 30px rgba(168, 85, 247, 0.4),
+    0 0 60px rgba(168, 85, 247, 0.2);
+
+  position: relative;
+}
+
+.top-ribbon {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+
+  background: linear-gradient(135deg, #a855f7, #9333ea);
+  color: #fff;
+
+  padding: 5px 12px;
+  font-size: 11px;
+  font-weight: 700;
+
+  border-radius: 6px;
+  transform: rotate(8deg);
+
+  box-shadow: 0 4px 10px rgba(168, 85, 247, 0.4);
 }
 
 /* =========================
