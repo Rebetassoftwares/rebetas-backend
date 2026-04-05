@@ -240,6 +240,9 @@ export default function Register() {
   const [success, setSuccess] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [promoPreview, setPromoPreview] = useState(null);
+  const [promoError, setPromoError] = useState("");
+  const [checkingPromo, setCheckingPromo] = useState(false);
 
   const filteredCountries = COUNTRIES.filter((c) =>
     c.name.toLowerCase().includes(search.toLowerCase()),
@@ -258,6 +261,28 @@ export default function Register() {
     }));
     setShowDropdown(false);
     setSearch("");
+  }
+
+  async function handlePromoPreview(code) {
+    if (!code || code.trim().length < 2) {
+      setPromoPreview(null);
+      setPromoError("");
+      return;
+    }
+
+    try {
+      setCheckingPromo(true);
+
+      const res = await api.post("/promo/preview", { code });
+
+      setPromoPreview(res);
+      setPromoError("");
+    } catch (err) {
+      setPromoPreview(null);
+      setPromoError(err.message || "Invalid promo code");
+    } finally {
+      setCheckingPromo(false);
+    }
   }
 
   async function handleSubmit(e) {
@@ -388,12 +413,6 @@ export default function Register() {
                 value={formData.country}
                 readOnly
               />
-
-              <input
-                name="promoCode"
-                placeholder="Promo Code"
-                onChange={handleChange}
-              />
               <div className="password-group">
                 <input
                   type={showPassword ? "text" : "password"}
@@ -419,6 +438,37 @@ export default function Register() {
                   {showConfirmPassword ? "🙈" : "👁️"}
                 </span>
               </div>
+
+              <input
+                name="promoCode"
+                placeholder="Promo Code"
+                value={formData.promoCode}
+                onChange={(e) => {
+                  handleChange(e);
+                  handlePromoPreview(e.target.value);
+                }}
+              />
+
+              {checkingPromo && (
+                <p style={{ color: "#a855f7" }}>Checking promo...</p>
+              )}
+
+              {promoPreview && promoPreview.valid && (
+                <div className="promo-preview success">
+                  🎉 {promoPreview.discountPercent}% discount
+                  {(promoPreview.freeDaysByPlan?.weekly > 0 ||
+                    promoPreview.freeDaysByPlan?.monthly > 0 ||
+                    promoPreview.freeDaysByPlan?.yearly > 0) && (
+                    <div style={{ marginTop: "5px", fontSize: "13px" }}>
+                      + {promoPreview.freeDaysByPlan.weekly || 0}d (Weekly) /{" "}
+                      {promoPreview.freeDaysByPlan.monthly || 0}d (Monthly) /{" "}
+                      {promoPreview.freeDaysByPlan.yearly || 0}d (Yearly)
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {promoError && <p style={{ color: "#ff6b6b" }}>{promoError}</p>}
 
               <label className="terms-checkbox">
                 <input

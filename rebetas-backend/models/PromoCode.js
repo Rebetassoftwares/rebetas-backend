@@ -37,16 +37,10 @@ const promoCodeSchema = new mongoose.Schema(
       min: 0,
     },
 
-    freeDays: {
-      type: Number,
-      default: 0,
-      min: 0,
-    },
-
-    freeWeeks: {
-      type: Number,
-      default: 0,
-      min: 0,
+    freeDaysByPlan: {
+      weekly: { type: Number, default: 0 },
+      monthly: { type: Number, default: 0 },
+      yearly: { type: Number, default: 0 },
     },
 
     maxUsesPerUser: {

@@ -32,8 +32,9 @@ export default function PromoCodes() {
 
     // 🔥 NEW
     discountPercent: "",
-    freeDays: "",
-    freeWeeks: "",
+    freeDaysWeekly: "",
+    freeDaysMonthly: "",
+    freeDaysYearly: "",
     maxUsesPerUser: "",
   });
 
@@ -126,8 +127,10 @@ export default function PromoCodes() {
 
           // 🔥 NEW
           discountPercent: Number(form.discountPercent || 0),
-          freeDays: Number(form.freeDays || 0),
-          freeWeeks: Number(form.freeWeeks || 0),
+          // ✅ CORRECT STRUCTURE
+          freeDaysWeekly: Number(form.freeDaysWeekly || 0),
+          freeDaysMonthly: Number(form.freeDaysMonthly || 0),
+          freeDaysYearly: Number(form.freeDaysYearly || 0),
           maxUsesPerUser: Number(form.maxUsesPerUser || 1),
         });
       } else {
@@ -139,8 +142,9 @@ export default function PromoCodes() {
 
           // 🔥 NEW
           discountPercent: Number(form.discountPercent || 0),
-          freeDays: Number(form.freeDays || 0),
-          freeWeeks: Number(form.freeWeeks || 0),
+          freeDaysWeekly: Number(form.freeDaysWeekly || 0),
+          freeDaysMonthly: Number(form.freeDaysMonthly || 0),
+          freeDaysYearly: Number(form.freeDaysYearly || 0),
           maxUsesPerUser: Number(form.maxUsesPerUser || 1),
         });
       }
@@ -152,8 +156,9 @@ export default function PromoCodes() {
         commissionPercent: "",
 
         discountPercent: "",
-        freeDays: "",
-        freeWeeks: "",
+        freeDaysWeekly: "",
+        freeDaysMonthly: "",
+        freeDaysYearly: "",
         maxUsesPerUser: "",
       });
 
@@ -177,8 +182,9 @@ export default function PromoCodes() {
 
       // 🔥 NEW
       discountPercent: item.discountPercent || "",
-      freeDays: item.freeDays || "",
-      freeWeeks: item.freeWeeks || "",
+      freeDaysWeekly: item.freeDaysByPlan?.weekly || "",
+      freeDaysMonthly: item.freeDaysByPlan?.monthly || "",
+      freeDaysYearly: item.freeDaysByPlan?.yearly || "",
       maxUsesPerUser: item.maxUsesPerUser || 1,
     });
 
@@ -349,18 +355,26 @@ export default function PromoCodes() {
         />
 
         <input
-          name="freeDays"
+          name="freeDaysWeekly"
           type="number"
-          placeholder="Free Days (optional)"
-          value={form.freeDays}
+          placeholder="Weekly Extra Days"
+          value={form.freeDaysWeekly}
           onChange={handleChange}
         />
 
         <input
-          name="freeWeeks"
+          name="freeDaysMonthly"
           type="number"
-          placeholder="Free Weeks (optional)"
-          value={form.freeWeeks}
+          placeholder="Monthly Extra Days"
+          value={form.freeDaysMonthly}
+          onChange={handleChange}
+        />
+
+        <input
+          name="freeDaysYearly"
+          type="number"
+          placeholder="Yearly Extra Days"
+          value={form.freeDaysYearly}
           onChange={handleChange}
         />
 
@@ -398,9 +412,12 @@ export default function PromoCodes() {
                 <p>Discount: {item.discountPercent}%</p>
               )}
 
-              {(item.freeDays > 0 || item.freeWeeks > 0) && (
+              {item.freeDaysByPlan && (
                 <p>
-                  Free Time: {item.freeDays || 0}d / {item.freeWeeks || 0}w
+                  Free Time:
+                  {item.freeDaysByPlan.weekly || 0}d (W) /
+                  {item.freeDaysByPlan.monthly || 0}d (M) /
+                  {item.freeDaysByPlan.yearly || 0}d (Y)
                 </p>
               )}
 

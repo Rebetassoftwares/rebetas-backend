@@ -90,6 +90,12 @@ export default function Pricing() {
 
   const [subscribingPlan, setSubscribingPlan] = useState("");
   const [subscribeError, setSubscribeError] = useState("");
+  const [promoPreview, setPromoPreview] = useState(null);
+  const [promoError, setPromoError] = useState("");
+  const [loadingPromo, setLoadingPromo] = useState(false);
+
+  const user = JSON.parse(localStorage.getItem("rebetas_user") || "{}");
+  const promoCode = user?.promoCodeUsed;
 
   const FEATURES = [
     "Over 1.5 Goals Predictions",
@@ -163,6 +169,34 @@ export default function Pricing() {
   }
 
   /* ---------------- PAYMENT ---------------- */
+
+  async function fetchPromo(plan, country) {
+    // 🔥 CLEAR OLD PROMO FIRST
+    setPromoPreview(null);
+    setPromoError("");
+
+    if (!promoCode || !plan || !country) {
+      return;
+    }
+
+    try {
+      setLoadingPromo(true);
+
+      const res = await api.post("/promo/preview", {
+        code: promoCode,
+        plan,
+        country,
+      });
+
+      setPromoPreview(res);
+      setPromoError("");
+    } catch (err) {
+      setPromoPreview(null);
+      setPromoError(err.message || "Promo error");
+    } finally {
+      setLoadingPromo(false);
+    }
+  }
 
   function subscribe(planType, country) {
     if (!country) {
@@ -243,6 +277,12 @@ export default function Pricing() {
             <p className="info-text">No pricing available yet.</p>
           )}
 
+          {promoError && (
+            <p className="error-text" style={{ textAlign: "center" }}>
+              {promoError}
+            </p>
+          )}
+
           <div className="pricing-grid">
             {/* WEEKLY */}
             <div className="pricing-card">
@@ -250,7 +290,10 @@ export default function Pricing() {
 
               <CountryDropdown
                 value={weeklyPlan}
-                onChange={setWeeklyPlan}
+                onChange={(value) => {
+                  setWeeklyPlan(value);
+                  fetchPromo("weekly", value);
+                }}
                 options={countries}
                 disabled={loadingPricing}
               />
@@ -258,6 +301,48 @@ export default function Pricing() {
               <div className="price">
                 {weeklyPlan && getPrice(weeklyPlan, "weekly")}
               </div>
+
+              {loadingPromo && weeklyPlan && (
+                <p className="promo-loading">Checking promo...</p>
+              )}
+
+              {promoPreview && promoPreview.plan === "weekly" && (
+                <div className="promo-box">
+                  <p>🎉 Promo Applied</p>
+
+                  {promoPreview.discountPercent > 0 && (
+                    <p>Discount: {promoPreview.discountPercent}%</p>
+                  )}
+
+                  {promoPreview.freeDays > 0 && (
+                    <p>Extra Days: +{promoPreview.freeDays}</p>
+                  )}
+
+                  {promoPreview.originalPrice && (
+                    <>
+                      <p>
+                        Price:{" "}
+                        <s>
+                          {promoPreview.currency}
+                          {promoPreview.originalPrice}
+                        </s>{" "}
+                        <strong>
+                          {promoPreview.currency}
+                          {promoPreview.discountedPrice}
+                        </strong>
+                      </p>
+
+                      <p style={{ color: "#22c55e", fontWeight: "600" }}>
+                        💰 You save {promoPreview.currency}
+                        {(
+                          promoPreview.originalPrice -
+                          promoPreview.discountedPrice
+                        ).toFixed(2)}
+                      </p>
+                    </>
+                  )}
+                </div>
+              )}
 
               <ul className="features">
                 {FEATURES.map((f, i) => (
@@ -279,10 +364,14 @@ export default function Pricing() {
             {/* MONTHLY */}
             <div className="pricing-card highlight">
               <h3>Monthly Plan</h3>
+              <div className="best-badge">🔥 Popular Choice</div>
 
               <CountryDropdown
                 value={monthlyPlan}
-                onChange={setMonthlyPlan}
+                onChange={(value) => {
+                  setMonthlyPlan(value);
+                  fetchPromo("monthly", value);
+                }}
                 options={countries}
                 disabled={loadingPricing}
               />
@@ -290,6 +379,48 @@ export default function Pricing() {
               <div className="price">
                 {monthlyPlan && getPrice(monthlyPlan, "monthly")}
               </div>
+
+              {loadingPromo && monthlyPlan && (
+                <p className="promo-loading">Checking promo...</p>
+              )}
+
+              {promoPreview && promoPreview.plan === "monthly" && (
+                <div className="promo-box">
+                  <p>🎉 Promo Applied</p>
+
+                  {promoPreview.discountPercent > 0 && (
+                    <p>Discount: {promoPreview.discountPercent}%</p>
+                  )}
+
+                  {promoPreview.freeDays > 0 && (
+                    <p>Extra Days: +{promoPreview.freeDays}</p>
+                  )}
+
+                  {promoPreview.originalPrice && (
+                    <>
+                      <p>
+                        Price:{" "}
+                        <s>
+                          {promoPreview.currency}
+                          {promoPreview.originalPrice}
+                        </s>{" "}
+                        <strong>
+                          {promoPreview.currency}
+                          {promoPreview.discountedPrice}
+                        </strong>
+                      </p>
+
+                      <p style={{ color: "#22c55e", fontWeight: "600" }}>
+                        💰 You save {promoPreview.currency}
+                        {(
+                          promoPreview.originalPrice -
+                          promoPreview.discountedPrice
+                        ).toFixed(2)}
+                      </p>
+                    </>
+                  )}
+                </div>
+              )}
 
               <ul className="features">
                 {FEATURES.map((f, i) => (
@@ -314,7 +445,10 @@ export default function Pricing() {
 
               <CountryDropdown
                 value={yearlyPlan}
-                onChange={setYearlyPlan}
+                onChange={(value) => {
+                  setYearlyPlan(value);
+                  fetchPromo("yearly", value);
+                }}
                 options={countries}
                 disabled={loadingPricing}
               />
@@ -322,6 +456,48 @@ export default function Pricing() {
               <div className="price">
                 {yearlyPlan && getPrice(yearlyPlan, "yearly")}
               </div>
+
+              {loadingPromo && yearlyPlan && (
+                <p className="promo-loading">Checking promo...</p>
+              )}
+
+              {promoPreview && promoPreview.plan === "yearly" && (
+                <div className="promo-box">
+                  <p>🎉 Promo Applied</p>
+
+                  {promoPreview.discountPercent > 0 && (
+                    <p>Discount: {promoPreview.discountPercent}%</p>
+                  )}
+
+                  {promoPreview.freeDays > 0 && (
+                    <p>Extra Days: +{promoPreview.freeDays}</p>
+                  )}
+
+                  {promoPreview.originalPrice && (
+                    <>
+                      <p>
+                        Price:{" "}
+                        <s>
+                          {promoPreview.currency}
+                          {promoPreview.originalPrice}
+                        </s>{" "}
+                        <strong>
+                          {promoPreview.currency}
+                          {promoPreview.discountedPrice}
+                        </strong>
+                      </p>
+
+                      <p style={{ color: "#22c55e", fontWeight: "600" }}>
+                        💰 You save {promoPreview.currency}
+                        {(
+                          promoPreview.originalPrice -
+                          promoPreview.discountedPrice
+                        ).toFixed(2)}
+                      </p>
+                    </>
+                  )}
+                </div>
+              )}
 
               <ul className="features">
                 {FEATURES.map((f, i) => (

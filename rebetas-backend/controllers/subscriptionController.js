@@ -89,8 +89,20 @@ async function createSubscription(req, res) {
         discountPercent = promo.discountPercent || 0;
 
         // ✅ APPLY FREE TIME
-        extraDays += promo.freeDays || 0;
-        extraDays += (promo.freeWeeks || 0) * 7;
+        // ✅ APPLY PLAN-SPECIFIC FREE TIME
+        let freeDaysForPlan = 0;
+
+        // NEW STRUCTURE
+        if (promo.freeDaysByPlan && typeof promo.freeDaysByPlan === "object") {
+          freeDaysForPlan = promo.freeDaysByPlan[plan] || 0;
+        }
+
+        // 🔥 OPTIONAL: BACKWARD COMPATIBILITY (safe fallback)
+        else {
+          freeDaysForPlan = (promo.freeDays || 0) + (promo.freeWeeks || 0) * 7;
+        }
+
+        extraDays += Math.max(0, freeDaysForPlan);
 
         // ✅ UPDATE USER USAGE
         if (usage) {
@@ -111,7 +123,7 @@ async function createSubscription(req, res) {
     /* ---------------- APPLY DISCOUNT ---------------- */
 
     if (discountPercent > 0) {
-      amount = amount - (amount * discountPercent) / 100;
+      amount = Number((amount - (amount * discountPercent) / 100).toFixed(2));
     }
 
     /* ---------------- CREATE SUBSCRIPTION ---------------- */

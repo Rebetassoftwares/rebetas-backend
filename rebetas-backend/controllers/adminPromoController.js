@@ -10,8 +10,9 @@ async function createPromoCode(req, res) {
       ownerName,
       commissionPercent,
       discountPercent,
-      freeDays,
-      freeWeeks,
+      freeDaysWeekly,
+      freeDaysMonthly,
+      freeDaysYearly,
       maxUsesPerUser,
     } = req.body;
 
@@ -21,8 +22,33 @@ async function createPromoCode(req, res) {
       });
     }
 
+    const normalizedCode = String(code).trim().toUpperCase();
+    const parsedCommission = Number(commissionPercent);
+    const parsedDiscount =
+      discountPercent !== undefined ? Number(discountPercent) : 0;
+
+    if (
+      Number.isNaN(parsedCommission) ||
+      parsedCommission < 0 ||
+      parsedCommission > 100
+    ) {
+      return res.status(400).json({
+        message: "Commission percent must be between 0 and 100",
+      });
+    }
+
+    if (
+      Number.isNaN(parsedDiscount) ||
+      parsedDiscount < 0 ||
+      parsedDiscount > 100
+    ) {
+      return res.status(400).json({
+        message: "Discount percent must be between 0 and 100",
+      });
+    }
+
     const existing = await PromoCode.findOne({
-      code: code.toUpperCase(),
+      code: normalizedCode,
     });
 
     if (existing) {
@@ -32,14 +58,16 @@ async function createPromoCode(req, res) {
     }
 
     const promo = await PromoCode.create({
-      code: code.toUpperCase(),
+      code: normalizedCode,
       ownerId,
       ownerName,
-      commissionPercent: Number(commissionPercent),
-      discountPercent:
-        discountPercent !== undefined ? Number(discountPercent) : 0,
-      freeDays: freeDays !== undefined ? Number(freeDays) : 0,
-      freeWeeks: freeWeeks !== undefined ? Number(freeWeeks) : 0,
+      commissionPercent: parsedCommission,
+      discountPercent: parsedDiscount,
+      freeDaysByPlan: {
+        weekly: Number(freeDaysWeekly || 0),
+        monthly: Number(freeDaysMonthly || 0),
+        yearly: Number(freeDaysYearly || 0),
+      },
       maxUsesPerUser: maxUsesPerUser !== undefined ? Number(maxUsesPerUser) : 1,
     });
 
@@ -55,7 +83,8 @@ async function getPromoCodes(req, res) {
   try {
     const promos = await PromoCode.find({}).sort({ createdAt: -1 }).lean();
 
-    const ownerIds = promos.map((p) => p.ownerId);
+    const ownerIds = promos.map((p) => p.ownerId).filter(Boolean);
+
     const wallets = await PromoWallet.find({
       ownerId: { $in: ownerIds },
     }).lean();
@@ -77,7 +106,9 @@ async function getPromoCodes(req, res) {
 
     const enriched = promos.map((promo) => ({
       ...promo,
-      wallets: walletsByOwner[promo.ownerId.toString()] || [],
+      wallets: promo.ownerId
+        ? walletsByOwner[promo.ownerId.toString()] || []
+        : [],
     }));
 
     res.json(enriched);
@@ -97,32 +128,61 @@ async function updatePromoCode(req, res) {
       commissionPercent,
       active,
       discountPercent,
-      freeDays,
-      freeWeeks,
+      freeDaysWeekly,
+      freeDaysMonthly,
+      freeDaysYearly,
       maxUsesPerUser,
     } = req.body;
 
-    const updated = await PromoCode.findByIdAndUpdate(
-      id,
-      {
-        ...(ownerId !== undefined && { ownerId }),
-        ...(ownerName !== undefined && { ownerName }),
-        ...(commissionPercent !== undefined && {
-          commissionPercent: Number(commissionPercent),
-        }),
-        ...(active !== undefined && { active }),
+    const updateData = {
+      ...(ownerId !== undefined && { ownerId }),
+      ...(ownerName !== undefined && { ownerName }),
+      ...(commissionPercent !== undefined && {
+        commissionPercent: Number(commissionPercent),
+      }),
+      ...(active !== undefined && { active }),
+      ...(discountPercent !== undefined && {
+        discountPercent: Number(discountPercent),
+      }),
+      ...((freeDaysWeekly !== undefined ||
+        freeDaysMonthly !== undefined ||
+        freeDaysYearly !== undefined) && {
+        freeDaysByPlan: {
+          weekly: Number(freeDaysWeekly || 0),
+          monthly: Number(freeDaysMonthly || 0),
+          yearly: Number(freeDaysYearly || 0),
+        },
+      }),
+      ...(maxUsesPerUser !== undefined && {
+        maxUsesPerUser: Number(maxUsesPerUser),
+      }),
+    };
 
-        ...(discountPercent !== undefined && {
-          discountPercent: Number(discountPercent),
-        }),
-        ...(freeDays !== undefined && { freeDays: Number(freeDays) }),
-        ...(freeWeeks !== undefined && { freeWeeks: Number(freeWeeks) }),
-        ...(maxUsesPerUser !== undefined && {
-          maxUsesPerUser: Number(maxUsesPerUser),
-        }),
-      },
-      { new: true },
-    );
+    if (
+      updateData.commissionPercent !== undefined &&
+      (Number.isNaN(updateData.commissionPercent) ||
+        updateData.commissionPercent < 0 ||
+        updateData.commissionPercent > 100)
+    ) {
+      return res.status(400).json({
+        message: "Commission percent must be between 0 and 100",
+      });
+    }
+
+    if (
+      updateData.discountPercent !== undefined &&
+      (Number.isNaN(updateData.discountPercent) ||
+        updateData.discountPercent < 0 ||
+        updateData.discountPercent > 100)
+    ) {
+      return res.status(400).json({
+        message: "Discount percent must be between 0 and 100",
+      });
+    }
+
+    const updated = await PromoCode.findByIdAndUpdate(id, updateData, {
+      new: true,
+    });
 
     if (!updated) {
       return res.status(404).json({

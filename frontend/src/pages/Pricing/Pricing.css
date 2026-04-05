@@ -49,6 +49,32 @@
   padding-bottom: 100px;
 }
 
+.promo-box {
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 10px;
+  background: rgba(168, 85, 247, 0.08);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  color: #c084fc;
+  font-size: 13px;
+}
+
+.best-badge {
+  display: inline-block;
+  margin-bottom: 8px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  border-radius: 20px;
+}
+
+.promo-loading {
+  color: #a855f7;
+  font-size: 13px;
+}
+
 /* =========================
    GRID (NEW CORE)
 ========================= */
@@ -78,9 +104,10 @@
   transition: all 0.25s ease;
 }
 
-.pricing-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 12px 30px rgba(160, 32, 240, 0.25);
+.pricing-card.highlight {
+  border: 2px solid rgba(168, 85, 247, 0.6);
+  transform: scale(1.03);
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.25);
 }
 
 /* =========================
