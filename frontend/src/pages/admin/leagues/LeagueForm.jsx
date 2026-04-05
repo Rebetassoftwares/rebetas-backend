@@ -93,7 +93,7 @@ export default function LeagueForm() {
           intervalMinutes: data.intervalMinutes || "",
           intervalSeconds: data.intervalSeconds || "", // ✅ NEW
           firstPredictionTime: data.firstPredictionTime
-            ? new Date(data.firstPredictionTime).toISOString().slice(0, 16)
+            ? new Date(data.firstPredictionTime).toISOString().slice(0, 19)
             : "",
           teams: data.teams || [],
           oddRange: data.oddRange || { min: "", max: "" },
