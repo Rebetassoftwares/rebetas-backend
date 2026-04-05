@@ -361,6 +361,7 @@ export default function LeagueForm() {
             <label>First Prediction Time</label>
             <input
               type="datetime-local"
+              step="1"
               name="firstPredictionTime"
               value={form.firstPredictionTime}
               onChange={handleChange}
