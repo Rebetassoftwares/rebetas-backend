@@ -76,6 +76,88 @@
   color: #f87171;
 }
 
+.user-detail-page {
+  padding: 20px;
+  color: #fff;
+}
+
+/* HEADER */
+.user-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.back-btn {
+  background: transparent;
+  border: 1px solid #555;
+  padding: 6px 12px;
+  border-radius: 6px;
+  color: #fff;
+  cursor: pointer;
+}
+
+.status-badge {
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.status-badge.active {
+  background: #16a34a;
+}
+
+.status-badge.suspended {
+  background: #eab308;
+}
+
+.status-badge.banned {
+  background: #dc2626;
+}
+
+/* ACTIONS */
+.actions-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.actions-bar button {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  background: #9333ea;
+  color: #fff;
+}
+
+/* CARD */
+.card {
+  background: rgba(15, 4, 30, 0.8);
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+/* GRID */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.grid span {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.grid strong {
+  display: block;
+  margin-top: 4px;
+}
+
 /* MOBILE */
 @media (max-width: 768px) {
   .card {
