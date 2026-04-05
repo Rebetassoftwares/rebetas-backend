@@ -60,14 +60,29 @@
 }
 
 .best-badge {
-  display: inline-block;
-  margin-bottom: 8px;
-  padding: 4px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+  padding: 6px 14px;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   color: #fff;
+
   background: linear-gradient(135deg, #22c55e, #16a34a);
-  border-radius: 20px;
+  border-radius: 999px;
+
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+
+  animation: pulseBadge 2s infinite;
+}
+
+.badge-icon {
+  font-size: 13px;
+}
+
+.badge-text {
+  letter-spacing: 0.3px;
 }
 
 .promo-loading {
@@ -105,9 +120,16 @@
 }
 
 .pricing-card.highlight {
-  border: 2px solid rgba(168, 85, 247, 0.6);
-  transform: scale(1.03);
-  box-shadow: 0 0 20px rgba(168, 85, 247, 0.25);
+  border: 2px solid rgba(168, 85, 247, 0.8);
+
+  transform: scale(1.06);
+  z-index: 2;
+
+  box-shadow:
+    0 0 30px rgba(168, 85, 247, 0.4),
+    0 0 60px rgba(168, 85, 247, 0.2);
+
+  position: relative;
 }
 
 /* =========================
