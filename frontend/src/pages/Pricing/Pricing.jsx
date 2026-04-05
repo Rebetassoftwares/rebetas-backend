@@ -364,6 +364,7 @@ export default function Pricing() {
             {/* MONTHLY */}
             <div className="pricing-card highlight">
               <h3>Monthly Plan</h3>
+              <div className="top-ribbon">BEST VALUE</div>
               <div className="best-badge">
                 <span className="badge-icon">🔥</span>
                 <span className="badge-text">Most Popular</span>
