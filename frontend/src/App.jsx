@@ -125,46 +125,36 @@ function App() {
         >
           {/* DEFAULT */}
           <Route index element={<AdminDashboard />} />
-
           {/* EXISTING */}
           <Route path="pricing" element={<PricingManagement />} />
           <Route path="promo-codes" element={<PromoCodes />} />
-          <Route path="users" element={<Users />}>
-            <Route path=":id" element={<UserDetail />} />
-          </Route>
+          <Route path="users" element={<Users />} />
+          <Route path="users/:id" element={<UserDetail />} />
           <Route path="payments" element={<Payments />} />
           <Route path="subscriptions" element={<Subscriptions />} />
           <Route path="system" element={<SystemSettings />} />
           <Route path="promos/:id" element={<PromoDetails />} />
           <Route path="withdrawals" element={<Withdrawals />} />
-
           <Route path="settings/withdrawals" element={<WithdrawalSettings />} />
-
           {/* 🔥 PLATFORM SYSTEM */}
           <Route path="platforms" element={<PlatformPage />} />
-
           {/* 🔥 PREDICTION SYSTEM ENTRY */}
           <Route path="predictions" element={<PredictionSettings />} />
-
           {/* 🔥 PLATFORM → LEAGUES */}
           <Route
             path="predictions/:platformId/leagues"
             element={<PlatformLeagues />}
           />
-
           {/* 🔥 LEAGUE CONFIG */}
           <Route path="leagues/create" element={<LeagueForm />} />
           <Route path="leagues/:leagueId/edit" element={<LeagueForm />} />
-
           {/* 🔥 LEAGUE DETAIL */}
           <Route path="leagues/:leagueId" element={<LeagueDetail />} />
-
           {/* 🔥 PREDICTIONS ENGINE */}
           <Route
             path="leagues/:leagueId/predictions"
             element={<LeaguePredictions />}
           />
-
           {/* 🔥 LIVE MONITOR */}
           <Route path="predictions/live" element={<LivePredictions />} />
         </Route>
