@@ -367,7 +367,7 @@ export default function Pricing() {
               <div className="top-ribbon">BEST VALUE</div>
               <div className="best-badge">
                 <span className="badge-icon">🔥</span>
-                <span className="badge-text">Most Popular</span>
+                <span className="badge-text">MOST POPULAR</span>
               </div>
 
               <CountryDropdown
