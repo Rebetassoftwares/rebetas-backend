@@ -1,53 +1,50 @@
-function calculateCycles(league, scheduledFor) {
+function calculateCycles(league, lastCycles = null) {
   if (!Array.isArray(league.cycleConfig) || league.cycleConfig.length === 0) {
     return [];
   }
 
-  const firstTime = new Date(league.firstPredictionTime);
-  const currentTime = new Date(scheduledFor);
+  // 🔥 FIRST PREDICTION (no history)
+  if (!lastCycles) {
+    return league.cycleConfig.map((c) => {
+      const start = Number(c.start || 1);
 
-  // 🔥 SUPPORT MINUTES + SECONDS
-  const intervalMinutes = Number(league.intervalMinutes || 0);
-  const intervalSeconds = Number(league.intervalSeconds || 0);
+      const initial =
+        c.current !== undefined && c.current !== null
+          ? Number(c.current)
+          : start;
 
-  const intervalMs = intervalMinutes * 60 * 1000 + intervalSeconds * 1000;
+      return {
+        name: c.name,
+        value: initial,
+      };
+    });
+  }
 
-  if (!intervalMs || intervalMs <= 0) return [];
-
-  const steps = Math.floor((currentTime - firstTime) / intervalMs);
-
-  // 🔥 CLONE CONFIG (USE CURRENT IF AVAILABLE)
-  const result = league.cycleConfig.map((c) => {
-    const start = Number(c.start || 0);
-
-    const initial =
-      c.current !== undefined && c.current !== null ? Number(c.current) : start;
+  // 🔥 CLONE LAST VALUES
+  const result = league.cycleConfig.map((c, index) => {
+    const last = lastCycles[index];
 
     return {
       name: c.name,
-      value: initial, // ✅ USE CURRENT
+      value: Number(last?.value || c.start || 1),
       max: c.max ? Number(c.max) : null,
-      start, // keep for reset reference
+      start: Number(c.start || 1),
     };
   });
 
-  for (let i = 0; i < steps; i++) {
-    for (let j = result.length - 1; j >= 0; j--) {
-      const current = result[j];
+  // 🔥 INCREMENT (like your previous loop, but ONLY ONCE)
+  for (let j = result.length - 1; j >= 0; j--) {
+    const current = result[j];
 
-      current.value += 1;
+    current.value += 1;
 
-      // no max → no rollover
-      if (!current.max) break;
+    if (!current.max) break;
 
-      // still within range
-      if (current.value <= current.max) break;
+    if (current.value <= current.max) break;
 
-      // 🔥 overflow → reset to START (not always 1)
-      current.value = current.start || 1;
+    current.value = current.start;
 
-      // continue to parent cycle
-    }
+    // continue to parent
   }
 
   return result.map(({ name, value }) => ({

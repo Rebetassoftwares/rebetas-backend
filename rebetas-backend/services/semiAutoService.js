@@ -86,7 +86,14 @@ async function runSemiAuto() {
         const trackerKey = getTrackerKey(league.platform, league.leagueName);
         const stake = getStake(trackerKey, systemState);
 
-        const cycles = calculateCycles(league, scheduledFor);
+        // 🔥 get last prediction for this league
+        const lastPrediction = await ManualPrediction.findOne({
+          leagueId: league._id,
+          type: "SEMI_AUTO",
+        }).sort({ scheduledFor: -1 });
+
+        // 🔥 pass last cycles instead of time
+        const cycles = calculateCycles(league, lastPrediction?.cycles || null);
 
         await ManualPrediction.create({
           leagueId: league._id,
