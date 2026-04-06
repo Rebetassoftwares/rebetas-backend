@@ -14,43 +14,6 @@ function pickRandomTeam(teams) {
   return teams[index];
 }
 
-function advanceCycles(cycleConfig) {
-  if (!Array.isArray(cycleConfig)) return cycleConfig;
-
-  const updated = cycleConfig.map((c) => ({ ...c }));
-  let carry = 1;
-
-  for (let i = updated.length - 1; i >= 0; i--) {
-    if (!carry) break;
-
-    const c = updated[i];
-    const start = Number(c.start || 0);
-
-    let current =
-      c.current !== undefined && c.current !== null ? Number(c.current) : start;
-
-    current += carry;
-
-    if (!c.max) {
-      c.current = current;
-      carry = 0;
-      break;
-    }
-
-    const max = Number(c.max);
-
-    if (current <= max) {
-      c.current = current;
-      carry = 0;
-    } else {
-      c.current = start || 1;
-      carry = 1;
-    }
-  }
-
-  return updated;
-}
-
 async function runSemiAuto() {
   try {
     const now = new Date();
@@ -85,6 +48,10 @@ async function runSemiAuto() {
           continue;
         }
 
+        if (now < firstTime) {
+          continue;
+        }
+
         const intervalMinutes = Number(league.intervalMinutes || 0);
         const intervalSeconds = Number(league.intervalSeconds || 0);
 
@@ -94,22 +61,19 @@ async function runSemiAuto() {
           continue;
         }
 
-        const lastPrediction = await ManualPrediction.findOne({
+        const elapsed = now.getTime() - firstTime.getTime();
+        const slotIndex = Math.floor(elapsed / intervalMs);
+        const scheduledFor = new Date(
+          firstTime.getTime() + slotIndex * intervalMs,
+        );
+
+        const existing = await ManualPrediction.findOne({
           leagueId: league._id,
           type: "SEMI_AUTO",
-        }).sort({ scheduledFor: -1 });
+          scheduledFor,
+        });
 
-        let scheduledFor;
-
-        if (!lastPrediction) {
-          scheduledFor = new Date(firstTime);
-        } else {
-          scheduledFor = new Date(
-            new Date(lastPrediction.scheduledFor).getTime() + intervalMs,
-          );
-        }
-
-        if (now < scheduledFor) {
+        if (existing) {
           continue;
         }
 
@@ -122,7 +86,7 @@ async function runSemiAuto() {
         const trackerKey = getTrackerKey(league.platform, league.leagueName);
         const stake = getStake(trackerKey, systemState);
 
-        const cycles = calculateCycles(league);
+        const cycles = calculateCycles(league, scheduledFor);
 
         await ManualPrediction.create({
           leagueId: league._id,
@@ -133,13 +97,10 @@ async function runSemiAuto() {
           odd,
           stake,
           scheduledFor,
-          cycles,
+          cycles, // 🔥 add this line only
           prediction: "Over 1.5",
           status: "pending",
         });
-
-        league.cycleConfig = advanceCycles(league.cycleConfig);
-        await league.save();
       } catch (err) {
         console.error(
           `Semi-auto league error (${league.platform} - ${league.leagueName}):`,

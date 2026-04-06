@@ -230,7 +230,7 @@ exports.createLeague = async (req, res) => {
       totalMatches: Number(totalMatches),
       intervalMinutes: Number(intervalMinutes || 0),
       intervalSeconds: Number(req.body.intervalSeconds || 0), // ✅ NEW
-      firstPredictionTime: new Date(firstPredictionTime + "Z"),
+      firstPredictionTime: new Date(firstPredictionTime),
       teams: sanitizeTeams(teams),
 
       oddRange:
@@ -366,7 +366,7 @@ exports.updateLeague = async (req, res) => {
     existing.totalMatches = Number(merged.totalMatches);
     existing.intervalMinutes = Number(merged.intervalMinutes);
     existing.intervalSeconds = Number(merged.intervalSeconds || 0);
-    existing.firstPredictionTime = new Date(merged.firstPredictionTime + "Z");
+    existing.firstPredictionTime = new Date(merged.firstPredictionTime);
     existing.teams = sanitizeTeams(merged.teams);
     existing.isActive = Boolean(merged.isActive);
 
