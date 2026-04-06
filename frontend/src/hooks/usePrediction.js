@@ -59,8 +59,11 @@ export default function usePrediction(league) {
 
       // ⚠️ TEMP fallback (until backend sends interval)
       const intervalMinutes = prediction?.intervalMinutes || 0;
+      const intervalSeconds = prediction?.intervalSeconds || 0;
 
-      const next = new Date(scheduled.getTime() + intervalMinutes * 60 * 1000);
+      const intervalMs = intervalMinutes * 60 * 1000 + intervalSeconds * 1000;
+
+      const next = new Date(scheduled.getTime() + intervalMs);
 
       const diff = Math.max(0, next - now);
       setCountdown(diff);
