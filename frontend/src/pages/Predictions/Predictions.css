@@ -300,7 +300,56 @@
 }
 
 .team-name {
-  font-weight: 600;
+  font-weight: 800;
+  font-size: 20px;
+  color: #ffffff;
+
+  padding: 8px 16px;
+  border-radius: 999px;
+
+  background: rgba(160, 32, 240, 0.15);
+  border: 1px solid rgba(160, 32, 240, 0.4);
+
+  text-shadow: 0 0 10px rgba(160, 32, 240, 0.6);
+  box-shadow: 0 0 12px rgba(160, 32, 240, 0.25);
+
+  letter-spacing: 0.5px;
+}
+
+.team-name::before {
+  content: "TEAM";
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #caa6ff;
+  margin-bottom: 4px;
+}
+
+.team-name {
+  animation: pulseTeam 2s infinite ease-in-out;
+}
+
+@keyframes pulseTeam {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.team-name.blurred {
+  filter: blur(5px);
+  opacity: 0.6;
+}
+
+.team-name.blurred::before {
+  content: "🔒 TEAM LOCKED";
+  color: #aaa;
 }
 
 .center-block {
