@@ -14,6 +14,8 @@ async function createPromoCode(req, res) {
       freeDaysMonthly,
       freeDaysYearly,
       maxUsesPerUser,
+      trialDays, // ✅ NEW
+      maxUsers, // ✅ NEW
     } = req.body;
 
     if (!code || !ownerId || !ownerName || commissionPercent === undefined) {
@@ -24,6 +26,9 @@ async function createPromoCode(req, res) {
 
     const normalizedCode = String(code).trim().toUpperCase();
     const parsedCommission = Number(commissionPercent);
+    const parsedTrialDays = trialDays !== undefined ? Number(trialDays) : 0;
+
+    const parsedMaxUsers = maxUsers !== undefined ? Number(maxUsers) : null;
     const parsedDiscount =
       discountPercent !== undefined ? Number(discountPercent) : 0;
 
@@ -47,6 +52,21 @@ async function createPromoCode(req, res) {
       });
     }
 
+    if (Number.isNaN(parsedTrialDays) || parsedTrialDays < 0) {
+      return res.status(400).json({
+        message: "trialDays must be 0 or greater",
+      });
+    }
+
+    if (
+      parsedMaxUsers !== null &&
+      (Number.isNaN(parsedMaxUsers) || parsedMaxUsers < 1)
+    ) {
+      return res.status(400).json({
+        message: "maxUsers must be at least 1",
+      });
+    }
+
     const existing = await PromoCode.findOne({
       code: normalizedCode,
     });
@@ -63,12 +83,18 @@ async function createPromoCode(req, res) {
       ownerName,
       commissionPercent: parsedCommission,
       discountPercent: parsedDiscount,
+
       freeDaysByPlan: {
         weekly: Number(freeDaysWeekly || 0),
         monthly: Number(freeDaysMonthly || 0),
         yearly: Number(freeDaysYearly || 0),
       },
+
       maxUsesPerUser: maxUsesPerUser !== undefined ? Number(maxUsesPerUser) : 1,
+
+      // ✅ NEW FEATURES
+      trialDays: parsedTrialDays,
+      maxUsers: parsedMaxUsers,
     });
 
     res.status(201).json(promo);
@@ -132,6 +158,8 @@ async function updatePromoCode(req, res) {
       freeDaysMonthly,
       freeDaysYearly,
       maxUsesPerUser,
+      trialDays, // ✅ NEW
+      maxUsers, // ✅ NEW
     } = req.body;
 
     const updateData = {
@@ -156,6 +184,14 @@ async function updatePromoCode(req, res) {
       ...(maxUsesPerUser !== undefined && {
         maxUsesPerUser: Number(maxUsesPerUser),
       }),
+
+      ...(trialDays !== undefined && {
+        trialDays: Number(trialDays),
+      }),
+
+      ...(maxUsers !== undefined && {
+        maxUsers: maxUsers === null ? null : Number(maxUsers),
+      }),
     };
 
     if (
@@ -177,6 +213,25 @@ async function updatePromoCode(req, res) {
     ) {
       return res.status(400).json({
         message: "Discount percent must be between 0 and 100",
+      });
+    }
+
+    if (
+      updateData.trialDays !== undefined &&
+      (Number.isNaN(updateData.trialDays) || updateData.trialDays < 0)
+    ) {
+      return res.status(400).json({
+        message: "trialDays must be 0 or greater",
+      });
+    }
+
+    if (
+      updateData.maxUsers !== undefined &&
+      updateData.maxUsers !== null &&
+      (Number.isNaN(updateData.maxUsers) || updateData.maxUsers < 1)
+    ) {
+      return res.status(400).json({
+        message: "maxUsers must be at least 1",
       });
     }
 

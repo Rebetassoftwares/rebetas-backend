@@ -64,6 +64,16 @@ const userSchema = new mongoose.Schema(
       },
     ],
 
+    trialEndsAt: {
+      type: Date,
+      default: null,
+    },
+
+    hasUsedTrial: {
+      type: Boolean,
+      default: false,
+    },
+
     activeDeviceToken: {
       type: String,
       default: null,

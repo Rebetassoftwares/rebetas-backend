@@ -36,6 +36,8 @@ export default function PromoCodes() {
     freeDaysMonthly: "",
     freeDaysYearly: "",
     maxUsesPerUser: "",
+    trialDays: "",
+    maxUsers: "",
   });
 
   const [editingId, setEditingId] = useState(null);
@@ -132,6 +134,8 @@ export default function PromoCodes() {
           freeDaysMonthly: Number(form.freeDaysMonthly || 0),
           freeDaysYearly: Number(form.freeDaysYearly || 0),
           maxUsesPerUser: Number(form.maxUsesPerUser || 1),
+          trialDays: Number(form.trialDays || 0),
+          maxUsers: form.maxUsers !== "" ? Number(form.maxUsers) : null,
         });
       } else {
         await createPromoCode({
@@ -146,6 +150,8 @@ export default function PromoCodes() {
           freeDaysMonthly: Number(form.freeDaysMonthly || 0),
           freeDaysYearly: Number(form.freeDaysYearly || 0),
           maxUsesPerUser: Number(form.maxUsesPerUser || 1),
+          trialDays: Number(form.trialDays || 0),
+          maxUsers: form.maxUsers !== "" ? Number(form.maxUsers) : null,
         });
       }
 
@@ -160,6 +166,8 @@ export default function PromoCodes() {
         freeDaysMonthly: "",
         freeDaysYearly: "",
         maxUsesPerUser: "",
+        trialDays: "",
+        maxUsers: "",
       });
 
       setUserSearch("");
@@ -186,6 +194,8 @@ export default function PromoCodes() {
       freeDaysMonthly: item.freeDaysByPlan?.monthly || "",
       freeDaysYearly: item.freeDaysByPlan?.yearly || "",
       maxUsesPerUser: item.maxUsesPerUser || 1,
+      trialDays: item.trialDays || "",
+      maxUsers: item.maxUsers || "",
     });
 
     setUserSearch(item.ownerName);
@@ -383,6 +393,22 @@ export default function PromoCodes() {
           type="number"
           placeholder="Max Uses Per User"
           value={form.maxUsesPerUser}
+          onChange={handleChange}
+        />
+
+        <input
+          name="trialDays"
+          type="number"
+          placeholder="Trial Days (optional)"
+          value={form.trialDays || ""}
+          onChange={handleChange}
+        />
+
+        <input
+          name="maxUsers"
+          type="number"
+          placeholder="Max Users (optional)"
+          value={form.maxUsers || ""}
           onChange={handleChange}
         />
 

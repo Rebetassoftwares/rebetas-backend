@@ -89,6 +89,7 @@ async function registerUser(req, res) {
     PROMO CODE VALIDATION
     */
     let promoCodeUsed = null;
+    let trialEndsAt = null;
 
     if (promoCode) {
       const promo = await PromoCode.findOne({
@@ -102,7 +103,24 @@ async function registerUser(req, res) {
         });
       }
 
+      // ✅ CHECK GLOBAL MAX USERS
+      if (promo.maxUsers && promo.usageCount >= promo.maxUsers) {
+        return res.status(400).json({
+          message: "Promo code usage limit reached",
+        });
+      }
+
       promoCodeUsed = promo.code;
+
+      // ✅ APPLY TRIAL (ONLY IF AVAILABLE)
+      if (promo.trialDays && promo.trialDays > 0) {
+        trialEndsAt = new Date();
+        trialEndsAt.setDate(trialEndsAt.getDate() + promo.trialDays);
+      }
+
+      // ✅ INCREMENT GLOBAL USAGE
+      promo.usageCount += 1;
+      await promo.save();
     }
 
     if (!acceptedTerms) {
@@ -124,6 +142,8 @@ async function registerUser(req, res) {
       password: hashedPassword,
       emailVerificationToken: verificationToken,
       promoCodeUsed,
+      trialEndsAt,
+      hasUsedTrial: !!trialEndsAt,
 
       // 🔥 ADD THIS
       termsAccepted: true,

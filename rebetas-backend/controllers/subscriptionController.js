@@ -195,9 +195,18 @@ async function checkSubscription(req, res) {
       endDate: { $gt: now },
     }).lean();
 
+    const user = await User.findById(userId).lean();
+
+    const hasTrial = user.trialEndsAt && new Date(user.trialEndsAt) > now;
+
     res.json({
-      active: !!subscription,
+      active: !!subscription || !!hasTrial,
       subscription: subscription || null,
+      trial: hasTrial
+        ? {
+            endsAt: user.trialEndsAt,
+          }
+        : null,
     });
   } catch (error) {
     console.error("Subscription check error:", error.message);
