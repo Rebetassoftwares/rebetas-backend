@@ -5,6 +5,7 @@ import {
   updatePlatform,
   deletePlatform,
   getLeaguesByPlatform,
+  autoResolvePredictions,
 } from "../../../services/adminApi";
 import { useNavigate } from "react-router-dom";
 import PlatformFormModal from "./PlatformFormModal";
@@ -139,6 +140,25 @@ export default function PlatformPage() {
     navigate(`/admin/predictions/${platformId}/leagues`);
   }
 
+  async function handleAutoResolve() {
+    try {
+      if (
+        !window.confirm(
+          "Are you sure you want to resolve all pending predictions?",
+        )
+      ) {
+        return;
+      }
+
+      await autoResolvePredictions();
+
+      alert("✅ Predictions resolved successfully");
+    } catch (err) {
+      console.error(err);
+      alert("❌ Failed to resolve predictions");
+    }
+  }
+
   /* ================= UI ================= */
 
   return (
@@ -149,6 +169,10 @@ export default function PlatformPage() {
           <h2>Platform Setup</h2>
           <p>Manage betting platforms and their leagues</p>
         </div>
+
+        <button onClick={handleAutoResolve} className="resolve-btn">
+          Resolve Pending Predictions
+        </button>
 
         <button className="btn-primary" onClick={openCreate}>
           + Add Platform
