@@ -254,12 +254,16 @@ exports.getLiveManualPredictions = async (req, res) => {
 
 exports.autoResolvePendingPredictions = async (req, res) => {
   try {
+    console.log("AUTO RESOLVE HIT");
+
     const predictions = await ManualPrediction.find({ status: "pending" }).sort(
       { scheduledFor: 1, createdAt: 1 },
     );
 
+    console.log("Pending count:", predictions.length);
+
     let lossStreak = 0;
-    const updates = [];
+    const updatedPredictions = [];
 
     for (let p of predictions) {
       let status;
@@ -277,16 +281,31 @@ exports.autoResolvePendingPredictions = async (req, res) => {
         }
       }
 
-      updates.push({
-        id: p._id,
-        status,
-      });
+      if (p.status !== "pending") continue;
+
+      p.status = status;
+      await p.save();
+
+      updatedPredictions.push(p);
     }
 
-    // 🔥 reuse your existing batch logic
-    req.body = updates;
+    // 🔥 recompute properly
+    const uniqueKeys = new Set();
 
-    return await exports.updatePredictionResultsBatch(req, res);
+    updatedPredictions.forEach((p) => {
+      const key = `${p.platform}_${p.leagueName}`;
+      uniqueKeys.add(key);
+    });
+
+    for (const key of uniqueKeys) {
+      const [platform, leagueName] = key.split("_");
+      await recomputeMartingale(platform, leagueName);
+    }
+
+    res.json({
+      message: "Auto resolve complete",
+      updated: updatedPredictions.length,
+    });
   } catch (err) {
     console.error("Auto resolve error:", err);
     res.status(500).json({ message: "Auto resolve failed" });
