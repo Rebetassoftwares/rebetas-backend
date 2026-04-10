@@ -7,6 +7,7 @@ const {
   updatePredictionResult,
   getLiveManualPredictions,
   updatePredictionResultsBatch,
+  autoResolvePendingPredictions,
 } = require("../controllers/manualPredictionController");
 
 router.post("/", createManualPrediction);
@@ -19,5 +20,7 @@ router.get("/live", getLiveManualPredictions);
 router.put("/:id/result", updatePredictionResult);
 
 router.put("/batch-result", updatePredictionResultsBatch);
+
+router.post("/auto-resolve", autoResolvePendingPredictions);
 
 module.exports = router;

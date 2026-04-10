@@ -251,3 +251,44 @@ exports.getLiveManualPredictions = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch live predictions" });
   }
 };
+
+exports.autoResolvePendingPredictions = async (req, res) => {
+  try {
+    const predictions = await ManualPrediction.find({ status: "pending" }).sort(
+      { scheduledFor: 1, createdAt: 1 },
+    );
+
+    let lossStreak = 0;
+    const updates = [];
+
+    for (let p of predictions) {
+      let status;
+
+      if (lossStreak >= 2) {
+        status = "won";
+        lossStreak = 0;
+      } else {
+        if (Math.random() < 0.7) {
+          status = "won";
+          lossStreak = 0;
+        } else {
+          status = "loss";
+          lossStreak++;
+        }
+      }
+
+      updates.push({
+        id: p._id,
+        status,
+      });
+    }
+
+    // 🔥 reuse your existing batch logic
+    req.body = updates;
+
+    return await exports.updatePredictionResultsBatch(req, res);
+  } catch (err) {
+    console.error("Auto resolve error:", err);
+    res.status(500).json({ message: "Auto resolve failed" });
+  }
+};

@@ -176,3 +176,6 @@ export const getLivePredictions = () =>
 /* 🔥 BATCH UPDATE RESULTS */
 export const updatePredictionResultsBatch = (updates) =>
   api.put("/manual-predictions/batch-result", updates, authConfig());
+
+export const autoResolvePredictions = () =>
+  api.post("/manual-predictions/auto-resolve", {}, authConfig());

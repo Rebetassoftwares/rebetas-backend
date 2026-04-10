@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { fetchDashboard } from "../../../services/adminApi";
+import {
+  fetchDashboard,
+  autoResolvePredictions,
+} from "../../../services/adminApi";
 import "./AdminDashboard.css";
 
 const currencyMeta = {
@@ -63,6 +66,27 @@ export default function AdminDashboard() {
     loadDashboard();
   }, []);
 
+  async function handleAutoResolve() {
+    try {
+      if (
+        !window.confirm(
+          "Are you sure you want to resolve all pending predictions?",
+        )
+      ) {
+        return;
+      }
+
+      await autoResolvePredictions();
+
+      alert("✅ Predictions resolved successfully");
+
+      loadDashboard(); // refresh stats if needed
+    } catch (err) {
+      console.error(err);
+      alert("❌ Failed to resolve predictions");
+    }
+  }
+
   const revenueCurrencies = useMemo(
     () => stats.revenue.length,
     [stats.revenue],
@@ -82,6 +106,9 @@ export default function AdminDashboard() {
         <>
           <div className="dashboard-top-grid">
             <div className="dashboard-hero-card">
+              <button onClick={handleAutoResolve} className="resolve-btn">
+                Resolve Pending Predictions
+              </button>
               <div className="hero-badge">Revenue Analytics</div>
               <h2>Financial overview across all supported currencies</h2>
               <p>
