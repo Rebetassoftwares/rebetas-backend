@@ -258,20 +258,6 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.resolve-btn {
-  margin-top: 15px;
-  padding: 10px 16px;
-  background: #22c55e;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.resolve-btn:hover {
-  background: #16a34a;
-}
-
 /* ACTIONS */
 
 .actions {

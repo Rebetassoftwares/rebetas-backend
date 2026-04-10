@@ -3,6 +3,7 @@ import {
   getLivePredictions,
   //updatePredictionResult,
   updatePredictionResultsBatch, // ✅ ADD THIS
+  autoResolvePredictions,
   getPlatforms,
 } from "../../../services/adminApi";
 import "./LivePredictions.css";
@@ -172,6 +173,25 @@ export default function LivePredictions() {
 
   if (loading) return <p>Loading live predictions...</p>;
 
+  async function handleAutoResolve() {
+    try {
+      if (
+        !window.confirm(
+          "Are you sure you want to resolve all pending predictions?",
+        )
+      ) {
+        return;
+      }
+
+      await autoResolvePredictions();
+
+      alert("✅ Predictions resolved successfully");
+    } catch (err) {
+      console.error(err);
+      alert("❌ Failed to resolve predictions");
+    }
+  }
+
   return (
     <div className="live-page">
       <h2>Live Predictions</h2>
@@ -182,6 +202,10 @@ export default function LivePredictions() {
           onClick={handleBatchUpdate}
         >
           {saving ? "Updating..." : "Update Results"}
+        </button>
+
+        <button onClick={handleAutoResolve} className="resolve-btn">
+          Resolve Pending Predictions
         </button>
 
         <span>{Object.keys(pendingUpdates).length} pending changes</span>
