@@ -221,16 +221,20 @@ export default function HistorySection({
           <div className="filter-group">
             <label>Time Range</label>
 
-            <div style={{ display: "flex", gap: "10px" }}>
+            <div
+              style={{ display: "flex", flexDirection: "column", gap: "8px" }}
+            >
+              <label>Start Time (Today)</label>
               <input
-                type="time"
-                value={timeStart || ""}
+                type="datetime-local"
+                value={timeStart}
                 onChange={(e) => setTimeStart(e.target.value)}
               />
 
+              <label>End Time (Today)</label>
               <input
-                type="time"
-                value={timeEnd || ""}
+                type="datetime-local"
+                value={timeEnd}
                 onChange={(e) => setTimeEnd(e.target.value)}
               />
             </div>
