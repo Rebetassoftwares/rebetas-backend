@@ -214,9 +214,6 @@ export default function HistorySection({
             <option value="all">All Time</option>
             <option value="today">Today</option>
             <option value="yesterday">Yesterday</option>
-            <option value="single_date">Single Date</option>
-            <option value="this_week">This Week</option>
-            <option value="custom">Custom Date</option>
           </select>
         </div>
 
