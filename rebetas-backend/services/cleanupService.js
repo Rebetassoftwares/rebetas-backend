@@ -2,11 +2,21 @@ const Prediction = require("../models/Prediction");
 
 async function cleanupOldPredictions() {
   try {
-    const cutoffDate = new Date();
-    cutoffDate.setDate(cutoffDate.getDate() - 2); // ✅ 2 days
+    const now = new Date();
+
+    // 👉 Start of TODAY (00:00:00)
+    const startOfToday = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+    );
+
+    // 👉 Start of YESTERDAY (00:00:00)
+    const startOfYesterday = new Date(startOfToday);
+    startOfYesterday.setDate(startOfYesterday.getDate() - 1);
 
     const result = await Prediction.deleteMany({
-      createdAt: { $lt: cutoffDate },
+      createdAt: { $lt: startOfYesterday },
     });
 
     console.log(
