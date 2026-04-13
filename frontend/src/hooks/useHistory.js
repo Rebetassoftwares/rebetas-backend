@@ -115,7 +115,6 @@ export default function useHistory({
     if (shouldApplyTimeRange && timeStart && timeEnd) {
       data = data.filter((item) => {
         const itemDate = new Date(item.date);
-
         const itemMinutes = itemDate.getHours() * 60 + itemDate.getMinutes();
 
         const [startH, startM] = timeStart.split(":").map(Number);
@@ -124,7 +123,13 @@ export default function useHistory({
         const startMinutes = startH * 60 + startM;
         const endMinutes = endH * 60 + endM;
 
-        return itemMinutes >= startMinutes && itemMinutes <= endMinutes;
+        // ✅ NORMAL RANGE (e.g. 08:00 → 18:00)
+        if (startMinutes <= endMinutes) {
+          return itemMinutes >= startMinutes && itemMinutes <= endMinutes;
+        }
+
+        // 🔥 OVERNIGHT RANGE (e.g. 22:00 → 04:00)
+        return itemMinutes >= startMinutes || itemMinutes <= endMinutes;
       });
     }
 
