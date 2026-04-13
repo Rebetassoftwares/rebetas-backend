@@ -10,8 +10,8 @@ export default function useHistory({
 }) {
   const [history, setHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
-  const [timeStart, setTimeStart] = useState(null);
-  const [timeEnd, setTimeEnd] = useState(null);
+  const [timeStart, setTimeStart] = useState("");
+  const [timeEnd, setTimeEnd] = useState("");
   const [singleDate, setSingleDate] = useState(null);
 
   // 🔥 FETCH HISTORY
@@ -113,12 +113,18 @@ export default function useHistory({
       timeframe === "today" || timeframe === "yesterday" || Boolean(singleDate);
 
     if (shouldApplyTimeRange && timeStart && timeEnd) {
-      const start = new Date(timeStart);
-      const end = new Date(timeEnd);
-
       data = data.filter((item) => {
         const itemDate = new Date(item.date);
-        return itemDate >= start && itemDate <= end;
+
+        const itemMinutes = itemDate.getHours() * 60 + itemDate.getMinutes();
+
+        const [startH, startM] = timeStart.split(":").map(Number);
+        const [endH, endM] = timeEnd.split(":").map(Number);
+
+        const startMinutes = startH * 60 + startM;
+        const endMinutes = endH * 60 + endM;
+
+        return itemMinutes >= startMinutes && itemMinutes <= endMinutes;
       });
     }
 
