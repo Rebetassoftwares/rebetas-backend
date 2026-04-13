@@ -206,8 +206,8 @@ export default function HistorySection({
               }
 
               if (!["today", "yesterday", "single_date"].includes(value)) {
-                setTimeStart(null);
-                setTimeEnd(null);
+                setTimeStart("");
+                setTimeEnd("");
               }
             }}
           >
@@ -226,15 +226,15 @@ export default function HistorySection({
             >
               <label>Start Time (Today)</label>
               <input
-                type="datetime-local"
-                value={timeStart}
+                type="time"
+                value={timeStart || ""}
                 onChange={(e) => setTimeStart(e.target.value)}
               />
 
               <label>End Time (Today)</label>
               <input
-                type="datetime-local"
-                value={timeEnd}
+                type="time"
+                value={timeEnd || ""}
                 onChange={(e) => setTimeEnd(e.target.value)}
               />
             </div>
