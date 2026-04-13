@@ -11,9 +11,9 @@ export default function HistorySection({
   setCustomEndDate,
   singleDate,
   setSingleDate,
-  timeStart,
+
   setTimeStart,
-  timeEnd,
+
   setTimeEnd,
   summary,
   formatCurrency,
@@ -47,11 +47,6 @@ export default function HistorySection({
       "AUD",
     ];
   }, []);
-
-  const showTimeRange =
-    timeframe === "today" ||
-    timeframe === "yesterday" ||
-    timeframe === "single_date";
 
   useEffect(() => {
     let isMounted = true;
@@ -206,8 +201,8 @@ export default function HistorySection({
               }
 
               if (!["today", "yesterday", "single_date"].includes(value)) {
-                setTimeStart("");
-                setTimeEnd("");
+                setTimeStart(null);
+                setTimeEnd(null);
               }
             }}
           >
@@ -216,30 +211,6 @@ export default function HistorySection({
             <option value="yesterday">Yesterday</option>
           </select>
         </div>
-
-        {showTimeRange && (
-          <div className="filter-group">
-            <label>Time Range</label>
-
-            <div
-              style={{ display: "flex", flexDirection: "column", gap: "8px" }}
-            >
-              <label>Start Time (Today)</label>
-              <input
-                type="time"
-                value={timeStart || ""}
-                onChange={(e) => setTimeStart(e.target.value)}
-              />
-
-              <label>End Time (Today)</label>
-              <input
-                type="time"
-                value={timeEnd || ""}
-                onChange={(e) => setTimeEnd(e.target.value)}
-              />
-            </div>
-          </div>
-        )}
 
         {timeframe === "single_date" && (
           <div className="filter-group">
