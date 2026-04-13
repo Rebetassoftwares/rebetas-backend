@@ -10,6 +10,9 @@ export default function useHistory({
 }) {
   const [history, setHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const [timeStart, setTimeStart] = useState(null);
+  const [timeEnd, setTimeEnd] = useState(null);
+  const [singleDate, setSingleDate] = useState(null);
 
   // 🔥 FETCH HISTORY
   useEffect(() => {
@@ -61,6 +64,16 @@ export default function useHistory({
   const filteredPredictions = useMemo(() => {
     let data = [...history].sort((a, b) => new Date(b.date) - new Date(a.date)); // ✅ CRITICAL FIX
 
+    // 🟣 SINGLE DATE FILTER (EXACT MATCH)
+    // 🟣 SINGLE DATE FILTER (HIGHEST PRIORITY)
+    if (singleDate) {
+      const targetDate = new Date(singleDate).toDateString();
+
+      data = data.filter(
+        (item) => new Date(item.date).toDateString() === targetDate,
+      );
+    }
+
     if (timeframe === "today") {
       const today = new Date().toDateString();
       data = data.filter(
@@ -95,8 +108,30 @@ export default function useHistory({
       });
     }
 
+    // 🔥 TIME RANGE FILTER (ONLY FOR today, yesterday, custom)
+    const shouldApplyTimeRange =
+      timeframe === "today" || timeframe === "yesterday" || Boolean(singleDate);
+
+    if (shouldApplyTimeRange && timeStart && timeEnd) {
+      const start = new Date(timeStart);
+      const end = new Date(timeEnd);
+
+      data = data.filter((item) => {
+        const itemDate = new Date(item.date);
+        return itemDate >= start && itemDate <= end;
+      });
+    }
+
     return data;
-  }, [history, timeframe, customStartDate, customEndDate]);
+  }, [
+    history,
+    timeframe,
+    customStartDate,
+    customEndDate,
+    timeStart,
+    timeEnd,
+    singleDate,
+  ]);
 
   // 🔥 SUMMARY (USING BACKEND CAPITAL CORRECTLY)
   const summary = useMemo(() => {
@@ -157,5 +192,11 @@ export default function useHistory({
     summary,
     availableWeeks,
     availableMonths,
+    timeStart,
+    timeEnd,
+    setTimeStart,
+    setTimeEnd,
+    singleDate,
+    setSingleDate,
   };
 }

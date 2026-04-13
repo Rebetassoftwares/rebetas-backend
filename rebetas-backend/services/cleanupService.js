@@ -6,7 +6,7 @@ async function cleanupOldPredictions() {
 
     // 🔥 14 days ago
     const cutoffDate = new Date(now);
-    cutoffDate.setDate(now.getDate() - 14);
+    cutoffDate.setDate(now.getDate() - 7);
 
     const result = await Prediction.deleteMany({
       createdAt: { $lt: cutoffDate },

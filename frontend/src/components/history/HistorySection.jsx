@@ -9,6 +9,12 @@ export default function HistorySection({
   setCustomStartDate,
   customEndDate,
   setCustomEndDate,
+  singleDate,
+  setSingleDate,
+  timeStart,
+  setTimeStart,
+  timeEnd,
+  setTimeEnd,
   summary,
   formatCurrency,
   filteredPredictions,
@@ -41,6 +47,11 @@ export default function HistorySection({
       "AUD",
     ];
   }, []);
+
+  const showTimeRange =
+    timeframe === "today" ||
+    timeframe === "yesterday" ||
+    timeframe === "single_date";
 
   useEffect(() => {
     let isMounted = true;
@@ -186,15 +197,59 @@ export default function HistorySection({
           <label>Time Frame</label>
           <select
             value={timeframe}
-            onChange={(e) => setTimeframe(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value;
+              setTimeframe(value);
+
+              if (value !== "single_date") {
+                setSingleDate(null);
+              }
+
+              if (!["today", "yesterday", "single_date"].includes(value)) {
+                setTimeStart(null);
+                setTimeEnd(null);
+              }
+            }}
           >
             <option value="all">All Time</option>
             <option value="today">Today</option>
             <option value="yesterday">Yesterday</option>
+            <option value="single_date">Single Date</option>
             <option value="this_week">This Week</option>
             <option value="custom">Custom Date</option>
           </select>
         </div>
+
+        {showTimeRange && (
+          <div className="filter-group">
+            <label>Time Range</label>
+
+            <div style={{ display: "flex", gap: "10px" }}>
+              <input
+                type="time"
+                value={timeStart || ""}
+                onChange={(e) => setTimeStart(e.target.value)}
+              />
+
+              <input
+                type="time"
+                value={timeEnd || ""}
+                onChange={(e) => setTimeEnd(e.target.value)}
+              />
+            </div>
+          </div>
+        )}
+
+        {timeframe === "single_date" && (
+          <div className="filter-group">
+            <label>Select Date</label>
+            <input
+              type="date"
+              value={singleDate || ""}
+              onChange={(e) => setSingleDate(e.target.value)}
+            />
+          </div>
+        )}
 
         {timeframe === "custom" && (
           <>
