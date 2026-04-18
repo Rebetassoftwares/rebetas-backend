@@ -1,49 +1,50 @@
-const martingaleState = {};
+/**
+ * Martingale Service (CLEAN ARCHITECTURE)
+ * --------------------------------------
+ * - NO memory state (no martingaleState cache)
+ * - PURE FUNCTIONS ONLY
+ * - All calculations depend on passed capital
+ */
 
 function calculateBaseStake(capital, baseStakePercent) {
   const percent = Number(baseStakePercent || 0) / 100;
   return Math.round(Number(capital || 0) * percent);
 }
 
+/**
+ * Key generator (still useful for grouping/logging)
+ */
 function getTrackerKey(platform, leagueName) {
   return `${String(platform).toLowerCase()}_${String(leagueName).trim()}`;
 }
 
-function getStake(key, systemState) {
-  if (!martingaleState[key]) {
-    martingaleState[key] = calculateBaseStake(
-      systemState.capital,
-      systemState.baseStakePercent,
-    );
-  }
-
-  return martingaleState[key];
+/**
+ * Get stake directly from current capital
+ * (no internal memory tracking anymore)
+ */
+function getStake(capital, baseStakePercent) {
+  return calculateBaseStake(capital, baseStakePercent);
 }
 
-function updateStake(key, win, systemState) {
-  if (!martingaleState[key]) {
-    martingaleState[key] = calculateBaseStake(
-      systemState.capital,
-      systemState.baseStakePercent,
-    );
-  }
-
+/**
+ * Update stake based on win/loss logic
+ *
+ * IMPORTANT:
+ * - This does NOT store state anymore
+ * - It only computes NEXT stake from inputs
+ */
+function updateStake(capital, win, multiplier, baseStakePercent) {
+  // reset stake after win
   if (win) {
-    martingaleState[key] = calculateBaseStake(
-      systemState.capital,
-      systemState.baseStakePercent,
-    );
-    return martingaleState[key];
+    return calculateBaseStake(capital, baseStakePercent);
   }
 
-  const nextStake = martingaleState[key] * Number(systemState.multiplier || 1);
+  const baseStake = calculateBaseStake(capital, baseStakePercent);
+  const nextStake = baseStake * Number(multiplier || 1);
 
-  martingaleState[key] =
-    nextStake > systemState.capital
-      ? calculateBaseStake(systemState.capital, systemState.baseStakePercent)
-      : nextStake;
-
-  return martingaleState[key];
+  return nextStake > capital
+    ? calculateBaseStake(capital, baseStakePercent)
+    : nextStake;
 }
 
 module.exports = {

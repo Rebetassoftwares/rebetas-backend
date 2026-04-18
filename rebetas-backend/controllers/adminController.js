@@ -1,5 +1,9 @@
 const SystemState = require("../models/SystemState");
+const ManualLeague = require("../models/ManualLeague");
 
+/* ------------------------------
+   GET SYSTEM SETTINGS
+------------------------------*/
 async function getSettings(req, res) {
   try {
     const state = await SystemState.findOne({ key: "main" });
@@ -17,6 +21,9 @@ async function getSettings(req, res) {
   }
 }
 
+/* ------------------------------
+   UPDATE SYSTEM SETTINGS
+------------------------------*/
 async function updateSettings(req, res) {
   try {
     const { capital, baseStakePercent, multiplier, bettingSimulationActive } =
@@ -24,6 +31,7 @@ async function updateSettings(req, res) {
 
     const updates = {};
 
+    // ✅ GLOBAL CAPITAL STILL VALID (seed capital / reset reference)
     if (capital !== undefined) {
       if (typeof capital !== "number" || capital < 0) {
         return res.status(400).json({
@@ -45,7 +53,7 @@ async function updateSettings(req, res) {
     if (multiplier !== undefined) {
       if (typeof multiplier !== "number" || multiplier < 1) {
         return res.status(400).json({
-          message: "Multiplier must be a number greater than or equal to 1",
+          message: "Multiplier must be >= 1",
         });
       }
       updates.multiplier = multiplier;
@@ -54,7 +62,7 @@ async function updateSettings(req, res) {
     if (bettingSimulationActive !== undefined) {
       if (typeof bettingSimulationActive !== "boolean") {
         return res.status(400).json({
-          message: "bettingSimulationActive must be true or false",
+          message: "bettingSimulationActive must be boolean",
         });
       }
       updates.bettingSimulationActive = bettingSimulationActive;
@@ -79,6 +87,10 @@ async function updateSettings(req, res) {
   }
 }
 
+/* ------------------------------
+   RESET GLOBAL CAPITAL ONLY
+   (does NOT touch leagues)
+------------------------------*/
 async function resetCapital(req, res) {
   try {
     const { capital } = req.body;
@@ -108,8 +120,61 @@ async function resetCapital(req, res) {
   }
 }
 
+/* ------------------------------
+   GET ALL LEAGUE CAPITALS
+------------------------------*/
+async function getAllLeagueCapitals(req, res) {
+  try {
+    const leagues = await ManualLeague.find({})
+      .select("platform leagueName capital isActive")
+      .sort({ platform: 1, leagueName: 1 });
+
+    res.json(
+      leagues.map((l) => ({
+        id: l._id,
+        platform: l.platform,
+        leagueName: l.leagueName,
+        capital: l.capital || 0,
+        isActive: l.isActive,
+      })),
+    );
+  } catch (error) {
+    console.error("Fetch league capitals error:", error.message);
+    res.status(500).json({ message: "Server error" });
+  }
+}
+
+/* ------------------------------
+   RESET ALL LEAGUE CAPITALS
+------------------------------*/
+async function resetAllLeagueCapitals(req, res) {
+  try {
+    const { capital } = req.body;
+
+    if (typeof capital !== "number" || capital < 0) {
+      return res.status(400).json({
+        message: "Capital must be a valid non-negative number",
+      });
+    }
+
+    await ManualLeague.updateMany({}, { capital });
+
+    res.json({
+      message: "All league capitals reset successfully",
+      capital,
+    });
+  } catch (error) {
+    console.error("Reset all league capitals error:", error.message);
+    res.status(500).json({ message: "Server error" });
+  }
+}
+
 module.exports = {
   getSettings,
   updateSettings,
   resetCapital,
+
+  // NEW
+  getAllLeagueCapitals,
+  resetAllLeagueCapitals,
 };

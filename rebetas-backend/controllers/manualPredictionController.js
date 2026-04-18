@@ -24,15 +24,15 @@ exports.createManualPrediction = async (req, res) => {
     }
 
     if (String(homeTeam).trim() === String(awayTeam).trim()) {
-      return res
-        .status(400)
-        .json({ message: "homeTeam and awayTeam cannot be the same" });
+      return res.status(400).json({
+        message: "homeTeam and awayTeam cannot be the same",
+      });
     }
 
     if (!Number.isFinite(Number(odd)) || Number(odd) <= 0) {
-      return res
-        .status(400)
-        .json({ message: "odd must be a valid number greater than 0" });
+      return res.status(400).json({
+        message: "odd must be a valid number greater than 0",
+      });
     }
 
     const league = await ManualLeague.findById(leagueId);
@@ -62,18 +62,6 @@ exports.createManualPrediction = async (req, res) => {
       );
     }
 
-    const systemState = await SystemState.findOne({ key: "main" });
-
-    if (!systemState) {
-      return res.status(500).json({ message: "System state not initialized" });
-    }
-
-    // ✅ base stake only at creation
-    const stake = calculateBaseStake(
-      Number(systemState.initialCapital || systemState.capital || 0),
-      systemState.baseStakePercent,
-    );
-
     const matchNumber =
       Math.floor(Math.random() * Number(league.totalMatches)) + 1;
 
@@ -88,7 +76,10 @@ exports.createManualPrediction = async (req, res) => {
       homeTeam: String(homeTeam).trim(),
       awayTeam: String(awayTeam).trim(),
       odd: Number(odd),
-      stake,
+
+      // 🔥 IMPORTANT CHANGE: no early stake assignment
+      stake: 0,
+
       scheduledFor,
       cycles,
       status: "pending",
@@ -152,12 +143,21 @@ exports.updatePredictionResult = async (req, res) => {
 
     await prediction.save();
 
-    const systemState = await SystemState.findOne({ key: "main" });
+    // 🔥 IMPORTANT: recompute only this league (keep Option A system)
+    const { platform, leagueName } = prediction;
 
-    res.json({
+    await recomputeMartingale(platform, leagueName);
+
+    // 🔥 fetch updated league capital (source of truth)
+    const league = await ManualLeague.findOne({
+      platform: new RegExp(`^${platform}$`, "i"),
+      leagueName: new RegExp(`^${leagueName}$`, "i"),
+    });
+
+    return res.json({
       message: "Prediction result updated successfully",
       prediction,
-      capitalAfter: systemState?.capital || 0,
+      capitalAfter: league?.capital || 0, // ✅ correct now
       resultAmount,
       profit,
     });
@@ -169,7 +169,7 @@ exports.updatePredictionResult = async (req, res) => {
 
 exports.updatePredictionResultsBatch = async (req, res) => {
   try {
-    const updates = req.body; // [{ id, status }]
+    const updates = req.body;
 
     if (!Array.isArray(updates) || updates.length === 0) {
       return res.status(400).json({ message: "No updates provided" });
@@ -202,7 +202,7 @@ exports.updatePredictionResultsBatch = async (req, res) => {
       updatedPredictions.push(prediction);
     }
 
-    // 🔥 CRITICAL: recompute ONCE per league/platform
+    // 🔥 GROUP RECOMPUTE TARGETS
     const uniqueKeys = new Set();
 
     updatedPredictions.forEach((p) => {
@@ -210,18 +210,38 @@ exports.updatePredictionResultsBatch = async (req, res) => {
       uniqueKeys.add(key);
     });
 
+    // 🔥 RUN ALL RECOMPUTES IN PARALLEL (independent leagues)
+    await Promise.all(
+      Array.from(uniqueKeys).map(async (key) => {
+        const [platform, leagueName] = key.split("_");
+        await recomputeMartingale(platform, leagueName);
+      }),
+    );
+
+    // 🔥 RETURN PER-LEAGUE CAPITAL SNAPSHOT (SOURCE OF TRUTH)
+    const leagueSnapshots = [];
+
     for (const key of uniqueKeys) {
       const [platform, leagueName] = key.split("_");
 
-      await recomputeMartingale(platform, leagueName);
-    }
+      const league = await ManualLeague.findOne({
+        platform: new RegExp(`^${platform}$`, "i"),
+        leagueName: new RegExp(`^${leagueName}$`, "i"),
+      });
 
-    const systemState = await SystemState.findOne({ key: "main" });
+      if (league) {
+        leagueSnapshots.push({
+          platform,
+          leagueName,
+          capital: league.capital,
+        });
+      }
+    }
 
     res.json({
       message: "Batch update successful",
       updatedCount: updatedPredictions.length,
-      capitalAfter: systemState?.capital || 0,
+      leagues: leagueSnapshots, // ✅ CLEAN + SCALABLE RESPONSE
     });
   } catch (err) {
     console.error("Batch update error:", err);

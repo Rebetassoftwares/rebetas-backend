@@ -50,6 +50,11 @@ const manualLeagueSchema = new mongoose.Schema(
       min: 1,
     },
 
+    capital: {
+      type: Number,
+      default: 0,
+    },
+
     intervalMinutes: {
       type: Number,
       required: true,

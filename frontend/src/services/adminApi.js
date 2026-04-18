@@ -86,6 +86,16 @@ export const updateSettings = (data) =>
 export const resetCapital = (data) =>
   api.put("/admin/reset-capital", data, authConfig());
 
+/* ---------------- LEAGUE CAPITALS ---------------- */
+
+/* GET ALL LEAGUE CAPITALS */
+export const getLeagueCapitals = () =>
+  api.get("/admin/league-capitals", authConfig());
+
+/* RESET ALL LEAGUE CAPITALS */
+export const resetAllLeagueCapitals = (data) =>
+  api.put("/admin/league-capitals/reset", data, authConfig());
+
 /* ================================
    💸 ADMIN WITHDRAWALS
 ================================ */

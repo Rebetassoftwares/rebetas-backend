@@ -1,4 +1,5 @@
 const ManualPrediction = require("../models/ManualPrediction");
+const ManualLeague = require("../models/ManualLeague");
 const SystemState = require("../models/SystemState");
 const { calculateBaseStake } = require("./martingaleService");
 
@@ -11,41 +12,43 @@ async function recomputeMartingale(platform, leagueName) {
       return;
     }
 
-    // ✅ normalize inputs (CRITICAL)
     const normalizedPlatform = String(platform).toLowerCase();
     const normalizedLeague = String(leagueName).trim();
 
-    // 🔥 ALWAYS START FROM BASELINE
-    let capital = Number(systemState.initialCapital || 0);
+    const league = await ManualLeague.findOne({
+      platform: new RegExp(`^${normalizedPlatform}$`, "i"),
+      leagueName: new RegExp(`^${normalizedLeague}$`, "i"),
+    });
 
-    // 🔥 prevent zero capital crash
-    if (capital <= 0) {
-      capital = Number(systemState.initialCapital || 0);
+    if (!league) {
+      console.error("Martingale recompute: league not found");
+      return;
     }
+
+    // 🔥 SNAPSHOT CAPITAL (DO NOT MUTATE DB MID-RUN)
+    let capital =
+      Number(league.capital) > 0
+        ? Number(league.capital)
+        : Number(systemState.initialCapital || 0);
 
     let currentStake = calculateBaseStake(
       capital,
       systemState.baseStakePercent,
     );
 
-    // 🔥 FETCH ALL RESOLVED PREDICTIONS IN ORDER
     const predictions = await ManualPrediction.find({
-      platform: {
-        $regex: new RegExp(`^${platform}$`, "i"),
-      },
-      leagueName: {
-        $regex: new RegExp(`^${leagueName}$`, "i"),
-      },
+      platform: new RegExp(`^${normalizedPlatform}$`, "i"),
+      leagueName: new RegExp(`^${normalizedLeague}$`, "i"),
       status: { $in: ["won", "loss"] },
     }).sort({
       scheduledFor: 1,
       createdAt: 1,
     });
 
-    for (const p of predictions) {
-      // 🔥 APPLY CURRENT STAKE
-      p.stake = currentStake;
+    // 🔥 STORE CHANGES FIRST (NO PARTIAL SAVES)
+    const updates = [];
 
+    for (const p of predictions) {
       const stake = Number(currentStake || 0);
       const odd = Number(p.odd || 0);
 
@@ -63,7 +66,6 @@ async function recomputeMartingale(platform, leagueName) {
           systemState.baseStakePercent,
         );
       } else {
-        // LOSS
         resultAmount = 0;
         profit = -stake;
 
@@ -77,18 +79,35 @@ async function recomputeMartingale(platform, leagueName) {
             : nextStake;
       }
 
-      // 🔥 UPDATE RECORD
-      p.resultAmount = resultAmount;
-      p.profit = profit;
-      p.resultStatus = p.status === "won" ? "WIN" : "LOSS";
-      p.capitalAfter = capital;
-
-      await p.save();
+      updates.push({
+        _id: p._id,
+        stake,
+        resultAmount,
+        profit,
+        capitalAfter: capital,
+        resultStatus: p.status === "won" ? "WIN" : "LOSS",
+      });
     }
 
-    // 🔥 UPDATE GLOBAL CAPITAL
-    systemState.capital = capital;
-    await systemState.save();
+    // 🔥 APPLY UPDATES IN BULK (CONSISTENCY FIX)
+    for (const u of updates) {
+      await ManualPrediction.updateOne(
+        { _id: u._id },
+        {
+          $set: {
+            stake: u.stake,
+            resultAmount: u.resultAmount,
+            profit: u.profit,
+            capitalAfter: u.capitalAfter,
+            resultStatus: u.resultStatus,
+          },
+        },
+      );
+    }
+
+    // 🔥 ONLY NOW SAVE LEAGUE CAPITAL
+    league.capital = capital;
+    await league.save();
 
     return true;
   } catch (error) {
