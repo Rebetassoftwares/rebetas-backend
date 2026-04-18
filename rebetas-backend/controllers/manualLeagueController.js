@@ -312,7 +312,9 @@ exports.updateLeague = async (req, res) => {
       return res.status(404).json({ message: "League not found" });
     }
 
-    // ✅ handle multipart/form-data values coming as strings
+    // =========================
+    // 1. SANITIZE INPUT FIRST
+    // =========================
     if (typeof req.body.teams === "string") {
       req.body.teams = JSON.parse(req.body.teams);
     }
@@ -325,11 +327,13 @@ exports.updateLeague = async (req, res) => {
       req.body.oddRange = JSON.parse(req.body.oddRange);
     }
 
-    // ✅ normalize boolean from FormData
     if (typeof req.body.isActive === "string") {
       req.body.isActive = req.body.isActive === "true";
     }
 
+    // =========================
+    // 2. BUILD FINAL OBJECT
+    // =========================
     const merged = {
       platform: req.body.platform ?? existing.platform,
       platformId: req.body.platformId ?? existing.platformId,
@@ -340,33 +344,57 @@ exports.updateLeague = async (req, res) => {
       totalMatches: req.body.totalMatches ?? existing.totalMatches,
       intervalMinutes: req.body.intervalMinutes ?? existing.intervalMinutes,
       intervalSeconds: req.body.intervalSeconds ?? existing.intervalSeconds,
+
       firstPredictionTime:
         req.body.firstPredictionTime ?? existing.firstPredictionTime,
+
       teams: req.body.teams ?? existing.teams,
       oddRange: req.body.oddRange ?? existing.oddRange,
       cycleConfig: req.body.cycleConfig ?? existing.cycleConfig,
+
       isActive: req.body.isActive ?? existing.isActive,
     };
 
-    // ✅ FIXED HERE
+    // =========================
+    // 3. NORMALIZE TYPES (CRITICAL)
+    // =========================
+    merged.totalMatches = Number(merged.totalMatches);
+    merged.intervalMinutes = Number(merged.intervalMinutes);
+    merged.intervalSeconds = Number(merged.intervalSeconds || 0);
+
+    if (merged.firstPredictionTime) {
+      merged.firstPredictionTime = new Date(merged.firstPredictionTime);
+    }
+
+    // =========================
+    // 4. VALIDATE CLEAN DATA
+    // =========================
     const errors = validateLeaguePayload(merged, true);
 
     if (errors.length) {
       return res.status(400).json({ message: errors[0], errors });
     }
 
+    // =========================
+    // 5. APPLY UPDATE
+    // =========================
     existing.platform = String(merged.platform).trim();
+
     existing.platformId =
       typeof merged.platformId === "object"
         ? merged.platformId._id
         : merged.platformId;
+
     existing.leagueName = String(merged.leagueName).trim();
     existing.logo = merged.logo;
     existing.mode = merged.mode;
-    existing.totalMatches = Number(merged.totalMatches);
-    existing.intervalMinutes = Number(merged.intervalMinutes);
-    existing.intervalSeconds = Number(merged.intervalSeconds || 0);
-    existing.firstPredictionTime = new Date(merged.firstPredictionTime);
+
+    existing.totalMatches = merged.totalMatches;
+    existing.intervalMinutes = merged.intervalMinutes;
+    existing.intervalSeconds = merged.intervalSeconds;
+
+    existing.firstPredictionTime = merged.firstPredictionTime;
+
     existing.teams = sanitizeTeams(merged.teams);
     existing.isActive = Boolean(merged.isActive);
 
@@ -380,10 +408,11 @@ exports.updateLeague = async (req, res) => {
     }
 
     existing.cycleConfig = sanitizeCycleConfig(merged.cycleConfig);
+    existing.lastUpdatedAt = new Date();
 
     await existing.save();
 
-    res.json(existing);
+    return res.json(existing);
   } catch (err) {
     console.error("Update league error:", err);
 
@@ -393,6 +422,8 @@ exports.updateLeague = async (req, res) => {
       });
     }
 
-    res.status(500).json({ message: "Failed to update league" });
+    return res.status(500).json({
+      message: "Failed to update league",
+    });
   }
 };

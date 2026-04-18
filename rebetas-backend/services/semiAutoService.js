@@ -105,8 +105,20 @@ async function runSemiAuto() {
           type: "SEMI_AUTO",
         }).sort({ scheduledFor: -1 });
 
-        // 🔥 pass last cycles instead of time
-        const cycles = calculateCycles(league, lastPrediction?.cycles || null);
+        // 🔥 RESET LOGIC
+        const shouldReset =
+          !lastPrediction ||
+          (league.lastUpdatedAt &&
+            new Date(league.lastUpdatedAt) >
+              new Date(lastPrediction.createdAt));
+
+        let cycles;
+
+        if (shouldReset) {
+          cycles = calculateCycles(league, null); // behave like fresh create
+        } else {
+          cycles = calculateCycles(league, lastPrediction.cycles);
+        }
 
         await ManualPrediction.create({
           leagueId: league._id,

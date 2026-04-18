@@ -88,6 +88,11 @@ const manualLeagueSchema = new mongoose.Schema(
       },
     },
 
+    lastUpdatedAt: {
+      type: Date,
+      default: null,
+    },
+
     cycleConfig: [
       {
         name: {
