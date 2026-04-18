@@ -312,6 +312,7 @@ exports.updateLeague = async (req, res) => {
       return res.status(404).json({ message: "League not found" });
     }
 
+    // ✅ handle multipart/form-data values coming as strings
     if (typeof req.body.teams === "string") {
       req.body.teams = JSON.parse(req.body.teams);
     }
@@ -324,6 +325,7 @@ exports.updateLeague = async (req, res) => {
       req.body.oddRange = JSON.parse(req.body.oddRange);
     }
 
+    // ✅ normalize boolean from FormData
     if (typeof req.body.isActive === "string") {
       req.body.isActive = req.body.isActive === "true";
     }
@@ -346,30 +348,18 @@ exports.updateLeague = async (req, res) => {
       isActive: req.body.isActive ?? existing.isActive,
     };
 
+    // ✅ FIXED HERE
     const errors = validateLeaguePayload(merged, true);
 
     if (errors.length) {
       return res.status(400).json({ message: errors[0], errors });
     }
 
-    // ==========================================
-    // 🔥 ADD THIS FIX HERE (IMPORTANT)
-    // ==========================================
-    const now = new Date();
-
-    await ManualPrediction.deleteMany({
-      leagueId: existing._id,
-      type: "SEMI_AUTO",
-      scheduledFor: { $gte: now },
-    });
-    // ==========================================
-
     existing.platform = String(merged.platform).trim();
     existing.platformId =
       typeof merged.platformId === "object"
         ? merged.platformId._id
         : merged.platformId;
-
     existing.leagueName = String(merged.leagueName).trim();
     existing.logo = merged.logo;
     existing.mode = merged.mode;
