@@ -1,7 +1,7 @@
 const ManualLeague = require("../models/ManualLeague");
 const ManualPrediction = require("../models/ManualPrediction");
 const SystemState = require("../models/SystemState");
-const { getStake, getTrackerKey } = require("./martingaleService");
+const { getStake } = require("./martingaleService");
 const { calculateCycles } = require("../utils/cycleCalculator");
 
 function pickRandomOdd(min, max) {
@@ -63,6 +63,7 @@ async function runSemiAuto() {
 
         const elapsed = now.getTime() - firstTime.getTime();
         const slotIndex = Math.floor(elapsed / intervalMs);
+
         const scheduledFor = new Date(
           firstTime.getTime() + slotIndex * intervalMs,
         );
@@ -78,13 +79,25 @@ async function runSemiAuto() {
         }
 
         const team = pickRandomTeam(league.teams);
+
         const odd = pickRandomOdd(
           Number(league.oddRange.min),
           Number(league.oddRange.max),
         );
 
-        const trackerKey = getTrackerKey(league.platform, league.leagueName);
-        const stake = getStake(trackerKey, systemState);
+        // ✅ CORRECT STAKE LOGIC (PER-LEAGUE CAPITAL)
+        const capital = Number(league.capital);
+        const basePercent = Number(systemState.baseStakePercent);
+
+        if (!Number.isFinite(capital) || !Number.isFinite(basePercent)) {
+          console.error(
+            `Invalid stake inputs (${league.platform} - ${league.leagueName})`,
+            { capital, basePercent },
+          );
+          continue;
+        }
+
+        const stake = getStake(capital, basePercent);
 
         // 🔥 get last prediction for this league
         const lastPrediction = await ManualPrediction.findOne({
@@ -104,7 +117,7 @@ async function runSemiAuto() {
           odd,
           stake,
           scheduledFor,
-          cycles, // 🔥 add this line only
+          cycles,
           prediction: "Over 1.5",
           status: "pending",
         });
