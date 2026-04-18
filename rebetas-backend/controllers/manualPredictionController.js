@@ -24,15 +24,15 @@ exports.createManualPrediction = async (req, res) => {
     }
 
     if (String(homeTeam).trim() === String(awayTeam).trim()) {
-      return res.status(400).json({
-        message: "homeTeam and awayTeam cannot be the same",
-      });
+      return res
+        .status(400)
+        .json({ message: "homeTeam and awayTeam cannot be the same" });
     }
 
     if (!Number.isFinite(Number(odd)) || Number(odd) <= 0) {
-      return res.status(400).json({
-        message: "odd must be a valid number greater than 0",
-      });
+      return res
+        .status(400)
+        .json({ message: "odd must be a valid number greater than 0" });
     }
 
     const league = await ManualLeague.findById(leagueId);
@@ -62,6 +62,18 @@ exports.createManualPrediction = async (req, res) => {
       );
     }
 
+    const systemState = await SystemState.findOne({ key: "main" });
+
+    if (!systemState) {
+      return res.status(500).json({ message: "System state not initialized" });
+    }
+
+    // ✅ base stake only at creation
+    const stake = calculateBaseStake(
+      Number(systemState.initialCapital || systemState.capital || 0),
+      systemState.baseStakePercent,
+    );
+
     const matchNumber =
       Math.floor(Math.random() * Number(league.totalMatches)) + 1;
 
@@ -76,10 +88,7 @@ exports.createManualPrediction = async (req, res) => {
       homeTeam: String(homeTeam).trim(),
       awayTeam: String(awayTeam).trim(),
       odd: Number(odd),
-
-      // 🔥 IMPORTANT CHANGE: no early stake assignment
-      stake: 0,
-
+      stake,
       scheduledFor,
       cycles,
       status: "pending",
