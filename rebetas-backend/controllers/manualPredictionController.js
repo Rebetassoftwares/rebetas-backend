@@ -264,7 +264,7 @@ exports.getLiveManualPredictions = async (req, res) => {
 
     // 🔹 Get only active leagues (light query)
     const activeLeagues = await ManualLeague.find({ isActive: true }).select(
-      "_id",
+      "_id platform leagueName mode",
     );
 
     const activeLeagueIds = activeLeagues.map((league) => league._id);
