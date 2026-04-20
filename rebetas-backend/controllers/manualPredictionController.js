@@ -262,17 +262,22 @@ exports.getLiveManualPredictions = async (req, res) => {
   try {
     const now = new Date();
 
+    // 🔹 Get only active leagues (light query)
     const activeLeagues = await ManualLeague.find({ isActive: true }).select(
-      "_id platform leagueName mode",
+      "_id",
     );
 
     const activeLeagueIds = activeLeagues.map((league) => league._id);
 
+    // 🔥 Fetch ONLY live + pending predictions
     const predictions = await ManualPrediction.find({
       leagueId: { $in: activeLeagueIds },
       scheduledFor: { $lte: now },
       type: { $in: ["MANUAL", "SEMI_AUTO"] },
-    }).sort({ scheduledFor: -1, createdAt: -1 });
+      status: "pending", // ✅ CRITICAL FIX
+    })
+      .sort({ scheduledFor: -1, createdAt: -1 })
+      .lean(); // ✅ faster response (no mongoose overhead)
 
     res.json(predictions);
   } catch (err) {
