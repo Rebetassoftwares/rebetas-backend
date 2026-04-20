@@ -50,6 +50,12 @@ export default function PricingManagement() {
         .filter(Boolean)
         .sort((a, b) => a.name.localeCompare(b.name));
 
+      // 🔥 ADD "Others" manually
+      formatted.push({
+        name: "Others",
+        currency: "USD", // or leave blank if you prefer
+      });
+
       setCountries(formatted);
     } catch (err) {
       console.error("Country fetch failed:", err);
