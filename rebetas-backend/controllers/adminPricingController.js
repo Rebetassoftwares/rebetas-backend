@@ -6,7 +6,7 @@ ADD COUNTRY PRICING
 
 async function createCountryPricing(req, res) {
   try {
-    const {
+    let {
       country,
       currency,
       weeklyPrice,
@@ -14,6 +14,8 @@ async function createCountryPricing(req, res) {
       yearlyPrice,
       isDefault,
     } = req.body;
+
+    country = String(country).trim();
 
     if (
       !country ||
@@ -27,7 +29,10 @@ async function createCountryPricing(req, res) {
       });
     }
 
-    const existing = await CountryPricing.findOne({ country });
+    // ✅ prevent duplicate (case insensitive)
+    const existing = await CountryPricing.findOne({
+      country: new RegExp(`^${country}$`, "i"),
+    });
 
     if (existing) {
       return res.status(400).json({
@@ -35,10 +40,20 @@ async function createCountryPricing(req, res) {
       });
     }
 
-    /*
-    Only one default pricing allowed
-    */
+    // ✅ ensure ONLY ONE "Others"
+    if (country.toLowerCase() === "others") {
+      const othersExists = await CountryPricing.findOne({
+        country: new RegExp("^others$", "i"),
+      });
 
+      if (othersExists) {
+        return res.status(400).json({
+          message: '"Others" pricing already exists',
+        });
+      }
+    }
+
+    // ✅ only one default
     if (isDefault === true) {
       await CountryPricing.updateMany(
         { isDefault: true },
@@ -71,9 +86,16 @@ GET ALL PRICING
 
 async function getAllPricing(req, res) {
   try {
-    const pricing = await CountryPricing.find({}).sort({ country: 1 }).lean();
+    const pricing = await CountryPricing.find({}).lean();
 
-    res.json(pricing);
+    // ✅ sort with "Others" always last
+    const sorted = pricing.sort((a, b) => {
+      if (a.country.toLowerCase() === "others") return 1;
+      if (b.country.toLowerCase() === "others") return -1;
+      return a.country.localeCompare(b.country);
+    });
+
+    res.json(sorted);
   } catch (error) {
     console.error("Pricing list error:", error.message);
 
@@ -91,7 +113,7 @@ async function updatePricing(req, res) {
   try {
     const { id } = req.params;
 
-    const {
+    let {
       country,
       currency,
       weeklyPrice,
@@ -100,6 +122,37 @@ async function updatePricing(req, res) {
       isDefault,
     } = req.body;
 
+    if (country !== undefined) {
+      country = String(country).trim();
+
+      // ✅ prevent duplicate on update
+      const existing = await CountryPricing.findOne({
+        _id: { $ne: id },
+        country: new RegExp(`^${country}$`, "i"),
+      });
+
+      if (existing) {
+        return res.status(400).json({
+          message: "Another pricing with this country already exists",
+        });
+      }
+
+      // ✅ ensure ONLY ONE "Others"
+      if (country.toLowerCase() === "others") {
+        const othersExists = await CountryPricing.findOne({
+          _id: { $ne: id },
+          country: new RegExp("^others$", "i"),
+        });
+
+        if (othersExists) {
+          return res.status(400).json({
+            message: '"Others" pricing already exists',
+          });
+        }
+      }
+    }
+
+    // ✅ only one default
     if (isDefault === true) {
       await CountryPricing.updateMany(
         { isDefault: true },
