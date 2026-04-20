@@ -51,10 +51,17 @@ export default function PricingManagement() {
         .sort((a, b) => a.name.localeCompare(b.name));
 
       // 🔥 ADD "Others" manually
-      formatted.push({
-        name: "Others",
-        currency: "USD", // or leave blank if you prefer
-      });
+      // 🌍 ADD SPECIAL REGIONS MANUALLY
+      formatted.push(
+        {
+          name: "Europe",
+          currency: "EUR",
+        },
+        {
+          name: "Others",
+          currency: "USD",
+        },
+      );
 
       setCountries(formatted);
     } catch (err) {
