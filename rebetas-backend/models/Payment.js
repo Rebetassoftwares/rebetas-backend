@@ -47,6 +47,31 @@ const paymentSchema = new mongoose.Schema(
       required: true,
     },
 
+    originalAmount: {
+      type: Number,
+      default: 0,
+    },
+
+    discountPercent: {
+      type: Number,
+      default: 0,
+    },
+
+    extraDays: {
+      type: Number,
+      default: 0,
+    },
+
+    promoCode: {
+      type: String,
+      default: null,
+    },
+
+    commissionAmount: {
+      type: Number,
+      default: 0,
+    },
+
     status: {
       type: String,
       enum: ["pending", "success", "failed"],

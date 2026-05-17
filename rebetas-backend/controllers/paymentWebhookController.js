@@ -1,6 +1,5 @@
 const Payment = require("../models/Payment");
 const Subscription = require("../models/Subscription");
-const User = require("../models/User");
 const PromoCode = require("../models/PromoCode");
 
 const {
@@ -13,11 +12,26 @@ const {
   extractFlutterwaveWebhookData,
 } = require("../services/payments/flutterwaveService");
 
+function calculatePlanEndDate(plan, startDate) {
+  const endDate = new Date(startDate);
+
+  if (plan === "weekly") {
+    endDate.setDate(endDate.getDate() + 7);
+  }
+
+  if (plan === "monthly") {
+    endDate.setMonth(endDate.getMonth() + 1);
+  }
+
+  if (plan === "yearly") {
+    endDate.setFullYear(endDate.getFullYear() + 1);
+  }
+
+  return endDate;
+}
+
 async function handleWebhook(req, res) {
   try {
-    /*
-    PAYSTACK WEBHOOK
-    */
     if (req.headers["x-paystack-signature"]) {
       if (!verifyPaystackWebhook(req)) {
         return res.status(400).send("Invalid Paystack webhook");
@@ -37,9 +51,6 @@ async function handleWebhook(req, res) {
       return res.status(200).send("Webhook processed");
     }
 
-    /*
-    FLUTTERWAVE WEBHOOK
-    */
     if (req.headers["verif-hash"]) {
       if (!verifyFlutterwaveWebhook(req)) {
         return res.status(400).send("Invalid Flutterwave webhook");
@@ -71,9 +82,6 @@ async function activateSubscription(reference, providerTransactionId = null) {
 
   if (!payment) return;
 
-  /*
-  PREVENT DUPLICATE PROCESSING
-  */
   if (payment.status === "success") return;
 
   payment.status = "success";
@@ -86,9 +94,6 @@ async function activateSubscription(reference, providerTransactionId = null) {
 
   const now = new Date();
 
-  /*
-  CHECK FOR EXISTING ACTIVE SUBSCRIPTION
-  */
   const activeSubscription = await Subscription.findOne({
     userId: payment.userId,
     status: "active",
@@ -99,42 +104,32 @@ async function activateSubscription(reference, providerTransactionId = null) {
   let endDate;
 
   if (activeSubscription) {
-    /*
-    EXTEND CURRENT SUBSCRIPTION
-    */
     startDate = activeSubscription.endDate;
     endDate = new Date(activeSubscription.endDate);
   } else {
-    /*
-    CREATE NEW SUBSCRIPTION
-    */
     startDate = now;
     endDate = new Date(now);
   }
 
-  if (payment.plan === "weekly") endDate.setDate(endDate.getDate() + 7);
-  if (payment.plan === "monthly") endDate.setMonth(endDate.getMonth() + 1);
-  if (payment.plan === "yearly") endDate.setFullYear(endDate.getFullYear() + 1);
+  endDate = calculatePlanEndDate(payment.plan, endDate);
 
-  /*
-  PROMO COMMISSION LOGIC
-  */
-  const user = await User.findById(payment.userId);
+  if (Number(payment.extraDays || 0) > 0) {
+    endDate.setDate(endDate.getDate() + Number(payment.extraDays || 0));
+  }
 
-  let promoCode = null;
-  let commissionAmount = 0;
+  const promoCode = payment.promoCode || null;
+  let commissionAmount = Number(payment.commissionAmount || 0);
 
-  if (user?.promoCodeUsed) {
+  if (promoCode) {
     const promo = await PromoCode.findOne({
-      code: user.promoCodeUsed,
+      code: promoCode,
       active: true,
     });
 
     if (promo) {
-      promoCode = promo.code;
-      commissionAmount = (payment.amount * promo.commissionPercent) / 100;
+      promo.totalEarnedBase =
+        Number(promo.totalEarnedBase || 0) + commissionAmount;
 
-      promo.totalEarned += commissionAmount;
       await promo.save();
     }
   }

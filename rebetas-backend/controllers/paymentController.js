@@ -1,7 +1,6 @@
 const Payment = require("../models/Payment");
 const CountryPricing = require("../models/CountryPricing");
 const Subscription = require("../models/Subscription");
-const User = require("../models/User");
 const PromoCode = require("../models/PromoCode");
 
 const {
@@ -18,10 +17,44 @@ function generateReference() {
   return "REB_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
 }
 
+function getPlanPrice(pricing, plan) {
+  if (plan === "weekly") return Number(pricing.weeklyPrice || 0);
+  if (plan === "monthly") return Number(pricing.monthlyPrice || 0);
+  if (plan === "yearly") return Number(pricing.yearlyPrice || 0);
+
+  return 0;
+}
+
+function calculatePlanEndDate(plan, startDate) {
+  const endDate = new Date(startDate);
+
+  if (plan === "weekly") {
+    endDate.setDate(endDate.getDate() + 7);
+  }
+
+  if (plan === "monthly") {
+    endDate.setMonth(endDate.getMonth() + 1);
+  }
+
+  if (plan === "yearly") {
+    endDate.setFullYear(endDate.getFullYear() + 1);
+  }
+
+  return endDate;
+}
+
+function applyDiscount(amount, discountPercent) {
+  const discount = Number(discountPercent || 0);
+
+  if (discount <= 0) return Number(amount || 0);
+
+  return Number((amount - (amount * discount) / 100).toFixed(2));
+}
+
 async function initializePayment(req, res) {
   try {
     const user = req.user;
-    const { plan, country, provider } = req.body;
+    const { plan, country, provider, promoCode } = req.body;
 
     if (!["weekly", "monthly", "yearly"].includes(plan)) {
       return res.status(400).json({ message: "Invalid plan" });
@@ -37,11 +70,42 @@ async function initializePayment(req, res) {
       return res.status(404).json({ message: "Pricing not found" });
     }
 
-    let amount;
+    const originalAmount = getPlanPrice(pricing, plan);
 
-    if (plan === "weekly") amount = pricing.weeklyPrice;
-    if (plan === "monthly") amount = pricing.monthlyPrice;
-    if (plan === "yearly") amount = pricing.yearlyPrice;
+    if (!originalAmount || originalAmount <= 0) {
+      return res.status(400).json({
+        message: "Invalid pricing configuration",
+      });
+    }
+
+    let amount = originalAmount;
+    let discountPercent = 0;
+    let extraDays = 0;
+    let validPromoCode = null;
+    let commissionAmount = 0;
+
+    const normalizedPromoCode = String(promoCode || user?.promoCodeUsed || "")
+      .trim()
+      .toUpperCase();
+
+    if (normalizedPromoCode) {
+      const promo = await PromoCode.findOne({
+        code: normalizedPromoCode,
+        active: true,
+      });
+
+      if (promo) {
+        validPromoCode = promo.code;
+        discountPercent = Number(promo.discountPercent || 0);
+        extraDays = Number(promo.freeDaysByPlan?.[plan] || 0);
+
+        amount = applyDiscount(originalAmount, discountPercent);
+
+        commissionAmount = Number(
+          ((amount * Number(promo.commissionPercent || 0)) / 100).toFixed(2),
+        );
+      }
+    }
 
     const reference = generateReference();
 
@@ -53,6 +117,11 @@ async function initializePayment(req, res) {
       country,
       currency: pricing.currency,
       amount,
+      originalAmount,
+      discountPercent,
+      extraDays,
+      promoCode: validPromoCode,
+      commissionAmount,
       status: "pending",
     });
 
@@ -62,7 +131,7 @@ async function initializePayment(req, res) {
       paymentData = await initializePaystackPayment({
         email: user.email,
         amount,
-        currency: pricing.currency, // ✅ FIXED
+        currency: pricing.currency,
         reference,
       });
     }
@@ -84,6 +153,11 @@ async function initializePayment(req, res) {
 
     return res.json({
       reference,
+      amount,
+      originalAmount,
+      discountPercent,
+      extraDays,
+      promoCode: validPromoCode,
       paymentData,
     });
   } catch (error) {
@@ -150,9 +224,6 @@ async function activateSubscription(payment, providerTransactionId = null) {
 
   const now = new Date();
 
-  /*
-  CHECK FOR EXISTING ACTIVE SUBSCRIPTION
-  */
   const activeSubscription = await Subscription.findOne({
     userId: payment.userId,
     status: "active",
@@ -163,42 +234,32 @@ async function activateSubscription(payment, providerTransactionId = null) {
   let endDate;
 
   if (activeSubscription) {
-    /*
-    EXTEND CURRENT SUBSCRIPTION
-    */
     startDate = activeSubscription.endDate;
     endDate = new Date(activeSubscription.endDate);
   } else {
-    /*
-    CREATE NEW SUBSCRIPTION
-    */
     startDate = now;
     endDate = new Date(now);
   }
 
-  if (payment.plan === "weekly") endDate.setDate(endDate.getDate() + 7);
-  if (payment.plan === "monthly") endDate.setMonth(endDate.getMonth() + 1);
-  if (payment.plan === "yearly") endDate.setFullYear(endDate.getFullYear() + 1);
+  endDate = calculatePlanEndDate(payment.plan, endDate);
 
-  /*
-  PROMO COMMISSION LOGIC
-  */
-  const user = await User.findById(payment.userId);
+  if (Number(payment.extraDays || 0) > 0) {
+    endDate.setDate(endDate.getDate() + Number(payment.extraDays || 0));
+  }
 
-  let promoCode = null;
-  let commissionAmount = 0;
+  let promoCode = payment.promoCode || null;
+  let commissionAmount = Number(payment.commissionAmount || 0);
 
-  if (user?.promoCodeUsed) {
+  if (promoCode) {
     const promo = await PromoCode.findOne({
-      code: user.promoCodeUsed,
+      code: promoCode,
       active: true,
     });
 
     if (promo) {
-      promoCode = promo.code;
-      commissionAmount = (payment.amount * promo.commissionPercent) / 100;
+      promo.totalEarnedBase =
+        Number(promo.totalEarnedBase || 0) + commissionAmount;
 
-      promo.totalEarned += commissionAmount;
       await promo.save();
     }
   }
