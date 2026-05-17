@@ -364,6 +364,8 @@ async function loginUser(req, res) {
           phone: user.phone,
           country: user.country,
           role: user.role,
+          promoCodeUsed: user.promoCodeUsed,
+          trialEndsAt: user.trialEndsAt,
         },
       });
     }
@@ -539,6 +541,8 @@ async function verifyLoginOtp(req, res) {
         phone: user.phone,
         country: user.country,
         role: user.role,
+        promoCodeUsed: user.promoCodeUsed,
+        trialEndsAt: user.trialEndsAt,
       },
     });
   } catch (error) {
