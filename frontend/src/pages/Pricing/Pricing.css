@@ -50,13 +50,68 @@
 }
 
 .promo-box {
-  margin-top: 10px;
-  padding: 10px;
-  border-radius: 10px;
-  background: rgba(168, 85, 247, 0.08);
-  border: 1px solid rgba(168, 85, 247, 0.3);
-  color: #c084fc;
+  margin-top: 2px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: linear-gradient(
+    135deg,
+    rgba(34, 197, 94, 0.16),
+    rgba(168, 85, 247, 0.12)
+  );
+  border: 1px solid rgba(34, 197, 94, 0.38);
+  color: #ecfdf5;
+  font-size: 14px;
+  line-height: 1.55;
+  box-shadow: 0 10px 25px rgba(34, 197, 94, 0.08);
+}
+
+.promo-box-title {
+  font-size: 15px;
+  font-weight: 900;
+  color: #ffffff;
+  margin-bottom: 6px;
+}
+
+.promo-code-line {
+  margin-bottom: 6px;
+  color: #bbf7d0;
   font-size: 13px;
+}
+
+.promo-box p {
+  margin: 4px 0;
+}
+
+.promo-box strong {
+  color: #ffffff;
+  font-weight: 900;
+}
+
+.promo-box s {
+  color: #fca5a5;
+}
+
+.promo-muted {
+  color: #d8b4fe;
+  font-size: 13px;
+  margin-top: 6px !important;
+}
+
+.promo-price-breakdown {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.promo-save {
+  color: #86efac;
+  font-weight: 800;
+}
+
+.promo-loading {
+  color: #d8b4fe;
+  font-size: 13px;
+  margin-top: 12px;
 }
 
 .best-badge {
@@ -127,11 +182,6 @@
 
 .badge-text {
   letter-spacing: 0.3px;
-}
-
-.promo-loading {
-  color: #a855f7;
-  font-size: 13px;
 }
 
 /* =========================
