@@ -207,10 +207,6 @@ export default function Pricing() {
     return "";
   }
 
-  function getDiscountPercent() {
-    return Number(basePromo?.discountPercent || 0);
-  }
-
   function getPromoFreeDays(plan) {
     return Number(
       basePromo?.freeDaysByPlan?.[plan] || basePromo?.freeDays || 0,
@@ -220,13 +216,11 @@ export default function Pricing() {
   function renderPromoBox(plan, country) {
     if (!promoCode || !basePromo) return null;
 
-    const discountPercent = getDiscountPercent();
+    const discountPercent = Number(basePromo?.discountPercent || 0);
     const freeDays = getPromoFreeDays(plan);
-    const calculatedPromo = calculatedPromos[plan];
+    const calculatedPromo = calculatedPromos?.[plan];
 
-    const hasBenefit = discountPercent > 0 || freeDays > 0;
-
-    if (!hasBenefit) return null;
+    if (discountPercent <= 0 && freeDays <= 0) return null;
 
     return (
       <div className="promo-box">
@@ -243,11 +237,9 @@ export default function Pricing() {
           </p>
         )}
 
-        {freeDays > 0 && (
-          <p>
-            You also get <strong>{freeDays} extra days</strong> on this plan.
-          </p>
-        )}
+        <p>
+          Extra access: <strong>{freeDays} extra days</strong>
+        </p>
 
         {!country && (
           <p className="promo-muted">
@@ -256,7 +248,7 @@ export default function Pricing() {
         )}
 
         {country && loadingPromoPlan === plan && (
-          <p className="promo-muted">Calculating your discount...</p>
+          <p className="promo-muted">Calculating your discounted price...</p>
         )}
 
         {country && calculatedPromo?.originalPrice && (
@@ -279,8 +271,10 @@ export default function Pricing() {
 
             <p className="promo-save">
               You save {calculatedPromo.currency}
-              {(
-                calculatedPromo.originalPrice - calculatedPromo.discountedPrice
+              {Number(
+                calculatedPromo.savings ||
+                  calculatedPromo.originalPrice -
+                    calculatedPromo.discountedPrice,
               ).toFixed(2)}
             </p>
           </div>
@@ -448,7 +442,6 @@ export default function Pricing() {
             <div className="pricing-card highlight">
               <h3>Monthly Plan</h3>
               <div className="top-ribbon">BEST VALUE</div>
-
               <div className="best-badge">
                 <span className="badge-icon">🔥</span>
                 <span className="badge-text">MOST POPULAR</span>
