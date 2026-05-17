@@ -213,12 +213,44 @@ export default function Pricing() {
     );
   }
 
+  function renderPlanPrice(plan, country) {
+    if (!country) return null;
+
+    const normalPrice = getPrice(country, plan);
+    const calculatedPromo = calculatedPromos?.[plan];
+
+    if (calculatedPromo?.originalPrice && calculatedPromo?.discountedPrice) {
+      return (
+        <div className="price promo-price-main">
+          <span className="old-price">
+            {calculatedPromo.currency}
+            {calculatedPromo.originalPrice}
+          </span>
+
+          <span className="new-price">
+            {calculatedPromo.currency}
+            {calculatedPromo.discountedPrice}
+          </span>
+
+          <span className="main-save-text">
+            You save {calculatedPromo.currency}
+            {Number(
+              calculatedPromo.savings ||
+                calculatedPromo.originalPrice - calculatedPromo.discountedPrice,
+            ).toFixed(2)}
+          </span>
+        </div>
+      );
+    }
+
+    return <div className="price">{normalPrice}</div>;
+  }
+
   function renderPromoBox(plan, country) {
     if (!promoCode || !basePromo) return null;
 
     const discountPercent = Number(basePromo?.discountPercent || 0);
     const freeDays = getPromoFreeDays(plan);
-    const calculatedPromo = calculatedPromos?.[plan];
 
     if (discountPercent <= 0 && freeDays <= 0) return null;
 
@@ -249,35 +281,6 @@ export default function Pricing() {
 
         {country && loadingPromoPlan === plan && (
           <p className="promo-muted">Calculating your discounted price...</p>
-        )}
-
-        {country && calculatedPromo?.originalPrice && (
-          <div className="promo-price-breakdown">
-            <p>
-              Normal price:{" "}
-              <s>
-                {calculatedPromo.currency}
-                {calculatedPromo.originalPrice}
-              </s>
-            </p>
-
-            <p>
-              Your price:{" "}
-              <strong>
-                {calculatedPromo.currency}
-                {calculatedPromo.discountedPrice}
-              </strong>
-            </p>
-
-            <p className="promo-save">
-              You save {calculatedPromo.currency}
-              {Number(
-                calculatedPromo.savings ||
-                  calculatedPromo.originalPrice -
-                    calculatedPromo.discountedPrice,
-              ).toFixed(2)}
-            </p>
-          </div>
         )}
       </div>
     );
@@ -418,9 +421,7 @@ export default function Pricing() {
                 disabled={loadingPricing}
               />
 
-              <div className="price">
-                {weeklyPlan && getPrice(weeklyPlan, "weekly")}
-              </div>
+              {renderPlanPrice("weekly", weeklyPlan)}
 
               <ul className="features">
                 {FEATURES.map((f, i) => (
@@ -459,9 +460,7 @@ export default function Pricing() {
                 disabled={loadingPricing}
               />
 
-              <div className="price">
-                {monthlyPlan && getPrice(monthlyPlan, "monthly")}
-              </div>
+              {renderPlanPrice("monthly", monthlyPlan)}
 
               <ul className="features">
                 {FEATURES.map((f, i) => (
@@ -495,9 +494,7 @@ export default function Pricing() {
                 disabled={loadingPricing}
               />
 
-              <div className="price">
-                {yearlyPlan && getPrice(yearlyPlan, "yearly")}
-              </div>
+              {renderPlanPrice("yearly", yearlyPlan)}
 
               <ul className="features">
                 {FEATURES.map((f, i) => (
