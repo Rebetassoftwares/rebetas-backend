@@ -455,16 +455,32 @@ export default function Register() {
 
               {promoPreview && promoPreview.valid && (
                 <div className="promo-preview success">
-                  🎉 {promoPreview.discountPercent}% discount
-                  {(promoPreview.freeDaysByPlan?.weekly > 0 ||
-                    promoPreview.freeDaysByPlan?.monthly > 0 ||
-                    promoPreview.freeDaysByPlan?.yearly > 0) && (
-                    <div style={{ marginTop: "5px", fontSize: "13px" }}>
-                      + {promoPreview.freeDaysByPlan.weekly || 0}d (Weekly) /{" "}
-                      {promoPreview.freeDaysByPlan.monthly || 0}d (Monthly) /{" "}
-                      {promoPreview.freeDaysByPlan.yearly || 0}d (Yearly)
+                  <div className="promo-title">🎉 Promo code applied!</div>
+
+                  {promoPreview.discountPercent > 0 && (
+                    <div className="promo-line">
+                      You get{" "}
+                      <strong>{promoPreview.discountPercent}% discount</strong>{" "}
+                      on your subscription.
                     </div>
                   )}
+
+                  <div className="promo-line">Extra access days:</div>
+
+                  <div className="promo-days">
+                    <span>
+                      Weekly: {promoPreview.freeDaysByPlan?.weekly || 0} extra
+                      days
+                    </span>
+                    <span>
+                      Monthly: {promoPreview.freeDaysByPlan?.monthly || 0} extra
+                      days
+                    </span>
+                    <span>
+                      Yearly: {promoPreview.freeDaysByPlan?.yearly || 0} extra
+                      days
+                    </span>
+                  </div>
                 </div>
               )}
 
