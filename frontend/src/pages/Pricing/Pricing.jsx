@@ -100,7 +100,9 @@ export default function Pricing() {
   const [loadingPromoPlan, setLoadingPromoPlan] = useState("");
 
   const user = JSON.parse(localStorage.getItem("rebetas_user") || "{}");
-  const promoCode = user?.promoCodeUsed || user?.promoCode || "";
+
+  const promoCode =
+    user?.promoCodeUsed || user?.promoCode || user?.activePromoCode || "";
 
   const FEATURES = [
     "Over 1.5 Goals Predictions",
@@ -109,8 +111,6 @@ export default function Pricing() {
     "Fast Prediction Delivery",
     "No Ads Experience",
   ];
-
-  /* ---------------- LOAD PRICING ---------------- */
 
   useEffect(() => {
     let isMounted = true;
@@ -150,8 +150,6 @@ export default function Pricing() {
     };
   }, []);
 
-  /* ---------------- LOAD USER PROMO BEFORE COUNTRY ---------------- */
-
   useEffect(() => {
     let isMounted = true;
 
@@ -190,8 +188,6 @@ export default function Pricing() {
     };
   }, [promoCode]);
 
-  /* ---------------- HELPERS ---------------- */
-
   const countries = useMemo(() => {
     return pricing.map((item) => item.country);
   }, [pricing]);
@@ -200,45 +196,34 @@ export default function Pricing() {
     return pricing.find((item) => item.country === country) || null;
   }
 
-  function getRawPrice(country, type) {
-    const data = getPricingByCountry(country);
-    if (!data) return null;
-
-    if (type === "weekly") return data.weeklyPrice;
-    if (type === "monthly") return data.monthlyPrice;
-    if (type === "yearly") return data.yearlyPrice;
-
-    return null;
-  }
-
-  function getCurrency(country) {
-    return getPricingByCountry(country)?.currency || "";
-  }
-
   function getPrice(country, type) {
-    const price = getRawPrice(country, type);
-    const currency = getCurrency(country);
+    const data = getPricingByCountry(country);
+    if (!data) return "";
 
-    if (!price) return "";
-    return `${currency}${price}`;
+    if (type === "weekly") return `${data.currency}${data.weeklyPrice}`;
+    if (type === "monthly") return `${data.currency}${data.monthlyPrice}`;
+    if (type === "yearly") return `${data.currency}${data.yearlyPrice}`;
+
+    return "";
+  }
+
+  function getDiscountPercent() {
+    return Number(basePromo?.discountPercent || 0);
   }
 
   function getPromoFreeDays(plan) {
-    if (!basePromo?.valid) return 0;
-
-    return basePromo?.freeDaysByPlan?.[plan] || basePromo?.freeDays || 0;
-  }
-
-  function getPlanPromo(plan) {
-    return calculatedPromos?.[plan] || null;
+    return Number(
+      basePromo?.freeDaysByPlan?.[plan] || basePromo?.freeDays || 0,
+    );
   }
 
   function renderPromoBox(plan, country) {
-    if (!promoCode || !basePromo?.valid) return null;
+    if (!promoCode || !basePromo) return null;
 
-    const calculatedPromo = getPlanPromo(plan);
+    const discountPercent = getDiscountPercent();
     const freeDays = getPromoFreeDays(plan);
-    const discountPercent = basePromo.discountPercent || 0;
+    const calculatedPromo = calculatedPromos[plan];
+
     const hasBenefit = discountPercent > 0 || freeDays > 0;
 
     if (!hasBenefit) return null;
@@ -266,7 +251,7 @@ export default function Pricing() {
 
         {!country && (
           <p className="promo-muted">
-            Select your country to see the discounted price.
+            Select your country to see your discounted price.
           </p>
         )}
 
@@ -304,8 +289,6 @@ export default function Pricing() {
     );
   }
 
-  /* ---------------- PROMO CALCULATION AFTER COUNTRY ---------------- */
-
   async function fetchPromo(plan, country) {
     setPromoError("");
 
@@ -338,8 +321,6 @@ export default function Pricing() {
       setLoadingPromoPlan("");
     }
   }
-
-  /* ---------------- PAYMENT ---------------- */
 
   function subscribe(planType, country) {
     if (!country) {
@@ -428,7 +409,6 @@ export default function Pricing() {
           )}
 
           <div className="pricing-grid">
-            {/* WEEKLY */}
             <div className="pricing-card">
               <h3>Weekly Plan</h3>
 
@@ -465,10 +445,10 @@ export default function Pricing() {
               </button>
             </div>
 
-            {/* MONTHLY */}
             <div className="pricing-card highlight">
               <h3>Monthly Plan</h3>
               <div className="top-ribbon">BEST VALUE</div>
+
               <div className="best-badge">
                 <span className="badge-icon">🔥</span>
                 <span className="badge-text">MOST POPULAR</span>
@@ -507,7 +487,6 @@ export default function Pricing() {
               </button>
             </div>
 
-            {/* YEARLY */}
             <div className="pricing-card">
               <h3>Yearly Plan</h3>
 
