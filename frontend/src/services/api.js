@@ -27,6 +27,7 @@ async function request(endpoint, options = {}) {
   let data = null;
 
   const contentType = response.headers.get("content-type") || "";
+
   if (contentType.includes("application/json")) {
     data = await response.json();
   } else {
@@ -40,13 +41,20 @@ async function request(endpoint, options = {}) {
       endpoint,
     });
 
-    // 🔥 HANDLE INVALID SESSION
-    if (response.status === 401) {
+    // 🔥 HANDLE EXPIRED SESSION
+    // BUT allow auth pages to receive backend errors normally
+    if (
+      response.status === 401 &&
+      endpoint !== "/user/login" &&
+      endpoint !== "/user/verify-login-otp" &&
+      endpoint !== "/user/resend-login-otp"
+    ) {
       localStorage.removeItem("rebetas_token");
       localStorage.removeItem("rebetas_user");
 
       window.location.href = "/login";
-      return;
+
+      throw new Error("Session expired. Please login again.");
     }
 
     throw new Error(
@@ -59,7 +67,10 @@ async function request(endpoint, options = {}) {
 
 const api = {
   get(endpoint, options = {}) {
-    return request(endpoint, { method: "GET", ...options });
+    return request(endpoint, {
+      method: "GET",
+      ...options,
+    });
   },
 
   post(endpoint, body) {
@@ -84,7 +95,9 @@ const api = {
   },
 
   delete(endpoint) {
-    return request(endpoint, { method: "DELETE" });
+    return request(endpoint, {
+      method: "DELETE",
+    });
   },
 };
 
