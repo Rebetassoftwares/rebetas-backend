@@ -3,7 +3,6 @@
   top: 0;
   z-index: 100;
   width: 100%;
-  position: sticky;
 
   background: rgba(15, 4, 30, 0.8);
   backdrop-filter: blur(14px);
@@ -26,8 +25,6 @@
   gap: 20px;
 }
 
-/* LOGO */
-
 .dashboard-logo {
   flex-shrink: 0;
 }
@@ -39,8 +36,6 @@
   color: #ffffff;
   white-space: nowrap;
 }
-
-/* LINKS */
 
 .dashboard-nav-links {
   display: flex;
@@ -61,8 +56,6 @@
   color: #ffffff;
 }
 
-/* USER ACTIONS */
-
 .dashboard-user-actions {
   display: flex;
   align-items: center;
@@ -70,10 +63,58 @@
   flex-shrink: 0;
 }
 
+.notification-link {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.075);
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  transition: all 0.2s ease;
+}
+
+.notification-link:hover {
+  background: rgba(160, 32, 240, 0.22);
+  border-color: rgba(193, 77, 255, 0.55);
+  box-shadow: 0 0 18px rgba(160, 32, 240, 0.25);
+}
+
+.notification-icon {
+  font-size: 17px;
+  line-height: 1;
+}
+
+.notification-badge {
+  position: absolute;
+  top: -6px;
+  right: -7px;
+  min-width: 19px;
+  height: 19px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #a020f0, #c14dff);
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 18px rgba(160, 32, 240, 0.42);
+}
+
 .dashboard-account {
   color: #ebe7ff;
   text-decoration: none;
   font-weight: 500;
+}
+
+.dashboard-account:hover {
+  color: #ffffff;
 }
 
 .dashboard-logout {
@@ -90,8 +131,6 @@
 .dashboard-logout:hover {
   background: #8b1ed6;
 }
-
-/* MOBILE MENU BUTTON */
 
 .menu-toggle {
   display: none;
@@ -110,13 +149,9 @@
   display: block;
 }
 
-/* MOBILE MENU PANEL */
-
 .mobile-menu {
   display: none;
 }
-
-/* MOBILE */
 
 @media (max-width: 900px) {
   .dashboard-navbar-inner {
@@ -163,7 +198,7 @@
   }
 
   .mobile-menu.open {
-    max-height: 420px;
+    max-height: 500px;
     opacity: 1;
     pointer-events: auto;
     padding: 20px;

@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { isLoggedIn, getStoredUser } from "./utils/auth";
+import MaintenanceScreen from "./components/MaintenanceScreen";
 
 /* PUBLIC */
 import Landing from "./pages/Landing/Landing";
@@ -14,6 +15,8 @@ import VerifyEmail from "./pages/VerifyEmail/VerifyEmail";
 import Terms from "./pages/Register/Terms";
 import Privacy from "./pages/Register/Privacy";
 import PaymentVerify from "./pages/PaymentVerify/PaymentVerify";
+import Notifications from "./pages/Notifications/Notifications";
+import AutoPilotPaymentVerify from "./pages/AutoPilotPaymentVerify/AutoPilotPaymentVerify";
 
 /* USER */
 import Dashboard from "./pages/Dashboard/Dashboard";
@@ -21,6 +24,8 @@ import Predictions from "./pages/Predictions/Predictions";
 import Account from "./pages/Account/Account";
 import PromoDashboard from "./pages/PromoDashboard";
 import PayoutDetails from "./pages/PayoutDetails";
+import Investments from "./pages/Investments/Investments";
+import InvestmentDashboard from "./pages/Investments/InvestmentDashboard";
 
 /* ADMIN */
 import AdminLayout from "./layouts/admin/AdminLayout";
@@ -66,6 +71,11 @@ function AdminRoute({ children }) {
 /* ---------------- APP ---------------- */
 
 function App() {
+  const maintenanceMode = true;
+
+  if (maintenanceMode) {
+    return <MaintenanceScreen />;
+  }
   return (
     <BrowserRouter>
       <Routes>
@@ -97,6 +107,24 @@ function App() {
         />
 
         <Route
+          path="/investments"
+          element={
+            <ProtectedRoute>
+              <Investments />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/investment-dashboard"
+          element={
+            <ProtectedRoute>
+              <InvestmentDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
           path="/dashboard"
           element={
             <ProtectedRoute>
@@ -112,6 +140,13 @@ function App() {
               <Predictions />
             </ProtectedRoute>
           }
+        />
+
+        <Route path="/notifications" element={<Notifications />} />
+
+        <Route
+          path="/autopilot/payment/verify"
+          element={<AutoPilotPaymentVerify />}
         />
 
         {/* -------- ADMIN -------- */}

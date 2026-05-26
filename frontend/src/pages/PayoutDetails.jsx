@@ -18,18 +18,23 @@ export default function PayoutDetails() {
   const [verifying, setVerifying] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const userCountry = "NG";
 
-  /* ================= LOAD DATA ================= */
   useEffect(() => {
     async function load() {
       try {
         setLoading(true);
 
-        // GET BANKS
-        const bankRes = await api.get("/payout-details/banks?country=NG");
-        setBanks(bankRes || []);
+        const bankRes = await api.get(
+          `/payout-details/banks?country=${userCountry}`,
+        );
 
-        // GET USER DETAILS
+        const sortedBanks = (bankRes || []).sort((a, b) =>
+          a.name.localeCompare(b.name),
+        );
+
+        setBanks(sortedBanks);
+
         const payoutRes = await api.get("/payout-details/my");
 
         if (payoutRes) {
@@ -42,7 +47,7 @@ export default function PayoutDetails() {
         }
       } catch (err) {
         console.error(err);
-        setError("Failed to load data");
+        setError("Failed to load payment details");
       } finally {
         setLoading(false);
       }
@@ -51,13 +56,13 @@ export default function PayoutDetails() {
     load();
   }, []);
 
-  /* ================= VERIFY ================= */
   async function verifyAccount(accountNumber, bankCode) {
     if (accountNumber.length !== 10 || !bankCode) return;
 
     try {
       setVerifying(true);
       setError("");
+      setSuccess("");
 
       const res = await api.post("/payout-details/verify-account", {
         accountNumber,
@@ -70,30 +75,34 @@ export default function PayoutDetails() {
       }));
     } catch (err) {
       console.error(err);
-      setError("Invalid account details");
+      setError(
+        "Invalid account details. Please confirm your bank and account number.",
+      );
+      setForm((prev) => ({
+        ...prev,
+        accountName: "",
+      }));
     } finally {
       setVerifying(false);
     }
   }
 
-  /* ================= FORM ================= */
   function handleChange(e) {
     const { name, value } = e.target;
 
+    const cleanValue =
+      name === "accountNumber" ? value.replace(/\D/g, "").slice(0, 10) : value;
+
     setForm((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: cleanValue,
     }));
 
-    if (name === "accountNumber" || name === "bankCode") {
-      verifyAccount(
-        name === "accountNumber" ? value : form.accountNumber,
-        name === "bankCode" ? value : form.bankCode,
-      );
+    if (name === "accountNumber") {
+      verifyAccount(cleanValue, form.bankCode);
     }
   }
 
-  /* ================= BANK SELECT ================= */
   function handleBankChange(e) {
     const code = e.target.value;
     const bank = banks.find((b) => b.code === code);
@@ -102,78 +111,155 @@ export default function PayoutDetails() {
       ...prev,
       bankCode: code,
       bankName: bank?.name || "",
-      accountName: "", // reset
+      accountName: "",
     }));
+
     verifyAccount(form.accountNumber, code);
   }
 
-  /* ================= SAVE ================= */
   async function handleSubmit(e) {
     e.preventDefault();
+
+    if (!form.bankCode || !form.accountNumber || !form.accountName) {
+      setError("Please select your bank and verify your account number.");
+      return;
+    }
 
     try {
       setSaving(true);
       setError("");
+      setSuccess("");
 
       await api.post("/payout-details/my", form);
 
-      setSuccess("Payment details saved successfully");
+      setSuccess("Payout details saved successfully.");
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "Failed to save payout details");
     } finally {
       setSaving(false);
     }
   }
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) {
+    return (
+      <div className="payout-details-page">
+        <DashboardNavbar />
+        <div className="payout-details-container">
+          <div className="payout-loading-card">Loading payout details...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="payout-details-page">
       <DashboardNavbar />
 
-      <div className="container payout-details-container">
-        <h1>Payment Details</h1>
+      <main className="payout-details-container">
+        <section className="payout-hero">
+          <span>Rebetas Payout Account</span>
+          <h1>Manage your withdrawal account</h1>
+          <p>
+            Add or update the bank account where your AutoPilot and promo
+            withdrawals will be paid.
+          </p>
+        </section>
 
-        <div className="payout-details-card">
-          <form onSubmit={handleSubmit} className="payout-details-form">
-            {/* BANK SELECT */}
-            <select value={form.bankCode} onChange={handleBankChange} required>
-              <option value="">Select Bank</option>
-              {banks.map((b) => (
-                <option key={b.id} value={b.code}>
-                  {b.name}
-                </option>
-              ))}
-            </select>
+        <section className="payout-layout">
+          <div className="payout-details-card">
+            <div className="payout-card-header">
+              <div>
+                <span>Bank Information</span>
+                <h2>Payout Details</h2>
+              </div>
 
-            {/* ACCOUNT NUMBER */}
-            <input
-              name="accountNumber"
-              placeholder="Account Number"
-              value={form.accountNumber}
-              onChange={handleChange}
-              required
-            />
+              <div
+                className={form.accountName ? "verified-pill" : "pending-pill"}
+              >
+                {form.accountName ? "Verified" : "Not Verified"}
+              </div>
+            </div>
 
-            {/* ACCOUNT NAME (AUTO) */}
-            <input
-              name="accountName"
-              placeholder="Account Name"
-              value={form.accountName}
-              readOnly
-            />
+            <form onSubmit={handleSubmit} className="payout-details-form">
+              <div className="form-group">
+                <label>Bank</label>
+                <select
+                  value={form.bankCode}
+                  onChange={handleBankChange}
+                  required
+                >
+                  <option value="">Select your bank</option>
+                  {banks.map((bank) => (
+                    <option key={bank.id || bank.code} value={bank.code}>
+                      {bank.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-            <button type="submit" disabled={saving || verifying}>
-              {saving ? "Saving..." : "Save Details"}
-            </button>
+              <div className="form-group">
+                <label>Account Number</label>
+                <input
+                  name="accountNumber"
+                  placeholder="Enter 10-digit account number"
+                  value={form.accountNumber}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
 
-            {verifying && <p>Verifying account...</p>}
-          </form>
+              <div className="form-group">
+                <label>Account Name</label>
+                <input
+                  name="accountName"
+                  placeholder={
+                    verifying
+                      ? "Verifying account..."
+                      : "Account name appears here"
+                  }
+                  value={form.accountName}
+                  readOnly
+                />
+              </div>
 
-          {error && <p className="payout-error">{error}</p>}
-          {success && <p className="payout-success">{success}</p>}
-        </div>
-      </div>
+              {verifying && (
+                <p className="payout-info">Verifying account details...</p>
+              )}
+
+              {error && <p className="payout-error">{error}</p>}
+              {success && <p className="payout-success">{success}</p>}
+
+              <button type="submit" disabled={saving || verifying}>
+                {saving ? "Saving..." : "Save Payout Details"}
+              </button>
+            </form>
+          </div>
+
+          <aside className="payout-preview-card">
+            <span>Account Preview</span>
+
+            <div className="preview-bank-card">
+              <small>Withdrawal Account</small>
+              <h3>{form.accountName || "Not verified yet"}</h3>
+
+              <div className="preview-row">
+                <p>Bank</p>
+                <strong>{form.bankName || "-"}</strong>
+              </div>
+
+              <div className="preview-row">
+                <p>Account Number</p>
+                <strong>{form.accountNumber || "-"}</strong>
+              </div>
+            </div>
+
+            <p className="preview-note">
+              This account will be shown for confirmation anytime you request a
+              withdrawal from your dashboard.
+            </p>
+          </aside>
+        </section>
+      </main>
 
       <Footer />
     </div>

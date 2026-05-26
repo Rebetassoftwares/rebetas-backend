@@ -15,10 +15,10 @@ export default function Account() {
     subscription: null,
   });
 
-  // ✅ NEW STATE
   const [hasPromo, setHasPromo] = useState(false);
 
-  /* ---------------- LOAD DATA ---------------- */
+  // temporary until backend investment status endpoint is ready
+  const hasInvestment = true;
 
   useEffect(() => {
     async function loadData() {
@@ -27,7 +27,6 @@ export default function Account() {
 
         setSubscriptionData(subRes);
 
-        // 🔥 CHECK PROMO
         try {
           await api.get("/promo/my");
           setHasPromo(true);
@@ -55,6 +54,7 @@ export default function Account() {
   const expiryDate = subscription?.endDate
     ? new Date(subscription.endDate)
     : null;
+
   const today = new Date();
 
   const daysRemaining = expiryDate
@@ -78,7 +78,6 @@ export default function Account() {
           )}
         </div>
 
-        {/* PROFILE */}
         <div className="account-card">
           <h3>Profile</h3>
 
@@ -110,7 +109,6 @@ export default function Account() {
           </div>
         </div>
 
-        {/* SUBSCRIPTION */}
         <div className="account-card">
           <h3>Subscription</h3>
 
@@ -151,7 +149,24 @@ export default function Account() {
           </div>
         </div>
 
-        {/* ✅ PROMO SECTION (NEW) */}
+        <div className="account-card">
+          <h3>Rebetas AutoPilot</h3>
+
+          <p>
+            Let Rebetas handle the daily activity while you monitor your
+            capital, profit balance, withdrawals, and compounding.
+          </p>
+
+          <button
+            className="promo-btn"
+            onClick={() =>
+              navigate(hasInvestment ? "/investment-dashboard" : "/investments")
+            }
+          >
+            {hasInvestment ? "Open AutoPilot Dashboard" : "Start AutoPilot"}
+          </button>
+        </div>
+
         {hasPromo && (
           <div className="account-card">
             <h3>Promo Program</h3>
@@ -167,7 +182,6 @@ export default function Account() {
           </div>
         )}
 
-        {/* SUPPORT */}
         <div className="account-card">
           <h3>Contact Support</h3>
 

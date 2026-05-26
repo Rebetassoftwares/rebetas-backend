@@ -1,31 +1,37 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "./DashboardNavbar.css";
 import api from "../../services/api";
 
 export default function DashboardNavbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const navigate = useNavigate();
 
   function closeMenu() {
     setMenuOpen(false);
   }
 
+  useEffect(() => {
+    async function loadUnreadCount() {
+      try {
+        const res = await api.get("/notifications/unread-count");
+        setUnreadCount(res?.data?.unreadCount || 0);
+      } catch (error) {
+        console.error("Notification count error:", error);
+        setUnreadCount(0);
+      }
+    }
+
+    loadUnreadCount();
+  }, []);
+
   async function handleLogout() {
     try {
-      const token = localStorage.getItem("rebetas_token");
-
-      await api.post(
-        "/user/logout",
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
+      await api.post("/user/logout", {});
 
       localStorage.removeItem("rebetas_token");
+      localStorage.removeItem("rebetas_user");
       localStorage.removeItem("user");
 
       closeMenu();
@@ -34,6 +40,7 @@ export default function DashboardNavbar() {
       console.error("Logout failed:", err);
 
       localStorage.removeItem("rebetas_token");
+      localStorage.removeItem("rebetas_user");
       localStorage.removeItem("user");
 
       closeMenu();
@@ -69,7 +76,6 @@ export default function DashboardNavbar() {
           <span></span>
         </div>
 
-        {/* DESKTOP NAV */}
         <nav className="dashboard-nav-links">
           <Link to="/dashboard">Dashboard</Link>
           <Link to="/tutorials">Tutorials</Link>
@@ -77,6 +83,15 @@ export default function DashboardNavbar() {
         </nav>
 
         <div className="dashboard-user-actions">
+          <Link to="/notifications" className="notification-link">
+            <span className="notification-icon">🔔</span>
+            {unreadCount > 0 && (
+              <span className="notification-badge">
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            )}
+          </Link>
+
           <Link to="/account" className="dashboard-account">
             Account
           </Link>
@@ -87,7 +102,6 @@ export default function DashboardNavbar() {
         </div>
       </div>
 
-      {/* MOBILE MENU */}
       <div className={`mobile-menu ${menuOpen ? "open" : ""}`}>
         <Link to="/dashboard" onClick={closeMenu}>
           Dashboard
@@ -99,6 +113,10 @@ export default function DashboardNavbar() {
 
         <Link to="/supported-platforms" onClick={closeMenu}>
           Platforms
+        </Link>
+
+        <Link to="/notifications" onClick={closeMenu}>
+          Notifications {unreadCount > 0 ? `(${unreadCount})` : ""}
         </Link>
 
         <div className="mobile-actions">
