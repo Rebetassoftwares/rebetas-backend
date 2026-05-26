@@ -1,0 +1,241 @@
+.autopilot-accounts-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  color: #ffffff;
+}
+
+.autopilot-accounts-page h2,
+.autopilot-accounts-page h3,
+.autopilot-accounts-page p,
+.autopilot-accounts-page span,
+.autopilot-accounts-page label,
+.autopilot-accounts-page strong {
+  color: #ffffff !important;
+}
+
+/* HEADER */
+
+.autopilot-accounts-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+
+  padding: 24px;
+  border-radius: 20px;
+
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+
+  backdrop-filter: blur(20px);
+}
+
+.autopilot-accounts-header h2 {
+  margin: 0;
+  font-size: 26px;
+}
+
+.autopilot-accounts-header p {
+  margin: 8px 0 0;
+  opacity: 0.75;
+}
+
+.autopilot-accounts-header button {
+  padding: 12px 20px;
+  border-radius: 12px;
+  border: none;
+
+  background: linear-gradient(135deg, #a020f0, #7b2cff);
+
+  color: #ffffff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* FILTER */
+
+.accounts-filter-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  padding: 18px;
+  border-radius: 16px;
+
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.accounts-filter-card label {
+  font-weight: 700;
+}
+
+.accounts-filter-card select {
+  min-width: 220px;
+
+  padding: 12px;
+  border-radius: 12px;
+
+  border: 1px solid rgba(255, 255, 255, 0.25);
+
+  background: rgba(255, 255, 255, 0.13);
+
+  color: #ffffff;
+  outline: none;
+}
+
+.accounts-filter-card select option {
+  color: #111111;
+}
+
+/* TABLE */
+
+.accounts-table-card {
+  padding: 20px;
+  border-radius: 20px;
+
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+
+  backdrop-filter: blur(20px);
+}
+
+.accounts-table-wrapper {
+  overflow-x: auto;
+}
+
+.accounts-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 1000px;
+}
+
+.accounts-table th {
+  text-align: left;
+  padding: 14px;
+
+  color: rgba(255, 255, 255, 0.7);
+
+  font-size: 13px;
+  font-weight: 700;
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.accounts-table td {
+  padding: 16px 14px;
+
+  color: #ffffff;
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+
+  vertical-align: top;
+}
+
+.accounts-table tr:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.user-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.user-cell span {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+/* STATUS */
+
+.account-status {
+  display: inline-flex;
+
+  padding: 6px 10px;
+  border-radius: 999px;
+
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: capitalize;
+}
+
+.account-status.active {
+  background: rgba(40, 167, 69, 0.22);
+  border: 1px solid rgba(40, 167, 69, 0.5);
+}
+
+.account-status.suspended {
+  background: rgba(255, 193, 7, 0.18);
+  border: 1px solid rgba(255, 193, 7, 0.5);
+}
+
+.account-status.closed {
+  background: rgba(220, 53, 69, 0.2);
+  border: 1px solid rgba(220, 53, 69, 0.5);
+}
+
+/* ACTIONS */
+
+.account-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.account-actions a,
+.account-actions button {
+  padding: 8px 10px;
+  border-radius: 9px;
+  border: none;
+
+  background: #a020f0;
+
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 800;
+
+  cursor: pointer;
+}
+
+.account-actions button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.account-actions .danger-btn {
+  background: #ff4d6d;
+}
+
+/* STATES */
+
+.accounts-loading,
+.autopilot-accounts-error {
+  padding: 18px;
+  border-radius: 14px;
+
+  background: rgba(255, 255, 255, 0.07);
+
+  color: #ffffff;
+}
+
+.autopilot-accounts-error {
+  border: 1px solid rgba(220, 53, 69, 0.5);
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 700px) {
+  .autopilot-accounts-header,
+  .accounts-filter-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .autopilot-accounts-header button,
+  .accounts-filter-card select {
+    width: 100%;
+  }
+}

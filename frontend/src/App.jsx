@@ -1,6 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { isLoggedIn, getStoredUser } from "./utils/auth";
-import MaintenanceScreen from "./components/MaintenanceScreen";
 
 /* PUBLIC */
 import Landing from "./pages/Landing/Landing";
@@ -40,6 +39,16 @@ import PromoDetails from "./pages/admin/PromoDetails/PromoDetails";
 import Withdrawals from "./pages/admin/Withdrawals";
 import UserDetail from "./pages/admin/UserDetail/UserDetail";
 import WithdrawalSettings from "./pages/admin/WithdrawalSettings";
+import AdminAutoPilotDashboard from "./pages/admin/AutoPilot/AdminAutoPilotDashboard";
+import AdminAutoPilotPackages from "./pages/admin/AutoPilot/AdminAutoPilotPackages";
+import AdminAutoPilotAccounts from "./pages/admin/AutoPilot/AdminAutoPilotAccounts";
+import AdminAutoPilotAccountDetail from "./pages/admin/AutoPilot/AdminAutoPilotAccountDetail";
+import AdminAutoPilotWithdrawals from "./pages/admin/AutoPilot/AdminAutoPilotWithdrawals";
+import AdminAutoPilotWithdrawalDetail from "./pages/admin/AutoPilot/AdminAutoPilotWithdrawalDetail";
+import AdminAutoPilotTransactions from "./pages/admin/AutoPilot/AdminAutoPilotTransactions";
+import AdminAutoPilotAnalytics from "./pages/admin/AutoPilot/AdminAutoPilotAnalytics";
+import AdminDailyProfitCredit from "./pages/admin/AutoPilot/AdminDailyProfitCredit";
+import AdminCurrencyRates from "./pages/admin/CurrencyRates/AdminCurrencyRates";
 
 /* 🔥 NEW SCREENS */
 import PlatformPage from "./pages/admin/platforms/PlatformPage";
@@ -71,11 +80,6 @@ function AdminRoute({ children }) {
 /* ---------------- APP ---------------- */
 
 function App() {
-  const maintenanceMode = true;
-
-  if (maintenanceMode) {
-    return <MaintenanceScreen />;
-  }
   return (
     <BrowserRouter>
       <Routes>
@@ -192,6 +196,42 @@ function App() {
           />
           {/* 🔥 LIVE MONITOR */}
           <Route path="predictions/live" element={<LivePredictions />} />
+
+          <Route path="autopilot" element={<AdminAutoPilotDashboard />} />
+          <Route
+            path="autopilot/packages"
+            element={<AdminAutoPilotPackages />}
+          />
+          <Route
+            path="autopilot/accounts"
+            element={<AdminAutoPilotAccounts />}
+          />
+          <Route
+            path="autopilot/accounts/:id"
+            element={<AdminAutoPilotAccountDetail />}
+          />
+
+          <Route
+            path="autopilot/withdrawals"
+            element={<AdminAutoPilotWithdrawals />}
+          />
+          <Route
+            path="autopilot/withdrawals/:id"
+            element={<AdminAutoPilotWithdrawalDetail />}
+          />
+          <Route
+            path="autopilot/transactions"
+            element={<AdminAutoPilotTransactions />}
+          />
+          <Route
+            path="autopilot/analytics"
+            element={<AdminAutoPilotAnalytics />}
+          />
+          <Route
+            path="autopilot/daily-profit-credit"
+            element={<AdminDailyProfitCredit />}
+          />
+          <Route path="currency-rates" element={<AdminCurrencyRates />} />
         </Route>
       </Routes>
     </BrowserRouter>

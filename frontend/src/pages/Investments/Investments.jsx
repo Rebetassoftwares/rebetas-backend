@@ -1,36 +1,81 @@
 import DashboardNavbar from "../../components/DashboardNavbar/DashboardNavbar";
 import Footer from "../../components/Footer/Footer";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import api from "../../services/api";
 import "./Investments.css";
 
-const packages = [
-  { id: "starter", name: "Starter", amount: 60000, tag: "Entry Package" },
-  { id: "bronze", name: "Bronze", amount: 150000, tag: "Growth Package" },
-  { id: "silver", name: "Silver", amount: 300000, tag: "Advanced Package" },
-  { id: "gold", name: "Gold", amount: 500000, tag: "Premium Package" },
-  { id: "diamond", name: "Diamond", amount: 1000000, tag: "Elite Package" },
-];
-
 export default function Investments() {
+  const [packages, setPackages] = useState([]);
   const [selectedPackage, setSelectedPackage] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [paying, setPaying] = useState(false);
+  const [error, setError] = useState("");
 
-  const formatMoney = (amount) => `₦${Number(amount).toLocaleString("en-NG")}`;
+  const formatMoney = (amount, currency) => {
+    return `${currency || ""} ${Number(amount || 0).toLocaleString()}`;
+  };
 
-  const handleContinue = () => {
+  const getDisplayAmount = (pkg) => {
+    return pkg.localizedAmount ?? pkg.amount;
+  };
+
+  const getDisplayCurrency = (pkg) => {
+    return pkg.localizedCurrency ?? pkg.currency;
+  };
+
+  useEffect(() => {
+    async function loadPackages() {
+      try {
+        setLoading(true);
+        setError("");
+
+        const res = await api.get("/investments/packages");
+        const data = Array.isArray(res?.data) ? res.data : [];
+
+        setPackages(data.filter((pkg) => pkg.isActive !== false));
+      } catch (err) {
+        console.error("AutoPilot Packages error:", err);
+        setError("Failed to load AutoPilot Packages.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadPackages();
+  }, []);
+
+  async function handleContinue() {
     if (!selectedPackage) {
-      alert("Please select an AutoPilot package");
+      alert("Please select an AutoPilot Package");
       return;
     }
 
-    console.log({
-      package: selectedPackage,
-      provider: "flutterwave",
-    });
+    try {
+      setPaying(true);
+      setError("");
 
-    alert(
-      "Flutterwave payment connection will be added after backend is ready.",
-    );
-  };
+      const res = await api.post("/investments/deposit/init", {
+        packageId: selectedPackage._id,
+      });
+
+      const paymentLink =
+        res?.data?.paymentLink ||
+        res?.data?.link ||
+        res?.paymentLink ||
+        res?.link;
+
+      if (!paymentLink) {
+        throw new Error("Payment link was not returned.");
+      }
+
+      window.location.href = paymentLink;
+    } catch (err) {
+      console.error("AutoPilot payment init error:", err);
+      setError(err.message || "Failed to start AutoPilot payment.");
+    } finally {
+      setPaying(false);
+    }
+  }
 
   return (
     <div className="investment-page">
@@ -40,12 +85,12 @@ export default function Investments() {
         <section className="investment-hero">
           <span className="investment-tag">Rebetas AutoPilot</span>
 
-          <h1>Daily growth without the stress of manual play</h1>
+          <h1>Daily profit without stress</h1>
 
           <p>
-            Activate AutoPilot and allow Rebetas to handle the daily activity
-            for you, while you monitor your profit, withdrawals, and growth in
-            real time.
+            Activate AutoPilot and let Rebetas handle the daily activity for
+            you. You can monitor your Capital Balance, Profit Balance,
+            withdrawals, and Compound Profit anytime.
           </p>
 
           <div className="hero-highlights">
@@ -56,41 +101,70 @@ export default function Investments() {
         </section>
 
         <section className="investment-note">
-          <strong>You stay in control:</strong> your daily profit can be
-          withdrawn anytime or compounded to grow your active capital.
+          <strong>You stay in control:</strong> your Profit Balance can be
+          withdrawn anytime or compounded to increase your Capital Balance.
         </section>
 
-        <section className="package-grid">
-          {packages.map((pkg) => (
-            <button
-              key={pkg.id}
-              className={`package-card ${
-                selectedPackage?.id === pkg.id ? "selected" : ""
-              }`}
-              onClick={() => setSelectedPackage(pkg)}
-            >
-              <div className="package-card-header">
-                <span>{pkg.tag}</span>
-                <strong>{pkg.name}</strong>
-              </div>
+        {error && <section className="investment-error">{error}</section>}
 
-              <div className="package-amount">{formatMoney(pkg.amount)}</div>
+        {loading ? (
+          <section className="investment-loading">
+            Loading AutoPilot Packages...
+          </section>
+        ) : packages.length === 0 ? (
+          <section className="investment-loading">
+            No AutoPilot Packages available now.
+          </section>
+        ) : (
+          <section className="package-grid">
+            {packages.map((pkg) => (
+              <button
+                key={pkg._id}
+                className={`package-card ${
+                  selectedPackage?._id === pkg._id ? "selected" : ""
+                }`}
+                onClick={() => setSelectedPackage(pkg)}
+                type="button"
+              >
+                <div className="package-card-header">
+                  <span>{pkg.description || "AutoPilot Package"}</span>
+                  <strong>{pkg.name}</strong>
+                </div>
 
-              <div className="package-divider" />
+                <div className="package-amount">
+                  {formatMoney(getDisplayAmount(pkg), getDisplayCurrency(pkg))}
+                </div>
 
-              <ul>
-                <li>Rebetas handles the daily activity for you</li>
-                <li>Daily profit updates on your dashboard</li>
-                <li>Withdraw profit whenever you want</li>
-                <li>Compound profit to grow your active capital</li>
-              </ul>
+                <div className="daily-return-pill">
+                  Daily Profit Credit: {pkg.dailyReturnPercentage}%
+                </div>
 
-              <div className="select-package-text">
-                {selectedPackage?.id === pkg.id ? "Selected" : "Select Package"}
-              </div>
-            </button>
-          ))}
-        </section>
+                <div className="package-divider" />
+
+                <ul>
+                  {Array.isArray(pkg.benefits) && pkg.benefits.length > 0 ? (
+                    pkg.benefits.map((benefit, index) => (
+                      <li key={index}>{benefit}</li>
+                    ))
+                  ) : (
+                    <>
+                      <li>Rebetas handles the daily activity for you</li>
+                      <li>Daily Profit Credit updates on your dashboard</li>
+                      <li>Withdraw Profit whenever you want</li>
+                      <li>Compound Profit to increase Capital Balance</li>
+                    </>
+                  )}
+                </ul>
+
+                <div className="select-package-text">
+                  {selectedPackage?._id === pkg._id
+                    ? "Selected"
+                    : "Select Package"}
+                </div>
+              </button>
+            ))}
+          </section>
+        )}
 
         <section className="checkout-panel">
           <div>
@@ -100,18 +174,25 @@ export default function Investments() {
           </div>
 
           <div className="selected-summary">
-            <span>Selected package</span>
+            <span>Selected Package</span>
             <strong>
               {selectedPackage
                 ? `${selectedPackage.name} • ${formatMoney(
-                    selectedPackage.amount,
+                    getDisplayAmount(selectedPackage),
+                    getDisplayCurrency(selectedPackage),
                   )}`
-                : "No package selected"}
+                : "No Package selected"}
             </strong>
           </div>
 
-          <button className="continue-investment-btn" onClick={handleContinue}>
-            Continue to Secure Payment
+          <button
+            className="continue-investment-btn"
+            onClick={handleContinue}
+            disabled={paying || !selectedPackage}
+          >
+            {paying
+              ? "Opening Secure Payment..."
+              : "Continue to Secure Payment"}
           </button>
         </section>
       </main>

@@ -12,7 +12,31 @@ const menu = [
     ],
   },
 
-  /* 🔥 NEW GROUP */
+  {
+    title: "AUTOPILOT",
+    items: [
+      { name: "Dashboard", path: "/admin/autopilot", icon: "🚀" },
+      { name: "Packages", path: "/admin/autopilot/packages", icon: "📦" },
+      { name: "Accounts", path: "/admin/autopilot/accounts", icon: "👤" },
+      {
+        name: "Withdrawals",
+        path: "/admin/autopilot/withdrawals",
+        icon: "🏦",
+      },
+      {
+        name: "Transactions",
+        path: "/admin/autopilot/transactions",
+        icon: "🧾",
+      },
+      { name: "Analytics", path: "/admin/autopilot/analytics", icon: "📈" },
+      {
+        name: "Daily Profit Credit",
+        path: "/admin/autopilot/daily-profit-credit",
+        icon: "💜",
+      },
+    ],
+  },
+
   {
     title: "PREDICTION SYSTEM",
     items: [
@@ -28,7 +52,6 @@ const menu = [
       { name: "Payments", path: "/admin/payments", icon: "💸" },
       { name: "Subscriptions", path: "/admin/subscriptions", icon: "🧾" },
       { name: "System", path: "/admin/system", icon: "⚙️" },
-      // ✅ NEW
       {
         name: "Withdrawal Settings",
         path: "/admin/settings/withdrawals",
@@ -37,19 +60,28 @@ const menu = [
       { name: "Withdrawals", path: "/admin/withdrawals", icon: "🏦" },
     ],
   },
+
+  {
+    title: "FINANCE",
+    items: [
+      {
+        name: "Currency Rates",
+        path: "/admin/currency-rates",
+        icon: "🌍",
+      },
+    ],
+  },
 ];
 
 export default function AdminSidebar({ open, setOpen }) {
   return (
     <>
-      {/* Overlay (mobile) */}
       <div
         className={`sidebar-overlay ${open ? "show" : ""}`}
         onClick={() => setOpen(false)}
       />
 
       <aside className={`admin-sidebar ${open ? "open" : ""}`}>
-        {/* HEADER */}
         <div className="sidebar-header">
           <div className="logo">R</div>
 
@@ -63,7 +95,6 @@ export default function AdminSidebar({ open, setOpen }) {
           </button>
         </div>
 
-        {/* MENU */}
         <div className="sidebar-menu">
           {menu.map((group, i) => (
             <div key={i} className="menu-group">
@@ -87,7 +118,6 @@ export default function AdminSidebar({ open, setOpen }) {
           ))}
         </div>
 
-        {/* FOOTER */}
         <div className="sidebar-footer">
           <p>Rebetas AI</p>
           <span>Admin Control</span>

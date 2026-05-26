@@ -1,0 +1,324 @@
+.autopilot-account-detail-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  color: #ffffff;
+}
+
+.autopilot-account-detail-page h2,
+.autopilot-account-detail-page h3,
+.autopilot-account-detail-page p,
+.autopilot-account-detail-page span,
+.autopilot-account-detail-page strong,
+.autopilot-account-detail-page label {
+  color: #ffffff !important;
+}
+
+/* HEADER */
+
+.account-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+
+  padding: 24px;
+  border-radius: 20px;
+
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+
+  backdrop-filter: blur(20px);
+}
+
+.account-detail-header a {
+  display: inline-block;
+  margin-bottom: 10px;
+
+  color: #d8b4ff;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.account-detail-header h2 {
+  margin: 0;
+  font-size: 26px;
+}
+
+.account-detail-header p {
+  margin: 8px 0 0;
+  opacity: 0.75;
+}
+
+.account-detail-header button {
+  padding: 12px 20px;
+  border-radius: 12px;
+  border: none;
+
+  background: linear-gradient(135deg, #a020f0, #7b2cff);
+
+  color: #ffffff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* CARDS */
+
+.account-detail-grid,
+.admin-action-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+}
+
+.detail-card {
+  padding: 22px;
+  border-radius: 18px;
+
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.detail-card h3 {
+  margin: 0 0 18px;
+}
+
+.detail-card p {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+
+  margin: 0;
+  padding: 12px 0;
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.detail-card p:last-child {
+  border-bottom: none;
+}
+
+.detail-card span {
+  opacity: 0.72;
+}
+
+/* BALANCES */
+
+.balance-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+.balance-card {
+  padding: 22px;
+  border-radius: 18px;
+
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+
+  transition: 0.2s;
+}
+
+.balance-card:hover {
+  border-color: rgba(160, 32, 240, 0.6);
+  transform: translateY(-2px);
+}
+
+.balance-card span {
+  opacity: 0.72;
+  font-size: 13px;
+}
+
+.balance-card h3 {
+  margin: 12px 0 0;
+  font-size: 24px;
+}
+
+/* STATUS */
+
+.detail-status {
+  display: inline-flex;
+
+  padding: 6px 10px;
+  border-radius: 999px;
+
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: capitalize;
+}
+
+.detail-status.active {
+  background: rgba(40, 167, 69, 0.22);
+  border: 1px solid rgba(40, 167, 69, 0.5);
+}
+
+.detail-status.suspended {
+  background: rgba(255, 193, 7, 0.18);
+  border: 1px solid rgba(255, 193, 7, 0.5);
+}
+
+.detail-status.closed {
+  background: rgba(220, 53, 69, 0.2);
+  border: 1px solid rgba(220, 53, 69, 0.5);
+}
+
+/* ACTIONS */
+
+.detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.detail-actions button,
+.manual-credit-form button {
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: none;
+
+  background: linear-gradient(135deg, #a020f0, #7b2cff);
+
+  color: #ffffff;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.detail-actions .danger-btn {
+  background: #ff4d6d;
+}
+
+.detail-actions button:disabled,
+.manual-credit-form button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* MANUAL CREDIT */
+
+.manual-credit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.manual-credit-form input,
+.manual-credit-form textarea {
+  width: 100%;
+  padding: 13px;
+  border-radius: 12px;
+
+  border: 1px solid rgba(255, 255, 255, 0.25);
+
+  background: rgba(255, 255, 255, 0.13);
+
+  color: #ffffff;
+  font-weight: 500;
+
+  outline: none;
+}
+
+.manual-credit-form textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.manual-credit-form input::placeholder,
+.manual-credit-form textarea::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.small-warning {
+  margin: 0;
+  font-size: 12px;
+  opacity: 0.75;
+}
+
+/* TABLE SECTIONS */
+
+.detail-section {
+  padding: 22px;
+  border-radius: 18px;
+
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.detail-section h3 {
+  margin: 0 0 18px;
+}
+
+.detail-table-wrapper {
+  overflow-x: auto;
+}
+
+.detail-table {
+  width: 100%;
+  min-width: 850px;
+  border-collapse: collapse;
+}
+
+.detail-table th {
+  text-align: left;
+  padding: 14px;
+
+  color: rgba(255, 255, 255, 0.7);
+
+  font-size: 13px;
+  font-weight: 700;
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.detail-table td {
+  padding: 15px 14px;
+
+  color: #ffffff;
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.detail-table tr:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* STATES */
+
+.autopilot-detail-loading,
+.autopilot-detail-error {
+  padding: 18px;
+  border-radius: 14px;
+
+  background: rgba(255, 255, 255, 0.07);
+
+  color: #ffffff;
+}
+
+.autopilot-detail-error {
+  border: 1px solid rgba(220, 53, 69, 0.5);
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 1000px) {
+  .account-detail-grid,
+  .admin-action-grid,
+  .balance-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .account-detail-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .account-detail-header button {
+    width: 100%;
+  }
+
+  .detail-card p {
+    flex-direction: column;
+  }
+}

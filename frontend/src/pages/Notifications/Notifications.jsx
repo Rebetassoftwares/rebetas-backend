@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import DashboardNavbar from "../../components/DashboardNavbar/DashboardNavbar";
 import Footer from "../../components/Footer/Footer";
 import api from "../../services/api";
@@ -6,92 +6,97 @@ import "./Notifications.css";
 
 export default function Notifications() {
   const [notifications, setNotifications] = useState([]);
+  const [pagination, setPagination] = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
+
+  const [page, setPage] = useState(1);
+  const [unreadOnly, setUnreadOnly] = useState(false);
+
   const [loading, setLoading] = useState(true);
-  const [markingAll, setMarkingAll] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState("");
 
-  async function loadNotifications() {
-    try {
-      setLoading(true);
-      setError("");
+  const loadNotifications = useCallback(
+    async (targetPage = page) => {
+      try {
+        setLoading(true);
+        setError("");
 
-      const res = await api.get("/notifications");
+        const params = new URLSearchParams({
+          page: String(targetPage),
+          limit: "30",
+        });
 
-      setNotifications(res?.data?.notifications || []);
-      setUnreadCount(res?.data?.unreadCount || 0);
-    } catch (err) {
-      console.error("Notifications load error:", err);
-      setError(err.message || "Failed to load notifications");
-    } finally {
-      setLoading(false);
-    }
-  }
+        if (unreadOnly) {
+          params.append("unreadOnly", "true");
+        }
+
+        const res = await api.get(`/notifications?${params.toString()}`);
+
+        setNotifications(
+          Array.isArray(res?.data?.notifications) ? res.data.notifications : [],
+        );
+
+        setUnreadCount(Number(res?.data?.unreadCount || 0));
+        setPagination(res?.data?.pagination || null);
+        setPage(targetPage);
+      } catch (err) {
+        console.error("Notifications error:", err);
+        setError(err.message || "Failed to load notifications.");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [page, unreadOnly],
+  );
 
   useEffect(() => {
-    loadNotifications();
-  }, []);
+    async function fetchNotifications() {
+      await loadNotifications(1);
+    }
+
+    fetchNotifications();
+  }, [unreadOnly, loadNotifications]);
 
   async function markAsRead(id) {
     try {
+      setActionLoading(true);
+      setError("");
+
       await api.patch(`/notifications/${id}/read`, {});
 
-      setNotifications((prev) =>
-        prev.map((item) =>
-          item._id === id
-            ? {
-                ...item,
-                isRead: true,
-                readAt: new Date().toISOString(),
-              }
-            : item,
-        ),
-      );
-
-      setUnreadCount((prev) => Math.max(prev - 1, 0));
+      await loadNotifications(page);
     } catch (err) {
       console.error("Mark notification read error:", err);
-      alert(err.message || "Failed to update notification");
+      setError(err.message || "Failed to mark notification as read.");
+    } finally {
+      setActionLoading(false);
     }
   }
 
   async function markAllAsRead() {
     try {
-      setMarkingAll(true);
+      setActionLoading(true);
+      setError("");
 
       await api.patch("/notifications/read-all", {});
 
-      setNotifications((prev) =>
-        prev.map((item) => ({
-          ...item,
-          isRead: true,
-          readAt: item.readAt || new Date().toISOString(),
-        })),
-      );
-
-      setUnreadCount(0);
+      await loadNotifications(1);
     } catch (err) {
       console.error("Mark all notifications read error:", err);
-      alert(err.message || "Failed to update notifications");
+      setError(err.message || "Failed to mark all notifications as read.");
     } finally {
-      setMarkingAll(false);
+      setActionLoading(false);
     }
   }
 
   function formatDate(value) {
-    if (!value) return "-";
-
-    return new Date(value).toLocaleString("en-NG", {
-      dateStyle: "medium",
-      timeStyle: "short",
-    });
+    if (!value) return "—";
+    return new Date(value).toLocaleString();
   }
 
-  function formatType(type) {
-    return String(type || "system")
-      .split("_")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ");
+  function getTypeLabel(type = "") {
+    return String(type).replaceAll("_", " ");
   }
 
   return (
@@ -104,75 +109,112 @@ export default function Notifications() {
             <span>Rebetas Notifications</span>
             <h1>Notifications</h1>
             <p>
-              Track AutoPilot updates, Profit Credits, withdrawals, payouts, and
-              system messages.
+              Track AutoPilot updates, payment alerts, Profit Credit activity,
+              withdrawals, and system messages.
             </p>
           </div>
 
-          <div className="notifications-count-card">
+          <div className="notifications-count-box">
             <small>Unread</small>
             <strong>{unreadCount}</strong>
           </div>
         </section>
 
-        <section className="notifications-panel">
-          <div className="notifications-panel-header">
-            <div>
-              <h2>Recent Notifications</h2>
-              <p>{notifications.length} notification(s)</p>
-            </div>
+        <section className="notifications-toolbar">
+          <button
+            className={!unreadOnly ? "active" : ""}
+            onClick={() => setUnreadOnly(false)}
+          >
+            All Notifications
+          </button>
 
-            <button
-              type="button"
-              onClick={markAllAsRead}
-              disabled={!unreadCount || markingAll}
-            >
-              {markingAll ? "Updating..." : "Mark all as read"}
-            </button>
-          </div>
+          <button
+            className={unreadOnly ? "active" : ""}
+            onClick={() => setUnreadOnly(true)}
+          >
+            Unread Only
+          </button>
 
+          <button
+            className="mark-all-btn"
+            disabled={actionLoading || unreadCount === 0}
+            onClick={markAllAsRead}
+          >
+            Mark All as Read
+          </button>
+        </section>
+
+        {error && <section className="notifications-error">{error}</section>}
+
+        <section className="notifications-card">
           {loading ? (
             <div className="notifications-state">Loading notifications...</div>
-          ) : error ? (
-            <div className="notifications-error">{error}</div>
           ) : notifications.length === 0 ? (
-            <div className="notifications-state">
-              No notifications available yet.
-            </div>
+            <div className="notifications-state">No notifications found.</div>
           ) : (
             <div className="notifications-list">
               {notifications.map((item) => (
                 <div
                   key={item._id}
-                  className={`notification-card ${
+                  className={`notification-item ${
                     item.isRead ? "read" : "unread"
                   }`}
                 >
-                  <div className="notification-main">
-                    <div className="notification-title-row">
-                      <h3>{item.title}</h3>
-                      {!item.isRead && <span>New</span>}
+                  <div className="notification-icon">
+                    {item.isRead ? "✓" : "●"}
+                  </div>
+
+                  <div className="notification-body">
+                    <div className="notification-top">
+                      <h3>{item.title || "Notification"}</h3>
+
+                      <span className={`notification-type ${item.type || ""}`}>
+                        {getTypeLabel(item.type || "system")}
+                      </span>
                     </div>
 
-                    <p>{item.message}</p>
+                    <p>{item.message || "No message provided."}</p>
 
                     <div className="notification-meta">
-                      <small>{formatType(item.type)}</small>
-                      <small>{formatDate(item.createdAt)}</small>
+                      <span>{formatDate(item.createdAt)}</span>
+
+                      {item.channel && <span>{item.channel}</span>}
                     </div>
                   </div>
 
                   {!item.isRead && (
                     <button
-                      type="button"
-                      className="mark-read-btn"
+                      className="read-btn"
+                      disabled={actionLoading}
                       onClick={() => markAsRead(item._id)}
                     >
-                      Mark as read
+                      Mark Read
                     </button>
                   )}
                 </div>
               ))}
+            </div>
+          )}
+
+          {pagination && pagination.pages > 1 && (
+            <div className="notifications-pagination">
+              <button
+                disabled={page <= 1 || loading}
+                onClick={() => loadNotifications(page - 1)}
+              >
+                Previous
+              </button>
+
+              <span>
+                Page {pagination.page} of {pagination.pages}
+              </span>
+
+              <button
+                disabled={page >= pagination.pages || loading}
+                onClick={() => loadNotifications(page + 1)}
+              >
+                Next
+              </button>
             </div>
           )}
         </section>

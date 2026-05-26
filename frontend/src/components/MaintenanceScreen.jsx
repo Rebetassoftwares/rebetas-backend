@@ -107,7 +107,7 @@ export default function MaintenanceScreen() {
             fontWeight: "600",
           }}
         >
-          🚀 Major Platform Upgrade In Progress
+          🚀 Major Platform Upgrade Extended
         </div>
 
         {/* Main Heading */}
@@ -192,7 +192,7 @@ export default function MaintenanceScreen() {
             <br />
             to
             <br />
-            May 27, 2026 — 5:00 AM
+            May 28, 2026 — 2:00 AM
           </h3>
         </div>
 

@@ -189,3 +189,150 @@ export const updatePredictionResultsBatch = (updates) =>
 
 export const autoResolvePredictions = () =>
   api.post("/manual-predictions/auto-resolve", {}, authConfig());
+
+/* ================================
+   🚀 AUTOPILOT DASHBOARD
+================================ */
+
+export const getAutoPilotDashboard = () =>
+  api.get("/admin/autopilot-dashboard", authConfig());
+
+/* ================================
+   📦 AUTOPILOT PACKAGES
+================================ */
+
+export const getAutoPilotPackages = () =>
+  api.get("/admin/investment-packages", authConfig());
+
+export const createAutoPilotPackage = (data) =>
+  api.post("/admin/investment-packages", data);
+
+export const updateAutoPilotPackage = (id, data) =>
+  api.patch(`/admin/investment-packages/${id}`, data);
+
+export const activateAutoPilotPackage = (id) =>
+  api.patch(`/admin/investment-packages/${id}/activate`, {});
+
+export const deactivateAutoPilotPackage = (id) =>
+  api.patch(`/admin/investment-packages/${id}/deactivate`, {});
+
+/* ================================
+   👤 AUTOPILOT ACCOUNTS
+================================ */
+
+export const getAutoPilotAccounts = (params = {}) => {
+  const query = new URLSearchParams(params).toString();
+
+  return api.get(
+    query ? `/admin/autopilot-accounts?${query}` : "/admin/autopilot-accounts",
+    authConfig(),
+  );
+};
+
+export const getAutoPilotAccountById = (id) =>
+  api.get(`/admin/autopilot-accounts/${id}`, authConfig());
+
+export const suspendAutoPilotAccount = (id) =>
+  api.patch(`/admin/autopilot-accounts/${id}/suspend`, {});
+
+export const reactivateAutoPilotAccount = (id) =>
+  api.patch(`/admin/autopilot-accounts/${id}/reactivate`, {});
+
+export const closeAutoPilotAccount = (id) =>
+  api.patch(`/admin/autopilot-accounts/${id}/close`, {});
+
+export const creditManualAutoPilotProfit = (id, data) =>
+  api.post(`/admin/autopilot-manual-profit/${id}/credit`, data);
+
+/* ================================
+   🏦 AUTOPILOT WITHDRAWALS
+================================ */
+
+export const getAutoPilotWithdrawals = (params = {}) => {
+  const query = new URLSearchParams(params).toString();
+
+  return api.get(
+    query
+      ? `/admin/autopilot-withdrawals?${query}`
+      : "/admin/autopilot-withdrawals",
+    authConfig(),
+  );
+};
+
+export const getAutoPilotWithdrawalById = (id) =>
+  api.get(`/admin/autopilot-withdrawals/${id}`, authConfig());
+
+export const getAutoPilotWithdrawalAudit = (id) =>
+  api.get(`/admin/autopilot-withdrawals/${id}/audit`, authConfig());
+
+export const approveAutoPilotWithdrawal = (id, data = {}) =>
+  api.patch(`/admin/autopilot-withdrawals/${id}/approve`, data);
+
+export const rejectAutoPilotWithdrawal = (id, data = {}) =>
+  api.patch(`/admin/autopilot-withdrawals/${id}/reject`, data);
+
+export const payAutoPilotWithdrawal = (id, data = {}) =>
+  api.patch(`/admin/autopilot-withdrawals/${id}/pay`, data);
+
+/* ================================
+   🧾 AUTOPILOT TRANSACTIONS
+================================ */
+
+export const getAutoPilotTransactions = (params = {}) => {
+  const query = new URLSearchParams(params).toString();
+
+  return api.get(
+    query
+      ? `/admin/autopilot-transactions?${query}`
+      : "/admin/autopilot-transactions",
+    authConfig(),
+  );
+};
+
+export const getAutoPilotTransactionById = (id) =>
+  api.get(`/admin/autopilot-transactions/${id}`, authConfig());
+
+/* ================================
+   📈 AUTOPILOT ANALYTICS
+================================ */
+
+export const getAutoPilotAnalytics = (limit = 10) =>
+  api.get(`/admin/autopilot-analytics?limit=${limit}`, authConfig());
+
+/* ================================
+   💜 AUTOPILOT DAILY PROFIT CREDIT
+================================ */
+
+export const applyDailyProfitCredit = () =>
+  api.post("/admin/autopilot-daily-profit/credit", {});
+
+/* ================================
+   🌍 ADMIN CURRENCY RATES
+================================ */
+
+export const getCurrencyRates = (filters = {}) => {
+  const params = new URLSearchParams();
+
+  if (filters.baseCurrency) params.append("baseCurrency", filters.baseCurrency);
+  if (filters.targetCurrency)
+    params.append("targetCurrency", filters.targetCurrency);
+  if (filters.isActive !== "" && filters.isActive !== undefined) {
+    params.append("isActive", filters.isActive);
+  }
+
+  const query = params.toString();
+
+  return api.get(
+    query ? `/admin/currency-rates?${query}` : "/admin/currency-rates",
+    authConfig(),
+  );
+};
+
+export const saveCurrencyRate = (payload) =>
+  api.post("/admin/currency-rates", payload, authConfig());
+
+export const updateCurrencyRateStatus = (id, isActive) =>
+  api.patch(`/admin/currency-rates/${id}/status`, { isActive }, authConfig());
+
+export const deleteCurrencyRate = (id) =>
+  api.delete(`/admin/currency-rates/${id}`, authConfig());

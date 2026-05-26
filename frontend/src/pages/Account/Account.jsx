@@ -16,16 +16,19 @@ export default function Account() {
   });
 
   const [hasPromo, setHasPromo] = useState(false);
-
-  // temporary until backend investment status endpoint is ready
-  const hasInvestment = true;
+  const [autoPilotAccount, setAutoPilotAccount] = useState(null);
+  const [loadingAutoPilot, setLoadingAutoPilot] = useState(true);
 
   useEffect(() => {
     async function loadData() {
       try {
-        const [subRes] = await Promise.all([api.get("/subscriptions/status")]);
+        const [subRes, autoPilotRes] = await Promise.all([
+          api.get("/subscriptions/status"),
+          api.get("/investments/my"),
+        ]);
 
         setSubscriptionData(subRes);
+        setAutoPilotAccount(autoPilotRes?.data || null);
 
         try {
           await api.get("/promo/my");
@@ -40,6 +43,8 @@ export default function Account() {
           active: false,
           subscription: null,
         });
+      } finally {
+        setLoadingAutoPilot(false);
       }
     }
 
@@ -48,6 +53,7 @@ export default function Account() {
 
   const subscription = subscriptionData.subscription;
   const isActive = subscriptionData.active;
+  const hasAutoPilot = !!autoPilotAccount;
 
   const supportEmail = "support@rebetas.com";
 
@@ -106,6 +112,11 @@ export default function Account() {
               <span>Country</span>
               <span>{user?.country || "-"}</span>
             </div>
+
+            <div className="info-row">
+              <span>Currency</span>
+              <span>{user?.currency || "-"}</span>
+            </div>
           </div>
         </div>
 
@@ -140,7 +151,7 @@ export default function Account() {
               <div style={{ marginTop: "15px" }}>
                 <button
                   className="subscribe-btn"
-                  onClick={() => (window.location.href = "/pricing")}
+                  onClick={() => navigate("/pricing")}
                 >
                   Subscribe Now
                 </button>
@@ -153,18 +164,24 @@ export default function Account() {
           <h3>Rebetas AutoPilot</h3>
 
           <p>
-            Let Rebetas handle the daily activity while you monitor your
-            capital, profit balance, withdrawals, and compounding.
+            Let Rebetas handle the daily activity while you monitor your Capital
+            Balance, Profit Balance, withdrawals, and Compound Profit.
           </p>
 
-          <button
-            className="promo-btn"
-            onClick={() =>
-              navigate(hasInvestment ? "/investment-dashboard" : "/investments")
-            }
-          >
-            {hasInvestment ? "Open AutoPilot Dashboard" : "Start AutoPilot"}
-          </button>
+          {loadingAutoPilot ? (
+            <p>Checking AutoPilot account...</p>
+          ) : (
+            <button
+              className="promo-btn"
+              onClick={() =>
+                navigate(
+                  hasAutoPilot ? "/investment-dashboard" : "/investments",
+                )
+              }
+            >
+              {hasAutoPilot ? "Open AutoPilot Dashboard" : "Start AutoPilot"}
+            </button>
+          )}
         </div>
 
         {hasPromo && (

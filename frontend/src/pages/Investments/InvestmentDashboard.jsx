@@ -1,112 +1,127 @@
 import DashboardNavbar from "../../components/DashboardNavbar/DashboardNavbar";
 import Footer from "../../components/Footer/Footer";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import "./InvestmentDashboard.css";
 
-const historyData = [
-  {
-    id: 1,
-    type: "profit_credit",
-    label: "Profit Credit",
-    amount: 15000,
-    status: "successful",
-    date: "2026-05-25",
-    time: "09:30 AM",
-  },
-  {
-    id: 2,
-    type: "profit_reinvest",
-    label: "Profit Reinvest",
-    amount: 25000,
-    status: "successful",
-    date: "2026-05-24",
-    time: "04:12 PM",
-  },
-  {
-    id: 3,
-    type: "profit_withdrawal",
-    label: "Profit Withdrawal",
-    amount: 10000,
-    status: "pending",
-    date: "2026-05-23",
-    time: "11:05 AM",
-  },
-  {
-    id: 4,
-    type: "capital_withdrawal",
-    label: "Capital Withdrawal",
-    amount: 500000,
-    status: "failed",
-    date: "2026-05-21",
-    time: "02:40 PM",
-  },
-];
-
 export default function InvestmentDashboard() {
   const navigate = useNavigate();
 
-  const [account, setAccount] = useState({
-    packageName: "Gold",
-    packageAmount: 500000,
-    status: "Active",
-    capitalBalance: 575000,
-    profitBalance: 45000,
-    lastReinvestDate: "2026-05-10",
-  });
-
+  const [account, setAccount] = useState(null);
   const [payoutDetails, setPayoutDetails] = useState(null);
-  const [loadingPayout, setLoadingPayout] = useState(true);
+  const [history, setHistory] = useState([]);
+
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const [activeAction, setActiveAction] = useState(null);
   const [amount, setAmount] = useState("");
+
   const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState("");
 
+  async function loadDashboard() {
+    try {
+      setLoading(true);
+      setError("");
+
+      const res = await api.get("/investments/dashboard");
+
+      setAccount(res?.data?.account || null);
+      setPayoutDetails(res?.data?.payoutDetails || null);
+      setHistory(
+        Array.isArray(res?.data?.recentTransactions)
+          ? res.data.recentTransactions
+          : [],
+      );
+    } catch (err) {
+      console.error("AutoPilot dashboard error:", err);
+      setError(err.message || "Failed to load AutoPilot dashboard.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function loadHistory() {
+    try {
+      const params = new URLSearchParams();
+
+      if (typeFilter !== "all") params.append("type", typeFilter);
+      if (statusFilter !== "all") params.append("status", statusFilter);
+      if (dateFilter) params.append("date", dateFilter);
+
+      const query = params.toString();
+
+      const res = await api.get(
+        query ? `/investments/history?${query}` : "/investments/history",
+      );
+
+      setHistory(Array.isArray(res?.data) ? res.data : []);
+    } catch (err) {
+      console.error("AutoPilot history error:", err);
+      setError(err.message || "Failed to load AutoPilot history.");
+    }
+  }
+
   useEffect(() => {
-    async function loadPayoutDetails() {
+    loadDashboard();
+  }, []);
+
+  useEffect(() => {
+    if (loading) return;
+
+    async function fetchHistory() {
       try {
-        const res = await api.get("/payout-details/my");
-        setPayoutDetails(res || null);
-      } catch (error) {
-        console.error("Payout details error:", error);
-        setPayoutDetails(null);
-      } finally {
-        setLoadingPayout(false);
+        const params = new URLSearchParams();
+
+        if (typeFilter !== "all") params.append("type", typeFilter);
+        if (statusFilter !== "all") params.append("status", statusFilter);
+        if (dateFilter) params.append("date", dateFilter);
+
+        const query = params.toString();
+
+        const res = await api.get(
+          query ? `/investments/history?${query}` : "/investments/history",
+        );
+
+        setHistory(Array.isArray(res?.data) ? res.data : []);
+      } catch (err) {
+        console.error("AutoPilot history error:", err);
+        setError(err.message || "Failed to load AutoPilot history.");
       }
     }
 
-    loadPayoutDetails();
-  }, []);
+    fetchHistory();
+  }, [typeFilter, statusFilter, dateFilter, loading]);
 
-  const formatMoney = (value) => `₦${Number(value).toLocaleString("en-NG")}`;
+  const currency = account?.currency || account?.userDisplayCurrency || "";
 
-  const daysSinceLastReinvest = Math.floor(
-    (new Date() - new Date(account.lastReinvestDate)) / (1000 * 60 * 60 * 24),
-  );
-
-  const capitalDaysLeft = Math.max(0, 30 - daysSinceLastReinvest);
-  const canWithdrawCapital = capitalDaysLeft === 0;
-
-  const filteredHistory = useMemo(() => {
-    return historyData.filter((item) => {
-      const typeMatch = typeFilter === "all" || item.type === typeFilter;
-      const statusMatch =
-        statusFilter === "all" || item.status === statusFilter;
-      const dateMatch = !dateFilter || item.date === dateFilter;
-
-      return typeMatch && statusMatch && dateMatch;
-    });
-  }, [typeFilter, statusFilter, dateFilter]);
-
-  const resetAction = () => {
-    setActiveAction(null);
-    setAmount("");
+  const formatMoney = (value, currencyCode = currency) => {
+    return `${currencyCode || ""} ${Number(value || 0).toLocaleString()}`;
   };
 
-  const validateAmount = () => {
+  const capitalWithdrawAvailableAt = account?.capitalWithdrawAvailableAt
+    ? new Date(account.capitalWithdrawAvailableAt)
+    : null;
+
+  let capitalDaysLeft = 0;
+
+  if (capitalWithdrawAvailableAt) {
+    const diff = capitalWithdrawAvailableAt - new Date();
+    capitalDaysLeft = Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+  }
+
+  const canWithdrawCapital = !!account && capitalDaysLeft === 0;
+
+  function resetAction() {
+    setActiveAction(null);
+    setAmount("");
+  }
+
+  function validateProfitAmount() {
     const value = Number(amount);
 
     if (!value || value <= 0) {
@@ -114,45 +129,159 @@ export default function InvestmentDashboard() {
       return null;
     }
 
-    if (value > account.profitBalance) {
-      alert("Amount cannot be greater than your current profit balance");
+    if (value > Number(account?.profitBalance || 0)) {
+      alert("Amount cannot be greater than your Profit Balance");
       return null;
     }
 
     return value;
-  };
+  }
 
-  const handleWithdrawProfit = () => {
+  async function handleWithdrawProfit() {
     if (!payoutDetails) {
-      alert("Please add your payment details before withdrawing.");
+      alert("Please add payout details before withdrawing.");
       navigate("/payout-details");
       return;
     }
 
-    const value = validateAmount();
+    const value = validateProfitAmount();
+
     if (!value) return;
 
-    setAccount((prev) => ({
-      ...prev,
-      profitBalance: prev.profitBalance - value,
-    }));
+    try {
+      setActionLoading(true);
+      setError("");
 
-    resetAction();
-  };
+      await api.post("/investments/withdraw-profit", {
+        amount: value,
+      });
 
-  const handleReinvestProfit = () => {
-    const value = validateAmount();
+      resetAction();
+      await loadDashboard();
+      await loadHistory();
+
+      alert("Profit Withdrawal request submitted successfully.");
+    } catch (err) {
+      console.error("Profit Withdrawal error:", err);
+      setError(err.message || "Failed to submit Profit Withdrawal.");
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
+  async function handleCompoundProfit() {
+    const value = validateProfitAmount();
+
     if (!value) return;
 
-    setAccount((prev) => ({
-      ...prev,
-      profitBalance: prev.profitBalance - value,
-      capitalBalance: prev.capitalBalance + value,
-      lastReinvestDate: new Date().toISOString().slice(0, 10),
-    }));
+    try {
+      setActionLoading(true);
+      setError("");
 
-    resetAction();
-  };
+      await api.post("/investments/compound", {
+        amount: value,
+      });
+
+      resetAction();
+      await loadDashboard();
+      await loadHistory();
+
+      alert("Compound Profit completed successfully.");
+    } catch (err) {
+      console.error("Compound Profit error:", err);
+      setError(err.message || "Failed to complete Compound Profit.");
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
+  async function handleWithdrawCapital() {
+    if (!payoutDetails) {
+      alert("Please add payout details before withdrawing.");
+      navigate("/payout-details");
+      return;
+    }
+
+    if (!canWithdrawCapital) {
+      alert(`Capital Withdrawal is available in ${capitalDaysLeft} days.`);
+      return;
+    }
+
+    if (
+      !window.confirm(
+        "This will request withdrawal of your full Capital Balance. Continue?",
+      )
+    ) {
+      return;
+    }
+
+    try {
+      setActionLoading(true);
+      setError("");
+
+      await api.post("/investments/withdraw-capital", {});
+
+      await loadDashboard();
+      await loadHistory();
+
+      alert("Capital Withdrawal request submitted successfully.");
+    } catch (err) {
+      console.error("Capital Withdrawal error:", err);
+      setError(err.message || "Failed to submit Capital Withdrawal.");
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
+  function formatType(type = "") {
+    return String(type).replaceAll("_", " ");
+  }
+
+  function formatDateTime(value) {
+    if (!value) return "—";
+
+    return new Date(value).toLocaleString();
+  }
+
+  if (loading) {
+    return (
+      <div className="auto-dashboard-page">
+        <DashboardNavbar />
+
+        <main className="auto-dashboard-container">
+          <section className="dashboard-loading">
+            Loading AutoPilot dashboard...
+          </section>
+        </main>
+
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!account) {
+    return (
+      <div className="auto-dashboard-page">
+        <DashboardNavbar />
+
+        <main className="auto-dashboard-container">
+          <section className="dashboard-empty">
+            <h2>No active AutoPilot account</h2>
+            <p>
+              You do not have an active AutoPilot account yet. Select a Package
+              to get started.
+            </p>
+
+            <button onClick={() => navigate("/investments")}>
+              View AutoPilot Packages
+            </button>
+          </section>
+        </main>
+
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="auto-dashboard-page">
@@ -163,20 +292,25 @@ export default function InvestmentDashboard() {
           <div className="overview-left">
             <span className="bank-label">Rebetas AutoPilot</span>
 
-            <h1>{account.packageName} Package</h1>
+            <h1>{account.packageNameSnapshot} Package</h1>
 
             <p>{account.status} account</p>
 
             <div className="account-owner-box">
-              <span>Account Owner</span>
+              <span>AutoPilot Account</span>
 
-              <strong>John Doe</strong>
+              <strong>{account.packageNameSnapshot}</strong>
 
-              <small>johndoe@email.com</small>
+              <small>
+                Daily Profit Credit:{" "}
+                {Number(account.dailyReturnPercentageSnapshot || 0)}%
+              </small>
 
               <div className="owner-package-amount">
-                <label>Original Package</label>
-                <h3>{formatMoney(account.packageAmount)}</h3>
+                <label>Package Amount</label>
+                <h3>
+                  {formatMoney(account.packageAmountSnapshot, account.currency)}
+                </h3>
               </div>
             </div>
           </div>
@@ -184,31 +318,29 @@ export default function InvestmentDashboard() {
           <div className="account-overview-actions">
             <div className="account-status-pill">
               {canWithdrawCapital
-                ? "Capital withdrawal available"
+                ? "Capital Withdrawal available"
                 : `Capital available in ${capitalDaysLeft} days`}
             </div>
-
-            <button
-              type="button"
-              className="upgrade-package-btn"
-              onClick={() => navigate("/investments")}
-            >
-              Upgrade Package
-            </button>
           </div>
         </section>
+
+        {error && <section className="dashboard-error">{error}</section>}
 
         <section className="main-balance-grid">
           <div className="main-balance-card capital-card">
             <span>Capital Balance</span>
-            <h2>{formatMoney(account.capitalBalance)}</h2>
-            <p>This increases whenever you compound your profit.</p>
+
+            <h2>{formatMoney(account.capitalBalance, account.currency)}</h2>
+
+            <p>This increases whenever you Compound Profit.</p>
           </div>
 
           <div className="main-balance-card profit-card">
-            <span>Current Profit Balance</span>
-            <h2>{formatMoney(account.profitBalance)}</h2>
-            <p>Available for withdrawal or compounding.</p>
+            <span>Profit Balance</span>
+
+            <h2>{formatMoney(account.profitBalance, account.currency)}</h2>
+
+            <p>Available for Profit Withdrawal or Compound Profit.</p>
           </div>
         </section>
 
@@ -216,22 +348,31 @@ export default function InvestmentDashboard() {
           <div className="bank-actions-header">
             <div>
               <span className="bank-label">Actions</span>
-              <h3>Manage Balance</h3>
+              <h3>Manage AutoPilot Balance</h3>
             </div>
           </div>
 
           <div className="action-buttons">
-            <button onClick={() => setActiveAction("withdraw")}>
-              Withdraw Profit
+            <button
+              onClick={() => setActiveAction("withdraw")}
+              disabled={actionLoading}
+            >
+              Profit Withdrawal
             </button>
 
-            <button onClick={() => setActiveAction("reinvest")}>
+            <button
+              onClick={() => setActiveAction("compound")}
+              disabled={actionLoading}
+            >
               Compound Profit
             </button>
 
-            <button disabled={!canWithdrawCapital}>
+            <button
+              disabled={!canWithdrawCapital || actionLoading}
+              onClick={handleWithdrawCapital}
+            >
               {canWithdrawCapital
-                ? "Withdraw Capital"
+                ? "Capital Withdrawal"
                 : `Capital Locked • ${capitalDaysLeft} days`}
             </button>
           </div>
@@ -241,29 +382,29 @@ export default function InvestmentDashboard() {
               <div>
                 <h4>
                   {activeAction === "withdraw"
-                    ? "Withdraw Profit"
+                    ? "Profit Withdrawal"
                     : "Compound Profit"}
                 </h4>
 
                 <p>
-                  Current profit balance:{" "}
-                  <strong>{formatMoney(account.profitBalance)}</strong>
+                  Profit Balance:{" "}
+                  <strong>
+                    {formatMoney(account.profitBalance, account.currency)}
+                  </strong>
                 </p>
               </div>
 
               {activeAction === "withdraw" && (
                 <div className="withdrawal-account-box">
                   <div className="withdrawal-account-header">
-                    <span>Withdrawal Account</span>
+                    <span>Payout Details</span>
 
                     <button onClick={() => navigate("/payout-details")}>
                       {payoutDetails ? "Update Payout Details" : "Add Details"}
                     </button>
                   </div>
 
-                  {loadingPayout ? (
-                    <p className="account-muted">Loading payment details...</p>
-                  ) : payoutDetails ? (
+                  {payoutDetails ? (
                     <div className="withdrawal-account-details">
                       <div>
                         <small>Account Name</small>
@@ -282,9 +423,10 @@ export default function InvestmentDashboard() {
                     </div>
                   ) : (
                     <div className="missing-account-box">
-                      <p>No payment account has been added yet.</p>
+                      <p>No payout details have been added yet.</p>
+
                       <button onClick={() => navigate("/payout-details")}>
-                        Add Payment Details
+                        Add Payout Details
                       </button>
                     </div>
                   )}
@@ -305,14 +447,21 @@ export default function InvestmentDashboard() {
                   onClick={
                     activeAction === "withdraw"
                       ? handleWithdrawProfit
-                      : handleReinvestProfit
+                      : handleCompoundProfit
                   }
-                  disabled={activeAction === "withdraw" && !payoutDetails}
+                  disabled={
+                    actionLoading ||
+                    (activeAction === "withdraw" && !payoutDetails)
+                  }
                 >
-                  Confirm
+                  {actionLoading ? "Processing..." : "Confirm"}
                 </button>
 
-                <button className="cancel-btn" onClick={resetAction}>
+                <button
+                  className="cancel-btn"
+                  onClick={resetAction}
+                  disabled={actionLoading}
+                >
                   Cancel
                 </button>
               </div>
@@ -334,10 +483,13 @@ export default function InvestmentDashboard() {
               onChange={(e) => setTypeFilter(e.target.value)}
             >
               <option value="all">All Types</option>
+              <option value="package_activation">Package Activation</option>
               <option value="profit_credit">Profit Credit</option>
               <option value="profit_withdrawal">Profit Withdrawal</option>
-              <option value="profit_reinvest">Profit Reinvest</option>
+              <option value="profit_reinvest">Compound Profit</option>
               <option value="capital_withdrawal">Capital Withdrawal</option>
+              <option value="payout_successful">Payout Successful</option>
+              <option value="payout_failed">Payout Failed</option>
             </select>
 
             <select
@@ -347,7 +499,9 @@ export default function InvestmentDashboard() {
               <option value="all">All Status</option>
               <option value="successful">Successful</option>
               <option value="pending">Pending</option>
+              <option value="processing">Processing</option>
               <option value="failed">Failed</option>
+              <option value="rejected">Rejected</option>
             </select>
 
             <input
@@ -376,15 +530,16 @@ export default function InvestmentDashboard() {
               <span>Date & Time</span>
             </div>
 
-            {filteredHistory.length > 0 ? (
-              filteredHistory.map((item) => (
-                <div className="history-table-row" key={item.id}>
-                  <span>{item.label}</span>
-                  <strong>{formatMoney(item.amount)}</strong>
+            {history.length > 0 ? (
+              history.map((item) => (
+                <div className="history-table-row" key={item._id}>
+                  <span>{formatType(item.type)}</span>
+
+                  <strong>{formatMoney(item.amount, item.currency)}</strong>
+
                   <b className={`status-badge ${item.status}`}>{item.status}</b>
-                  <span>
-                    {item.date} • {item.time}
-                  </span>
+
+                  <span>{formatDateTime(item.createdAt)}</span>
                 </div>
               ))
             ) : (
