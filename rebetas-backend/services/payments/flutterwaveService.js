@@ -1,7 +1,8 @@
 const axios = require("axios");
 
 const FLW_SECRET = process.env.FLUTTERWAVE_SECRET;
-const FLW_WEBHOOK_HASH = process.env.FLUTTERWAVE_WEBHOOK_HASH;
+const FLW_WEBHOOK_HASH =
+  process.env.FLUTTERWAVE_WEBHOOK_HASH || process.env.FLW_SECRET_HASH;
 
 /*
 INITIALIZE PAYMENT
@@ -12,13 +13,24 @@ async function initializeFlutterwavePayment({
   amount,
   currency,
   reference,
+  redirectUrl,
+  title,
+  description,
+  customer = {},
+  meta = {},
 }) {
   try {
+    if (!FLW_SECRET) {
+      throw new Error("FLUTTERWAVE_SECRET is not configured");
+    }
+
     console.log("🚀 FLW INIT INPUT:", {
       email,
       amount,
       currency,
       reference,
+      redirectUrl,
+      title,
     });
 
     const response = await axios.post(
@@ -27,15 +39,19 @@ async function initializeFlutterwavePayment({
         tx_ref: reference,
         amount: Number(amount),
         currency,
-        redirect_url: `${process.env.CLIENT_URL}/payment/verify`,
+        redirect_url: redirectUrl || `${process.env.CLIENT_URL}/payment/verify`,
 
         customer: {
           email,
+          ...customer,
         },
 
         customizations: {
-          title: "Rebetas Subscription",
+          title: title || "Rebetas Subscription",
+          description: description || title || "Rebetas Payment",
         },
+
+        meta,
       },
       {
         headers: {
@@ -72,6 +88,10 @@ VERIFY PAYMENT
 
 async function verifyFlutterwavePayment(reference) {
   try {
+    if (!FLW_SECRET) {
+      throw new Error("FLUTTERWAVE_SECRET is not configured");
+    }
+
     const response = await axios.get(
       `https://api.flutterwave.com/v3/transactions/verify_by_reference?tx_ref=${reference}`,
       {
@@ -97,6 +117,7 @@ function verifyFlutterwaveWebhook(req) {
     const signature = req.headers["verif-hash"];
 
     if (!signature) return false;
+    if (!FLW_WEBHOOK_HASH) return false;
 
     return signature === FLW_WEBHOOK_HASH;
   } catch (error) {
@@ -114,7 +135,7 @@ function extractFlutterwaveWebhookData(body) {
     return null;
   }
 
-  const data = body.data;
+  const data = body.data || {};
 
   return {
     reference: data.tx_ref,

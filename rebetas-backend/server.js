@@ -42,6 +42,19 @@ const predictionSettingsRoutes = require("./routes/predictionSettingsRoutes");
 const manualLeagueRoutes = require("./routes/manualLeagueRoutes");
 const manualPredictionRoutes = require("./routes/manualPredictionRoutes");
 const publicPredictionRoutes = require("./routes/publicPredictionRoutes");
+const adminInvestmentPackageRoutes = require("./routes/adminInvestmentPackageRoutes");
+const investmentRoutes = require("./routes/investmentRoutes");
+const investmentPaymentRoutes = require("./routes/investmentPaymentRoutes");
+const adminInvestmentWithdrawalRoutes = require("./routes/adminInvestmentWithdrawalRoutes");
+const autoPilotFlutterwaveWebhookRoutes = require("./routes/autoPilotFlutterwaveWebhookRoutes");
+const adminInvestmentDashboardRoutes = require("./routes/adminInvestmentDashboardRoutes");
+const adminInvestmentTransactionRoutes = require("./routes/adminInvestmentTransactionRoutes");
+const adminManualProfitRoutes = require("./routes/adminManualProfitRoutes");
+const adminInvestmentAnalyticsRoutes = require("./routes/adminInvestmentAnalyticsRoutes");
+const userNotificationRoutes = require("./routes/userNotificationRoutes");
+const adminNotificationRoutes = require("./routes/adminNotificationRoutes");
+const adminDailyProfitRoutes = require("./routes/adminDailyProfitRoutes");
+const adminInvestmentAccountRoutes = require("./routes/adminInvestmentAccountRoutes");
 
 const app = express();
 
@@ -107,6 +120,19 @@ app.use("/api/manual-leagues", manualLeagueRoutes);
 app.use("/api/manual-predictions", manualPredictionRoutes);
 app.use("/api/public/predictions", publicPredictionRoutes);
 app.use("/api/settings", settingsRoutes);
+app.use("/api/admin/investment-packages", adminInvestmentPackageRoutes);
+app.use("/api/investments", investmentRoutes);
+app.use("/api/investments", investmentPaymentRoutes);
+app.use("/api/admin/autopilot-withdrawals", adminInvestmentWithdrawalRoutes);
+app.use("/api/autopilot-webhooks", autoPilotFlutterwaveWebhookRoutes);
+app.use("/api/admin/autopilot-dashboard", adminInvestmentDashboardRoutes);
+app.use("/api/admin/autopilot-transactions", adminInvestmentTransactionRoutes);
+app.use("/api/admin/autopilot-manual-profit", adminManualProfitRoutes);
+app.use("/api/admin/autopilot-analytics", adminInvestmentAnalyticsRoutes);
+app.use("/api/notifications", userNotificationRoutes);
+app.use("/api/admin/notifications", adminNotificationRoutes);
+app.use("/api/admin/autopilot-daily-profit", adminDailyProfitRoutes);
+app.use("/api/admin/autopilot-accounts", adminInvestmentAccountRoutes);
 
 /*
 HEALTH CHECK
