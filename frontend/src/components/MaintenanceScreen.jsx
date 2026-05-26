@@ -182,12 +182,17 @@ export default function MaintenanceScreen() {
           <h3
             style={{
               margin: 0,
-              fontSize: "26px",
+              fontSize: "24px",
               color: "#d8b4fe",
               fontWeight: "800",
+              lineHeight: "1.5",
             }}
           >
-            5:00 AM Today → 5:00 AM Tomorrow
+            May 26, 2026 — 5:00 AM
+            <br />
+            to
+            <br />
+            May 27, 2026 — 5:00 AM
           </h3>
         </div>
 
