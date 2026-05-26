@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { isLoggedIn, getStoredUser } from "./utils/auth";
+import MaintenanceScreen from "./components/MaintenanceScreen";
 
 /* PUBLIC */
 import Landing from "./pages/Landing/Landing";
@@ -80,6 +81,12 @@ function AdminRoute({ children }) {
 /* ---------------- APP ---------------- */
 
 function App() {
+  const maintenanceMode = true;
+
+  if (maintenanceMode) {
+    return <MaintenanceScreen />;
+  }
+
   return (
     <BrowserRouter>
       <Routes>
