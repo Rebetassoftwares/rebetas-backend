@@ -3,85 +3,160 @@ const InvestmentTransaction = require("../models/InvestmentTransaction");
 const InvestmentWithdrawal = require("../models/InvestmentWithdrawal");
 const User = require("../models/User");
 
+const BASE_CURRENCY = "USD";
+
+function roundMoney(value) {
+  return Number(Number(value || 0).toFixed(2));
+}
+
+function normalizeCurrency(currency) {
+  return String(currency || BASE_CURRENCY)
+    .trim()
+    .toUpperCase();
+}
+
+function toUsd(amount, currency, exchangeRateSnapshot) {
+  const numericAmount = Number(amount || 0);
+  const normalizedCurrency = normalizeCurrency(currency);
+
+  if (!numericAmount) return 0;
+  if (normalizedCurrency === BASE_CURRENCY) return roundMoney(numericAmount);
+
+  const rate = Number(exchangeRateSnapshot || 0);
+  if (!rate || rate <= 0) return 0;
+
+  return roundMoney(numericAmount / rate);
+}
+
+function enrichAccountUsd(account) {
+  const currency = normalizeCurrency(account.currency);
+  const rate = Number(account.exchangeRateSnapshot || 0);
+
+  return {
+    ...account,
+    baseCurrency: BASE_CURRENCY,
+    baseCapitalBalance: toUsd(account.capitalBalance, currency, rate),
+    baseProfitBalance: toUsd(account.profitBalance, currency, rate),
+    baseTotalProfitEarned: toUsd(account.totalProfitEarned, currency, rate),
+    baseTotalProfitWithdrawn: toUsd(
+      account.totalProfitWithdrawn,
+      currency,
+      rate,
+    ),
+    baseTotalCapitalWithdrawn: toUsd(
+      account.totalCapitalWithdrawn,
+      currency,
+      rate,
+    ),
+  };
+}
+
 async function getAutoPilotAnalytics(req, res) {
   try {
     const { limit = 10 } = req.query;
 
     const resultLimit = Math.min(Math.max(Number(limit) || 10, 1), 50);
 
-    const [
-      topCapitalAccounts,
-      topProfitAccounts,
-      topProfitEarners,
-      topWithdrawals,
-      packagePerformance,
-      transactionSummary,
-    ] = await Promise.all([
-      InvestmentAccount.find({})
-        .sort({ capitalBalance: -1 })
-        .limit(resultLimit)
-        .lean(),
+    const [accounts, successfulWithdrawals, transactionSummary] =
+      await Promise.all([
+        InvestmentAccount.find({}).lean(),
 
-      InvestmentAccount.find({})
-        .sort({ profitBalance: -1 })
-        .limit(resultLimit)
-        .lean(),
+        InvestmentWithdrawal.find({ status: "successful" }).lean(),
 
-      InvestmentAccount.find({})
-        .sort({ totalProfitEarned: -1 })
-        .limit(resultLimit)
-        .lean(),
-
-      InvestmentWithdrawal.find({ status: "successful" })
-        .sort({ amount: -1 })
-        .limit(resultLimit)
-        .lean(),
-
-      InvestmentAccount.aggregate([
-        {
-          $group: {
-            _id: "$packageId",
-            packageName: { $first: "$packageNameSnapshot" },
-            currency: { $first: "$currency" },
-            totalAccounts: { $sum: 1 },
-            activeAccounts: {
-              $sum: {
-                $cond: [{ $eq: ["$status", "active"] }, 1, 0],
+        InvestmentTransaction.aggregate([
+          {
+            $group: {
+              _id: {
+                type: "$type",
+                status: "$status",
+                baseCurrency: "$baseCurrency",
               },
+              count: { $sum: 1 },
+              totalAmount: { $sum: "$baseAmount" },
             },
-            totalCapitalBalance: { $sum: "$capitalBalance" },
-            totalProfitBalance: { $sum: "$profitBalance" },
-            totalProfitEarned: { $sum: "$totalProfitEarned" },
-            totalProfitWithdrawn: { $sum: "$totalProfitWithdrawn" },
-            totalCapitalWithdrawn: { $sum: "$totalCapitalWithdrawn" },
           },
-        },
-        {
-          $sort: {
-            totalCapitalBalance: -1,
+          {
+            $sort: {
+              totalAmount: -1,
+            },
           },
-        },
-      ]),
+        ]),
+      ]);
 
-      InvestmentTransaction.aggregate([
-        {
-          $group: {
-            _id: {
-              type: "$type",
-              status: "$status",
-              currency: "$currency",
-            },
-            count: { $sum: 1 },
-            totalAmount: { $sum: "$amount" },
-          },
-        },
-        {
-          $sort: {
-            totalAmount: -1,
-          },
-        },
-      ]),
-    ]);
+    const enrichedAccountsWithUsd = accounts.map(enrichAccountUsd);
+
+    const topCapitalAccounts = [...enrichedAccountsWithUsd]
+      .sort((a, b) => b.baseCapitalBalance - a.baseCapitalBalance)
+      .slice(0, resultLimit);
+
+    const topProfitAccounts = [...enrichedAccountsWithUsd]
+      .sort((a, b) => b.baseProfitBalance - a.baseProfitBalance)
+      .slice(0, resultLimit);
+
+    const topProfitEarners = [...enrichedAccountsWithUsd]
+      .sort((a, b) => b.baseTotalProfitEarned - a.baseTotalProfitEarned)
+      .slice(0, resultLimit);
+
+    const topWithdrawals = [...successfulWithdrawals]
+      .map((withdrawal) => ({
+        ...withdrawal,
+        baseCurrency: withdrawal.baseCurrency || BASE_CURRENCY,
+        baseAmount:
+          Number(withdrawal.baseAmount || 0) ||
+          toUsd(
+            withdrawal.amount,
+            withdrawal.currency,
+            withdrawal.exchangeRateSnapshot,
+          ),
+      }))
+      .sort((a, b) => b.baseAmount - a.baseAmount)
+      .slice(0, resultLimit);
+
+    const packageMap = {};
+
+    enrichedAccountsWithUsd.forEach((account) => {
+      const key = String(account.packageId || "unknown");
+
+      if (!packageMap[key]) {
+        packageMap[key] = {
+          packageId: account.packageId,
+          packageName: account.packageNameSnapshot || "Unknown Package",
+          baseCurrency: BASE_CURRENCY,
+          totalAccounts: 0,
+          activeAccounts: 0,
+          totalBaseCapitalBalance: 0,
+          totalBaseProfitBalance: 0,
+          totalBaseProfitEarned: 0,
+          totalBaseProfitWithdrawn: 0,
+          totalBaseCapitalWithdrawn: 0,
+        };
+      }
+
+      packageMap[key].totalAccounts += 1;
+
+      if (account.status === "active") {
+        packageMap[key].activeAccounts += 1;
+      }
+
+      packageMap[key].totalBaseCapitalBalance += account.baseCapitalBalance;
+      packageMap[key].totalBaseProfitBalance += account.baseProfitBalance;
+      packageMap[key].totalBaseProfitEarned += account.baseTotalProfitEarned;
+      packageMap[key].totalBaseProfitWithdrawn +=
+        account.baseTotalProfitWithdrawn;
+      packageMap[key].totalBaseCapitalWithdrawn +=
+        account.baseTotalCapitalWithdrawn;
+    });
+
+    const packagePerformance = Object.values(packageMap)
+      .map((item) => ({
+        ...item,
+        totalBaseCapitalBalance: roundMoney(item.totalBaseCapitalBalance),
+        totalBaseProfitBalance: roundMoney(item.totalBaseProfitBalance),
+        totalBaseProfitEarned: roundMoney(item.totalBaseProfitEarned),
+        totalBaseProfitWithdrawn: roundMoney(item.totalBaseProfitWithdrawn),
+        totalBaseCapitalWithdrawn: roundMoney(item.totalBaseCapitalWithdrawn),
+      }))
+      .sort((a, b) => b.totalBaseCapitalBalance - a.totalBaseCapitalBalance);
 
     const userIds = [
       ...new Set(
@@ -117,6 +192,7 @@ async function getAutoPilotAnalytics(req, res) {
     return res.status(200).json({
       success: true,
       data: {
+        baseCurrency: BASE_CURRENCY,
         topCapitalAccounts: enrichWithUser(topCapitalAccounts),
         topProfitAccounts: enrichWithUser(topProfitAccounts),
         topProfitEarners: enrichWithUser(topProfitEarners),

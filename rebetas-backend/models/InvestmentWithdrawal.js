@@ -29,18 +29,21 @@ const investmentWithdrawalSchema = new mongoose.Schema(
       index: true,
     },
 
+    // LOCAL requested amount
     amount: {
       type: Number,
       required: true,
       min: 0,
     },
 
+    // LOCAL net amount payable
     netAmount: {
       type: Number,
       default: 0,
       min: 0,
     },
 
+    // LOCAL fee amount
     feeAmount: {
       type: Number,
       default: 0,
@@ -50,15 +53,51 @@ const investmentWithdrawalSchema = new mongoose.Schema(
     feePolicy: {
       type: String,
       enum: ["platform_pays", "user_pays"],
-      default: "platform_pays",
+      default: "user_pays",
     },
 
+    // LOCAL user currency
     currency: {
       type: String,
       required: true,
       uppercase: true,
       trim: true,
       default: "USD",
+    },
+
+    // USD requested amount for admin tracking
+    baseAmount: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+
+    // USD net amount for admin tracking
+    baseNetAmount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    // USD fee amount for admin tracking
+    baseFeeAmount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    baseCurrency: {
+      type: String,
+      required: true,
+      uppercase: true,
+      trim: true,
+      default: "USD",
+    },
+
+    exchangeRateSnapshot: {
+      type: Number,
+      default: null,
+      min: 0,
     },
 
     payoutDetailId: {
@@ -182,10 +221,14 @@ const investmentWithdrawalSchema = new mongoose.Schema(
 investmentWithdrawalSchema.index({ userId: 1, createdAt: -1 });
 investmentWithdrawalSchema.index({ investmentAccountId: 1, status: 1 });
 investmentWithdrawalSchema.index({ withdrawalType: 1, status: 1 });
+investmentWithdrawalSchema.index({ currency: 1, status: 1 });
+investmentWithdrawalSchema.index({ baseCurrency: 1, status: 1 });
+
 investmentWithdrawalSchema.index(
   { reference: 1 },
   { unique: true, sparse: true },
 );
+
 investmentWithdrawalSchema.index(
   { providerReference: 1 },
   { unique: true, sparse: true },

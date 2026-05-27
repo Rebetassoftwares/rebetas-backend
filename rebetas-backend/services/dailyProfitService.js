@@ -3,10 +3,41 @@ const mongoose = require("mongoose");
 const InvestmentAccount = require("../models/InvestmentAccount");
 const InvestmentTransaction = require("../models/InvestmentTransaction");
 
+const BASE_CURRENCY = "USD";
+
+function roundMoney(value) {
+  return Number(Number(value || 0).toFixed(2));
+}
+
 function getStartOfToday() {
   const now = new Date();
 
   return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+}
+
+function normalizeCurrency(currency) {
+  return String(currency || BASE_CURRENCY)
+    .trim()
+    .toUpperCase();
+}
+
+function toUsd(amount, currency, exchangeRateSnapshot) {
+  const numericAmount = Number(amount || 0);
+  const normalizedCurrency = normalizeCurrency(currency);
+
+  if (!numericAmount) return 0;
+
+  if (normalizedCurrency === BASE_CURRENCY) {
+    return roundMoney(numericAmount);
+  }
+
+  const rate = Number(exchangeRateSnapshot || 0);
+
+  if (!rate || rate <= 0) {
+    return 0;
+  }
+
+  return roundMoney(numericAmount / rate);
 }
 
 function calculateDailyProfit(capitalBalance, dailyReturnPercentage) {
@@ -17,7 +48,7 @@ function calculateDailyProfit(capitalBalance, dailyReturnPercentage) {
     return 0;
   }
 
-  return Number(((capital * percentage) / 100).toFixed(2));
+  return roundMoney((capital * percentage) / 100);
 }
 
 async function creditDailyProfits({ adminId = null, force = false } = {}) {
@@ -45,11 +76,29 @@ async function creditDailyProfits({ adminId = null, force = false } = {}) {
 
     let creditedCount = 0;
     let skippedCount = 0;
+
     let totalProfitCredited = 0;
+    let totalBaseProfitCredited = 0;
+    let missingExchangeRateCount = 0;
 
     const creditedAccounts = [];
 
     for (const account of accounts) {
+      const currency = normalizeCurrency(account.currency);
+      const exchangeRateSnapshot =
+        currency === BASE_CURRENCY
+          ? 1
+          : Number(account.exchangeRateSnapshot || 0);
+
+      if (
+        currency !== BASE_CURRENCY &&
+        (!exchangeRateSnapshot || exchangeRateSnapshot <= 0)
+      ) {
+        skippedCount += 1;
+        missingExchangeRateCount += 1;
+        continue;
+      }
+
       const profitAmount = calculateDailyProfit(
         account.capitalBalance,
         account.dailyReturnPercentageSnapshot,
@@ -60,15 +109,21 @@ async function creditDailyProfits({ adminId = null, force = false } = {}) {
         continue;
       }
 
+      const baseProfitAmount = toUsd(
+        profitAmount,
+        currency,
+        exchangeRateSnapshot,
+      );
+
       const beforeCapital = account.capitalBalance;
       const beforeProfit = account.profitBalance;
 
-      account.profitBalance = Number(
-        (Number(account.profitBalance || 0) + profitAmount).toFixed(2),
+      account.profitBalance = roundMoney(
+        Number(account.profitBalance || 0) + profitAmount,
       );
 
-      account.totalProfitEarned = Number(
-        (Number(account.totalProfitEarned || 0) + profitAmount).toFixed(2),
+      account.totalProfitEarned = roundMoney(
+        Number(account.totalProfitEarned || 0) + profitAmount,
       );
 
       account.lastProfitCreditedAt = new Date();
@@ -82,8 +137,16 @@ async function creditDailyProfits({ adminId = null, force = false } = {}) {
             investmentAccountId: account._id,
             type: "profit_credit",
             status: "successful",
+
+            // user/local value
             amount: profitAmount,
-            currency: account.currency,
+            currency,
+
+            // admin/USD value
+            baseAmount: baseProfitAmount,
+            baseCurrency: BASE_CURRENCY,
+            exchangeRateSnapshot,
+
             balanceBefore: {
               capitalBalance: beforeCapital,
               profitBalance: beforeProfit,
@@ -109,24 +172,38 @@ async function creditDailyProfits({ adminId = null, force = false } = {}) {
 
       creditedCount += 1;
       totalProfitCredited += profitAmount;
+      totalBaseProfitCredited += baseProfitAmount;
 
       creditedAccounts.push({
         accountId: account._id,
         userId: account.userId,
         packageName: account.packageNameSnapshot,
-        capitalBalance: account.capitalBalance,
         dailyReturnPercentage: account.dailyReturnPercentageSnapshot,
+
+        capitalBalance: account.capitalBalance,
         profitCredited: profitAmount,
-        currency: account.currency,
+        currency,
+
+        baseCapitalBalance: toUsd(
+          account.capitalBalance,
+          currency,
+          exchangeRateSnapshot,
+        ),
+        baseProfitCredited: baseProfitAmount,
+        baseCurrency: BASE_CURRENCY,
+        exchangeRateSnapshot,
       });
     }
 
     await session.commitTransaction();
 
     return {
+      baseCurrency: BASE_CURRENCY,
       creditedCount,
       skippedCount,
-      totalProfitCredited: Number(totalProfitCredited.toFixed(2)),
+      missingExchangeRateCount,
+      totalProfitCredited: roundMoney(totalProfitCredited),
+      totalBaseProfitCredited: roundMoney(totalBaseProfitCredited),
       creditedAccounts,
     };
   } catch (error) {

@@ -10,7 +10,9 @@ const {
   verifyFlutterwavePayment,
 } = require("../services/payments/flutterwaveService");
 
-const { getExchangeRate } = require("../services/exchangeRateService");
+const {
+  getAdminExchangeRate,
+} = require("../services/currencyConversionService");
 
 function generateAutoPilotReference() {
   return "AP_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
@@ -22,12 +24,22 @@ exports.initializeDeposit = async (req, res) => {
   try {
     const user = req.user;
     const userId = getUserId(req);
-    const { packageId, displayCurrency } = req.body;
+
+    const { packageId } = req.body;
 
     if (!packageId) {
       return res.status(400).json({
         success: false,
         message: "AutoPilot Package selection is required",
+      });
+    }
+
+    const localCurrency = String(user?.currency || "").toUpperCase();
+
+    if (!localCurrency) {
+      return res.status(400).json({
+        success: false,
+        message: "User currency is required for AutoPilot payment",
       });
     }
 
@@ -42,6 +54,10 @@ exports.initializeDeposit = async (req, res) => {
         message: "Selected AutoPilot Package not found",
       });
     }
+
+    const baseCurrency = String(
+      selectedPackage.currency || "USD",
+    ).toUpperCase();
 
     const existingAccount = await InvestmentAccount.findOne({
       userId,
@@ -71,28 +87,36 @@ exports.initializeDeposit = async (req, res) => {
       });
     }
 
-    const userDisplayCurrency = String(
-      displayCurrency || selectedPackage.currency,
-    ).toUpperCase();
+    let exchangeRateSnapshot = 1;
 
-    let exchangeRateSnapshot = null;
-
-    if (userDisplayCurrency !== selectedPackage.currency) {
-      exchangeRateSnapshot = await getExchangeRate({
-        fromCurrency: selectedPackage.currency,
-        toCurrency: userDisplayCurrency,
+    if (localCurrency !== baseCurrency) {
+      exchangeRateSnapshot = await getAdminExchangeRate({
+        baseCurrency,
+        targetCurrency: localCurrency,
       });
     }
+
+    const localizedAmount = Number(
+      (Number(selectedPackage.amount) * Number(exchangeRateSnapshot)).toFixed(
+        2,
+      ),
+    );
 
     const reference = generateAutoPilotReference();
 
     const deposit = await InvestmentDeposit.create({
       userId,
       packageId: selectedPackage._id,
-      amount: selectedPackage.amount,
-      currency: selectedPackage.currency,
-      userDisplayCurrency,
+
+      amount: localizedAmount,
+      currency: localCurrency,
+
+      baseAmount: selectedPackage.amount,
+      baseCurrency,
+
+      userDisplayCurrency: localCurrency,
       exchangeRateSnapshot,
+
       provider: "flutterwave",
       providerReference: reference,
       status: "pending",
@@ -100,8 +124,8 @@ exports.initializeDeposit = async (req, res) => {
 
     const paymentData = await initializeFlutterwavePayment({
       email: user.email,
-      amount: selectedPackage.amount,
-      currency: selectedPackage.currency,
+      amount: localizedAmount,
+      currency: localCurrency,
       reference,
       redirectUrl: `${process.env.CLIENT_URL}/autopilot/payment/verify`,
       title: "Rebetas AutoPilot",
@@ -114,12 +138,19 @@ exports.initializeDeposit = async (req, res) => {
         purpose: "autopilot_activation",
         userId: String(userId),
         packageId: String(selectedPackage._id),
+
+        baseAmount: selectedPackage.amount,
+        baseCurrency,
+
+        localAmount: localizedAmount,
+        localCurrency,
+
+        exchangeRateSnapshot,
       },
     });
 
     if (!paymentData) {
       deposit.status = "failed";
-
       await deposit.save();
 
       return res.status(500).json({
@@ -138,12 +169,15 @@ exports.initializeDeposit = async (req, res) => {
       message: "AutoPilot Package payment initialized successfully",
       data: {
         reference,
-        amount: selectedPackage.amount,
-        currency: selectedPackage.currency,
-        userDisplayCurrency,
+
+        amount: localizedAmount,
+        currency: localCurrency,
+
+        baseAmount: selectedPackage.amount,
+        baseCurrency,
+
         exchangeRateSnapshot,
         paymentLink: deposit.paymentLink,
-        paymentData,
       },
     });
   } catch (error) {
@@ -154,7 +188,8 @@ exports.initializeDeposit = async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      message: "Failed to initialize AutoPilot Package payment",
+      message:
+        error.message || "Failed to initialize AutoPilot Package payment",
     });
   }
 };
@@ -298,7 +333,10 @@ exports.verifyDeposit = async (req, res) => {
       });
     }
 
-    const capitalAmount = Number(Number(selectedPackage.amount).toFixed(2));
+    const capitalAmount = Number(deposit.amount);
+    const baseAmount = Number(deposit.baseAmount || selectedPackage.amount);
+    const baseCurrency = String(deposit.baseCurrency || "USD").toUpperCase();
+    const exchangeRateSnapshot = Number(deposit.exchangeRateSnapshot || 1);
 
     const account = await InvestmentAccount.create(
       [
@@ -306,16 +344,26 @@ exports.verifyDeposit = async (req, res) => {
           userId: deposit.userId,
           packageId: selectedPackage._id,
           packageNameSnapshot: selectedPackage.name,
+
           packageAmountSnapshot: capitalAmount,
+
+          basePackageAmountSnapshot: baseAmount,
+          basePackageCurrencySnapshot: baseCurrency,
+
           packageBenefitsSnapshot: selectedPackage.benefits,
+
           dailyReturnPercentageSnapshot: selectedPackage.dailyReturnPercentage,
-          currency: selectedPackage.currency,
+
+          currency: deposit.currency,
           userDisplayCurrency: deposit.userDisplayCurrency,
-          exchangeRateSnapshot: deposit.exchangeRateSnapshot,
+          exchangeRateSnapshot,
+
           capitalBalance: capitalAmount,
           profitBalance: 0,
+
           status: "active",
           activatedAt: new Date(),
+
           capitalWithdrawAvailableAt: new Date(
             Date.now() + 30 * 24 * 60 * 60 * 1000,
           ),
@@ -329,25 +377,39 @@ exports.verifyDeposit = async (req, res) => {
         {
           userId: deposit.userId,
           investmentAccountId: account[0]._id,
+
           type: "package_activation",
           status: "successful",
+
+          // local user value
           amount: capitalAmount,
-          currency: selectedPackage.currency,
+          currency: deposit.currency,
+
+          // admin USD value
+          baseAmount,
+          baseCurrency,
+          exchangeRateSnapshot,
+
           balanceBefore: {
             capitalBalance: 0,
             profitBalance: 0,
           },
+
           balanceAfter: {
             capitalBalance: capitalAmount,
             profitBalance: 0,
           },
+
           reference,
+
           description: `${selectedPackage.name} AutoPilot Package activated`,
+
           metadata: {
             packageId: selectedPackage._id,
             packageNameSnapshot: selectedPackage.name,
-            userDisplayCurrency: deposit.userDisplayCurrency,
-            exchangeRateSnapshot: deposit.exchangeRateSnapshot,
+
+            localAmount: capitalAmount,
+            localCurrency: deposit.currency,
           },
         },
       ],
@@ -362,7 +424,6 @@ exports.verifyDeposit = async (req, res) => {
     deposit.rawProviderResponse = verified;
 
     await deposit.save({ session });
-
     await session.commitTransaction();
 
     return res.status(200).json({

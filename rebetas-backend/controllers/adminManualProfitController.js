@@ -3,6 +3,35 @@ const mongoose = require("mongoose");
 const InvestmentAccount = require("../models/InvestmentAccount");
 const InvestmentTransaction = require("../models/InvestmentTransaction");
 
+const BASE_CURRENCY = "USD";
+
+function roundMoney(value) {
+  return Number(Number(value || 0).toFixed(2));
+}
+
+function normalizeCurrency(currency) {
+  return String(currency || BASE_CURRENCY)
+    .trim()
+    .toUpperCase();
+}
+
+function toUsd(amount, currency, exchangeRateSnapshot) {
+  const numericAmount = Number(amount || 0);
+  const normalizedCurrency = normalizeCurrency(currency);
+
+  if (!numericAmount) return 0;
+  if (normalizedCurrency === BASE_CURRENCY) return roundMoney(numericAmount);
+
+  const rate = Number(exchangeRateSnapshot || 0);
+  if (!rate || rate <= 0) {
+    throw new Error(
+      "Exchange rate snapshot is missing for this AutoPilot account",
+    );
+  }
+
+  return roundMoney(numericAmount / rate);
+}
+
 async function creditManualProfit(req, res) {
   const session = await mongoose.startSession();
 
@@ -44,15 +73,20 @@ async function creditManualProfit(req, res) {
       });
     }
 
+    const currency = normalizeCurrency(account.currency);
+    const exchangeRateSnapshot = Number(account.exchangeRateSnapshot || 0);
+
+    const baseAmount = toUsd(numericAmount, currency, exchangeRateSnapshot);
+
     const beforeCapital = account.capitalBalance;
     const beforeProfit = account.profitBalance;
 
-    account.profitBalance = Number(
-      (Number(account.profitBalance || 0) + numericAmount).toFixed(2),
+    account.profitBalance = roundMoney(
+      Number(account.profitBalance || 0) + numericAmount,
     );
 
-    account.totalProfitEarned = Number(
-      (Number(account.totalProfitEarned || 0) + numericAmount).toFixed(2),
+    account.totalProfitEarned = roundMoney(
+      Number(account.totalProfitEarned || 0) + numericAmount,
     );
 
     await account.save({ session });
@@ -64,8 +98,17 @@ async function creditManualProfit(req, res) {
           investmentAccountId: account._id,
           type: "profit_credit",
           status: "successful",
+
+          // local user value
           amount: numericAmount,
-          currency: account.currency,
+          currency,
+
+          // USD admin value
+          baseAmount,
+          baseCurrency: BASE_CURRENCY,
+          exchangeRateSnapshot:
+            currency === BASE_CURRENCY ? 1 : exchangeRateSnapshot,
+
           balanceBefore: {
             capitalBalance: beforeCapital,
             profitBalance: beforeProfit,
@@ -104,7 +147,7 @@ async function creditManualProfit(req, res) {
 
     return res.status(500).json({
       success: false,
-      message: "Failed to apply Manual Profit Credit",
+      message: error.message || "Failed to apply Manual Profit Credit",
     });
   } finally {
     session.endSession();

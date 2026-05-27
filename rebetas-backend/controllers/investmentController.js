@@ -7,27 +7,90 @@ const InvestmentWithdrawal = require("../models/InvestmentWithdrawal");
 
 const PayoutDetail = require("../models/PayoutDetail");
 
+const {
+  convertFromBaseCurrency,
+} = require("../services/currencyConversionService");
+
+const BASE_CURRENCY = "USD";
+
 const getUserId = (req) => req.user?._id || req.user?.id;
+
+function roundMoney(value) {
+  return Number(Number(value || 0).toFixed(2));
+}
+
+function normalizeCurrency(currency) {
+  return String(currency || BASE_CURRENCY)
+    .trim()
+    .toUpperCase();
+}
+
+function toUsd(amount, currency, exchangeRateSnapshot) {
+  const numericAmount = Number(amount || 0);
+  const normalizedCurrency = normalizeCurrency(currency);
+
+  if (!numericAmount) return 0;
+  if (normalizedCurrency === BASE_CURRENCY) return roundMoney(numericAmount);
+
+  const rate = Number(exchangeRateSnapshot || 0);
+
+  if (!rate || rate <= 0) {
+    throw new Error(
+      "Exchange rate snapshot is missing for this AutoPilot account",
+    );
+  }
+
+  return roundMoney(numericAmount / rate);
+}
 
 exports.getPackages = async (req, res) => {
   try {
+    const userCurrency = normalizeCurrency(req.user?.currency);
+
     const packages = await InvestmentPackage.find({
       isActive: true,
-    }).sort({
-      sortOrder: 1,
-      amount: 1,
-    });
+    })
+      .sort({
+        sortOrder: 1,
+        amount: 1,
+      })
+      .lean();
+
+    const localizedPackages = await Promise.all(
+      packages.map(async (item) => {
+        const baseCurrency = normalizeCurrency(item.currency || BASE_CURRENCY);
+
+        const converted = await convertFromBaseCurrency({
+          amount: item.amount,
+          baseCurrency,
+          targetCurrency: userCurrency,
+        });
+
+        return {
+          ...item,
+
+          // user/local display
+          amount: converted.targetAmount,
+          currency: converted.targetCurrency,
+
+          // admin/USD value
+          baseAmount: converted.baseAmount,
+          baseCurrency: converted.baseCurrency,
+          exchangeRateSnapshot: converted.exchangeRate,
+        };
+      }),
+    );
 
     return res.status(200).json({
       success: true,
-      data: packages,
+      data: localizedPackages,
     });
   } catch (error) {
     console.error("Get AutoPilot Packages error:", error);
 
     return res.status(500).json({
       success: false,
-      message: "Failed to fetch AutoPilot Packages",
+      message: error.message || "Failed to fetch AutoPilot Packages",
     });
   }
 };
@@ -132,11 +195,19 @@ exports.compoundProfit = async (req, res) => {
       });
     }
 
+    const currency = normalizeCurrency(account.currency);
+    const exchangeRateSnapshot =
+      currency === BASE_CURRENCY
+        ? 1
+        : Number(account.exchangeRateSnapshot || 0);
+
+    const baseAmount = toUsd(amount, currency, exchangeRateSnapshot);
+
     const beforeCapital = Number(account.capitalBalance || 0);
     const beforeProfit = Number(account.profitBalance || 0);
 
-    account.profitBalance = Number((beforeProfit - amount).toFixed(2));
-    account.capitalBalance = Number((beforeCapital + amount).toFixed(2));
+    account.profitBalance = roundMoney(beforeProfit - amount);
+    account.capitalBalance = roundMoney(beforeCapital + amount);
     account.lastReinvestDate = new Date();
     account.capitalWithdrawAvailableAt = new Date(
       Date.now() + 30 * 24 * 60 * 60 * 1000,
@@ -151,8 +222,14 @@ exports.compoundProfit = async (req, res) => {
           investmentAccountId: account._id,
           type: "profit_reinvest",
           status: "successful",
+
           amount,
-          currency: account.currency,
+          currency,
+
+          baseAmount,
+          baseCurrency: BASE_CURRENCY,
+          exchangeRateSnapshot,
+
           balanceBefore: {
             capitalBalance: beforeCapital,
             profitBalance: beforeProfit,
@@ -182,7 +259,7 @@ exports.compoundProfit = async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      message: "Failed to complete Compound Profit",
+      message: error.message || "Failed to complete Compound Profit",
     });
   } finally {
     session.endSession();
@@ -260,10 +337,18 @@ exports.withdrawProfit = async (req, res) => {
       });
     }
 
+    const currency = normalizeCurrency(account.currency);
+    const exchangeRateSnapshot =
+      currency === BASE_CURRENCY
+        ? 1
+        : Number(account.exchangeRateSnapshot || 0);
+
+    const baseAmount = toUsd(amount, currency, exchangeRateSnapshot);
+
     const beforeCapital = Number(account.capitalBalance || 0);
     const beforeProfit = Number(account.profitBalance || 0);
 
-    account.profitBalance = Number((beforeProfit - amount).toFixed(2));
+    account.profitBalance = roundMoney(beforeProfit - amount);
 
     await account.save({ session });
 
@@ -274,8 +359,14 @@ exports.withdrawProfit = async (req, res) => {
           investmentAccountId: account._id,
           type: "profit_withdrawal",
           status: "pending",
+
           amount,
-          currency: account.currency,
+          currency,
+
+          baseAmount,
+          baseCurrency: BASE_CURRENCY,
+          exchangeRateSnapshot,
+
           balanceBefore: {
             capitalBalance: beforeCapital,
             profitBalance: beforeProfit,
@@ -297,8 +388,19 @@ exports.withdrawProfit = async (req, res) => {
           investmentAccountId: account._id,
           transactionId: transaction[0]._id,
           withdrawalType: "profit",
+
           amount,
-          currency: account.currency,
+          netAmount: 0,
+          feeAmount: 0,
+          feePolicy: "user_pays",
+          currency,
+
+          baseAmount,
+          baseNetAmount: 0,
+          baseFeeAmount: 0,
+          baseCurrency: BASE_CURRENCY,
+          exchangeRateSnapshot,
+
           payoutDetailId: payoutDetails._id,
           payoutDetails: {
             accountName: payoutDetails.accountName,
@@ -326,7 +428,7 @@ exports.withdrawProfit = async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      message: "Failed to submit Profit Withdrawal request",
+      message: error.message || "Failed to submit Profit Withdrawal request",
     });
   } finally {
     session.endSession();
@@ -408,10 +510,18 @@ exports.withdrawCapital = async (req, res) => {
       });
     }
 
+    const currency = normalizeCurrency(account.currency);
+    const exchangeRateSnapshot =
+      currency === BASE_CURRENCY
+        ? 1
+        : Number(account.exchangeRateSnapshot || 0);
+
+    const baseAmount = toUsd(amount, currency, exchangeRateSnapshot);
+
     const beforeCapital = Number(account.capitalBalance || 0);
     const beforeProfit = Number(account.profitBalance || 0);
 
-    account.capitalBalance = Number((beforeCapital - amount).toFixed(2));
+    account.capitalBalance = roundMoney(beforeCapital - amount);
 
     await account.save({ session });
 
@@ -422,8 +532,14 @@ exports.withdrawCapital = async (req, res) => {
           investmentAccountId: account._id,
           type: "capital_withdrawal",
           status: "pending",
+
           amount,
-          currency: account.currency,
+          currency,
+
+          baseAmount,
+          baseCurrency: BASE_CURRENCY,
+          exchangeRateSnapshot,
+
           balanceBefore: {
             capitalBalance: beforeCapital,
             profitBalance: beforeProfit,
@@ -445,8 +561,19 @@ exports.withdrawCapital = async (req, res) => {
           investmentAccountId: account._id,
           transactionId: transaction[0]._id,
           withdrawalType: "capital",
+
           amount,
-          currency: account.currency,
+          netAmount: 0,
+          feeAmount: 0,
+          feePolicy: "user_pays",
+          currency,
+
+          baseAmount,
+          baseNetAmount: 0,
+          baseFeeAmount: 0,
+          baseCurrency: BASE_CURRENCY,
+          exchangeRateSnapshot,
+
           payoutDetailId: payoutDetails._id,
           payoutDetails: {
             accountName: payoutDetails.accountName,
@@ -474,7 +601,7 @@ exports.withdrawCapital = async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      message: "Failed to submit Capital Withdrawal",
+      message: error.message || "Failed to submit Capital Withdrawal",
     });
   } finally {
     session.endSession();

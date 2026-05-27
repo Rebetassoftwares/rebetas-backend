@@ -55,6 +55,7 @@ const userNotificationRoutes = require("./routes/userNotificationRoutes");
 const adminNotificationRoutes = require("./routes/adminNotificationRoutes");
 const adminDailyProfitRoutes = require("./routes/adminDailyProfitRoutes");
 const adminInvestmentAccountRoutes = require("./routes/adminInvestmentAccountRoutes");
+const adminCurrencyRoutes = require("./routes/adminCurrencyRoutes");
 
 const app = express();
 
@@ -133,6 +134,7 @@ app.use("/api/notifications", userNotificationRoutes);
 app.use("/api/admin/notifications", adminNotificationRoutes);
 app.use("/api/admin/autopilot-daily-profit", adminDailyProfitRoutes);
 app.use("/api/admin/autopilot-accounts", adminInvestmentAccountRoutes);
+app.use("/api/admin/currency-rates", adminCurrencyRoutes);
 
 /*
 HEALTH CHECK

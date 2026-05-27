@@ -25,7 +25,12 @@ async function registerUser(req, res) {
       fullName,
       email,
       phone,
+
       country,
+      countryIsoCode,
+      countryDialCode,
+      currency,
+
       password,
       confirmPassword,
       promoCode,
@@ -38,12 +43,13 @@ async function registerUser(req, res) {
       !email ||
       !phone ||
       !country ||
+      !currency ||
       !password ||
       !confirmPassword
     ) {
       return res.status(400).json({
         message:
-          "username, fullName, email, phone, country and password are required",
+          "username, fullName, email, phone, country, currency and password are required",
       });
     }
 
@@ -139,6 +145,9 @@ async function registerUser(req, res) {
       email: normalizedEmail,
       phone: normalizedPhone,
       country,
+      countryIsoCode,
+      countryDialCode,
+      currency: String(currency).toUpperCase(),
       password: hashedPassword,
       emailVerificationToken: verificationToken,
       promoCodeUsed,

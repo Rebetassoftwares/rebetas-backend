@@ -2,6 +2,12 @@ const InvestmentTransaction = require("../models/InvestmentTransaction");
 const InvestmentAccount = require("../models/InvestmentAccount");
 const User = require("../models/User");
 
+function normalizeCurrency(currency) {
+  return String(currency || "")
+    .trim()
+    .toUpperCase();
+}
+
 async function getTransactions(req, res) {
   try {
     const {
@@ -10,6 +16,7 @@ async function getTransactions(req, res) {
       userId,
       accountId,
       currency,
+      baseCurrency,
       date,
       page = 1,
       limit = 50,
@@ -21,7 +28,8 @@ async function getTransactions(req, res) {
     if (status) filter.status = status;
     if (userId) filter.userId = userId;
     if (accountId) filter.investmentAccountId = accountId;
-    if (currency) filter.currency = String(currency).toUpperCase();
+    if (currency) filter.currency = normalizeCurrency(currency);
+    if (baseCurrency) filter.baseCurrency = normalizeCurrency(baseCurrency);
 
     if (date) {
       const startDate = new Date(date);
@@ -78,7 +86,7 @@ async function getTransactions(req, res) {
         _id: { $in: accountIds },
       })
         .select(
-          "packageNameSnapshot packageAmountSnapshot capitalBalance profitBalance status currency",
+          "packageNameSnapshot packageAmountSnapshot capitalBalance profitBalance status currency exchangeRateSnapshot",
         )
         .lean(),
     ]);
@@ -103,6 +111,7 @@ async function getTransactions(req, res) {
     return res.status(200).json({
       success: true,
       data: {
+        baseCurrency: "USD",
         transactions: enrichedTransactions,
         pagination: {
           total,
@@ -143,7 +152,7 @@ async function getTransactionById(req, res) {
       transaction.investmentAccountId
         ? InvestmentAccount.findById(transaction.investmentAccountId)
             .select(
-              "packageNameSnapshot packageAmountSnapshot capitalBalance profitBalance status currency",
+              "packageNameSnapshot packageAmountSnapshot capitalBalance profitBalance status currency exchangeRateSnapshot",
             )
             .lean()
         : null,
@@ -152,6 +161,7 @@ async function getTransactionById(req, res) {
     return res.status(200).json({
       success: true,
       data: {
+        baseCurrency: "USD",
         ...transaction,
         user,
         account,

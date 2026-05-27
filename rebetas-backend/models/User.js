@@ -34,6 +34,26 @@ const userSchema = new mongoose.Schema(
       required: true,
     },
 
+    countryIsoCode: {
+      type: String,
+      uppercase: true,
+      trim: true,
+      default: null,
+    },
+
+    countryDialCode: {
+      type: String,
+      trim: true,
+      default: null,
+    },
+
+    currency: {
+      type: String,
+      uppercase: true,
+      trim: true,
+      default: null,
+    },
+
     password: {
       type: String,
       required: true,
@@ -84,8 +104,10 @@ const userSchema = new mongoose.Schema(
       enum: ["user", "admin"],
       default: "user",
     },
+
     loginOtp: String,
     loginOtpExpires: Date,
+
     accountStatus: {
       type: String,
       enum: ["active", "suspended", "banned"],

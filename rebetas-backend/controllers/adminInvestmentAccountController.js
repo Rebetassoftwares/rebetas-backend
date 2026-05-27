@@ -27,7 +27,7 @@ async function getAllAccounts(req, res) {
     const users = await User.find({
       _id: { $in: userIds },
     })
-      .select("fullName username email phone country accountStatus role")
+      .select("fullName username email phone country role")
       .lean();
 
     const userMap = {};
@@ -198,7 +198,7 @@ async function closeAccount(req, res) {
     if (activeWithdrawal) {
       return res.status(400).json({
         success: false,
-        message: "This AutoPilot account has an active withdrawal request",
+        message: "This AutoPilot account has a pending withdrawal request",
       });
     }
 

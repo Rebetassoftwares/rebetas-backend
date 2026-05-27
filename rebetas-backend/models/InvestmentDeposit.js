@@ -29,13 +29,30 @@ const investmentDepositSchema = new mongoose.Schema(
       default: null,
     },
 
+    // LOCAL amount charged to user
     amount: {
       type: Number,
       required: true,
       min: 0,
     },
 
+    // LOCAL payment currency
     currency: {
+      type: String,
+      required: true,
+      uppercase: true,
+      trim: true,
+      default: "USD",
+    },
+
+    // ORIGINAL USD package amount
+    baseAmount: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+
+    baseCurrency: {
       type: String,
       required: true,
       uppercase: true,
@@ -105,5 +122,7 @@ const investmentDepositSchema = new mongoose.Schema(
 
 investmentDepositSchema.index({ userId: 1, createdAt: -1 });
 investmentDepositSchema.index({ providerReference: 1 }, { unique: true });
+investmentDepositSchema.index({ currency: 1, status: 1 });
+investmentDepositSchema.index({ baseCurrency: 1 });
 
 module.exports = mongoose.model("InvestmentDeposit", investmentDepositSchema);

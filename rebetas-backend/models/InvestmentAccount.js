@@ -22,10 +22,26 @@ const investmentAccountSchema = new mongoose.Schema(
       trim: true,
     },
 
+    // LOCAL amount user paid after conversion
     packageAmountSnapshot: {
       type: Number,
       required: true,
       min: 0,
+    },
+
+    // ORIGINAL USD package amount
+    basePackageAmountSnapshot: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+
+    basePackageCurrencySnapshot: {
+      type: String,
+      required: true,
+      uppercase: true,
+      trim: true,
+      default: "USD",
     },
 
     packageBenefitsSnapshot: {
@@ -39,6 +55,7 @@ const investmentAccountSchema = new mongoose.Schema(
       min: 0,
     },
 
+    // LOCAL account currency used for balances, profit, compound, withdrawals
     currency: {
       type: String,
       required: true,
@@ -125,5 +142,6 @@ const investmentAccountSchema = new mongoose.Schema(
 
 investmentAccountSchema.index({ userId: 1, status: 1 });
 investmentAccountSchema.index({ userId: 1, packageId: 1 });
+investmentAccountSchema.index({ currency: 1, status: 1 });
 
 module.exports = mongoose.model("InvestmentAccount", investmentAccountSchema);

@@ -9,18 +9,21 @@ const investmentPackageSchema = new mongoose.Schema(
       maxlength: 80,
     },
 
+    // BASE USD package amount controlled by admin
     amount: {
       type: Number,
       required: true,
       min: 0,
     },
 
+    // Packages are managed in USD only
     currency: {
       type: String,
       required: true,
       uppercase: true,
       trim: true,
       default: "USD",
+      enum: ["USD"],
     },
 
     dailyReturnPercentage: {
@@ -38,12 +41,6 @@ const investmentPackageSchema = new mongoose.Schema(
       type: String,
       trim: true,
       default: "",
-    },
-
-    minimumUpgradeAmount: {
-      type: Number,
-      default: 0,
-      min: 0,
     },
 
     sortOrder: {

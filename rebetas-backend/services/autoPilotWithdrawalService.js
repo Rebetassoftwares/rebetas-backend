@@ -12,6 +12,37 @@ const {
   generateWithdrawalReference,
 } = require("./flutterwaveTransferService");
 
+const BASE_CURRENCY = "USD";
+
+function roundMoney(value) {
+  return Number(Number(value || 0).toFixed(2));
+}
+
+function normalizeCurrency(currency) {
+  return String(currency || BASE_CURRENCY)
+    .trim()
+    .toUpperCase();
+}
+
+function toUsd(amount, currency, exchangeRateSnapshot) {
+  const numericAmount = Number(amount || 0);
+  const normalizedCurrency = normalizeCurrency(currency);
+
+  if (!numericAmount) return 0;
+
+  if (normalizedCurrency === BASE_CURRENCY) {
+    return roundMoney(numericAmount);
+  }
+
+  const rate = Number(exchangeRateSnapshot || 0);
+
+  if (!rate || rate <= 0) {
+    return 0;
+  }
+
+  return roundMoney(numericAmount / rate);
+}
+
 async function createAuditLog({
   withdrawalId,
   actorId = null,
@@ -243,6 +274,17 @@ async function payWithdrawal({
       throw new Error("Amount too small after fees");
     }
 
+    const currency = normalizeCurrency(withdrawal.currency);
+
+    const exchangeRateSnapshot =
+      currency === BASE_CURRENCY
+        ? 1
+        : Number(withdrawal.exchangeRateSnapshot || 0);
+
+    const baseFeeAmount = toUsd(feeAmount, currency, exchangeRateSnapshot);
+
+    const baseNetAmount = toUsd(netAmount, currency, exchangeRateSnapshot);
+
     const transferResult = await initiateBankTransfer({
       amount: netAmount,
       currency: withdrawal.currency,
@@ -268,6 +310,11 @@ async function payWithdrawal({
 
     withdrawal.feeAmount = feeAmount;
     withdrawal.netAmount = netAmount;
+
+    withdrawal.baseFeeAmount = baseFeeAmount;
+    withdrawal.baseNetAmount = baseNetAmount;
+    withdrawal.baseCurrency = BASE_CURRENCY;
+    withdrawal.exchangeRateSnapshot = exchangeRateSnapshot;
     withdrawal.reference = reference;
     withdrawal.providerReference = reference;
 
@@ -426,6 +473,12 @@ async function markPaidFromWebhook({ withdrawal, payload }) {
 
     if (payload?.data?.fee !== undefined && payload?.data?.fee !== null) {
       fresh.feeAmount = Number(payload.data.fee || 0);
+
+      fresh.baseFeeAmount = toUsd(
+        fresh.feeAmount,
+        fresh.currency,
+        fresh.exchangeRateSnapshot,
+      );
     }
 
     if (fresh.withdrawalType === "capital") {
@@ -551,6 +604,12 @@ async function markFailedFromWebhook({ withdrawal, payload }) {
 
     if (payload?.data?.fee !== undefined && payload?.data?.fee !== null) {
       fresh.feeAmount = Number(payload.data.fee || 0);
+
+      fresh.baseFeeAmount = toUsd(
+        fresh.feeAmount,
+        fresh.currency,
+        fresh.exchangeRateSnapshot,
+      );
     }
 
     await account.save({ session });
