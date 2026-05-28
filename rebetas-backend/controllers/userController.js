@@ -367,10 +367,10 @@ async function loginUser(req, res) {
       });
     }
 
-    const normalizedUsername = String(username).toLowerCase();
+    const identifier = String(username).trim().toLowerCase();
 
     const user = await User.findOne({
-      username: normalizedUsername,
+      $or: [{ username: identifier }, { email: identifier }],
     });
 
     if (!user) {
