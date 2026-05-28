@@ -79,6 +79,7 @@ export default function Footer() {
             AI powered virtual football prediction software designed to improve
             betting decisions.
           </p>
+          <p className="footer-address">1900 Camden Ave, San Jose, CA 95124</p>
         </div>
 
         <div>
