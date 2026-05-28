@@ -90,7 +90,7 @@ function App() {
 
   return (
     <BrowserRouter>
-      <AutoPilotLaunchPopup />;
+      <AutoPilotLaunchPopup />
       <Routes>
         {/* -------- PUBLIC -------- */}
         <Route path="/" element={<Landing />} />
