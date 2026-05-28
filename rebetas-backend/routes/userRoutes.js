@@ -1,13 +1,16 @@
 const express = require("express");
 const router = express.Router();
 
+const authenticateUser = require("../middleware/authenticateUser");
+
 const {
   registerUser,
   verifyEmail,
   loginUser,
-  verifyLoginOtp, // ✅ added
-  resendLoginOtp, // ✅ added
+  verifyLoginOtp,
+  resendLoginOtp,
   logoutUser,
+  getMyReferral,
 } = require("../controllers/userController");
 
 // 🔐 AUTH FLOW
@@ -15,13 +18,13 @@ const {
 // Register
 router.post("/register", registerUser);
 
-// Verify email (from email link)
+// Verify email
 router.get("/verify-email", verifyEmail);
 
-// Login (returns OTP step)
+// Login
 router.post("/login", loginUser);
 
-// Verify OTP (completes login)
+// Verify OTP
 router.post("/verify-login-otp", verifyLoginOtp);
 
 // Resend OTP
@@ -29,5 +32,8 @@ router.post("/resend-login-otp", resendLoginOtp);
 
 // Logout
 router.post("/logout", logoutUser);
+
+// Referral code and link
+router.get("/referral", authenticateUser, getMyReferral);
 
 module.exports = router;

@@ -1,4 +1,6 @@
 const Notification = require("../models/Notification");
+const { sendEmail } = require("./emailService");
+const { getNotificationTemplate } = require("../utils/notificationTemplates");
 
 async function createNotification({
   userId,
@@ -16,7 +18,7 @@ async function createNotification({
     throw new Error("Notification title and message are required");
   }
 
-  const notification = await Notification.create({
+  return Notification.create({
     userId,
     title,
     message,
@@ -24,6 +26,45 @@ async function createNotification({
     channel,
     metadata,
   });
+}
+
+async function sendAutoPilotNotification({
+  event,
+  user,
+  data = {},
+  metadata = {},
+}) {
+  if (!user?._id) {
+    throw new Error("Notification user is required");
+  }
+
+  const template = getNotificationTemplate(event, { user, data });
+
+  const notification = await createNotification({
+    userId: user._id,
+    title: template.title,
+    message: template.message,
+    type: template.type,
+    channel: "in_app",
+    metadata: {
+      event,
+      ...metadata,
+      ...data,
+    },
+  });
+
+  if (
+    template.email &&
+    user.email &&
+    template.emailSubject &&
+    template.emailHtml
+  ) {
+    await sendEmail({
+      to: user.email,
+      subject: template.emailSubject,
+      html: template.emailHtml,
+    });
+  }
 
   return notification;
 }
@@ -43,4 +84,5 @@ async function createManyNotifications(notifications = []) {
 module.exports = {
   createNotification,
   createManyNotifications,
+  sendAutoPilotNotification,
 };

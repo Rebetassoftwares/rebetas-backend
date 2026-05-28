@@ -3,6 +3,140 @@ const InvestmentTransaction = require("../models/InvestmentTransaction");
 const InvestmentWithdrawal = require("../models/InvestmentWithdrawal");
 const User = require("../models/User");
 
+const BASE_CURRENCY = "USD";
+
+function roundMoney(value) {
+  return Number(Number(value || 0).toFixed(2));
+}
+
+function normalizeCurrency(currency) {
+  return String(currency || BASE_CURRENCY)
+    .trim()
+    .toUpperCase();
+}
+
+function toBaseAmount(amount, currency, exchangeRateSnapshot) {
+  const numericAmount = Number(amount || 0);
+  const normalizedCurrency = normalizeCurrency(currency);
+
+  if (!numericAmount) return 0;
+
+  if (normalizedCurrency === BASE_CURRENCY) {
+    return roundMoney(numericAmount);
+  }
+
+  const rate = Number(exchangeRateSnapshot || 0);
+
+  if (!rate || rate <= 0) {
+    return 0;
+  }
+
+  return roundMoney(numericAmount / rate);
+}
+
+function enrichAccountForAdmin(account) {
+  const currency = normalizeCurrency(account.currency);
+  const exchangeRateSnapshot =
+    currency === BASE_CURRENCY ? 1 : Number(account.exchangeRateSnapshot || 0);
+
+  return {
+    ...account,
+
+    localCurrency: currency,
+    baseCurrency: BASE_CURRENCY,
+
+    basePackageAmountSnapshot:
+      Number(account.basePackageAmountSnapshot || 0) ||
+      toBaseAmount(
+        account.packageAmountSnapshot,
+        currency,
+        exchangeRateSnapshot,
+      ),
+
+    baseCapitalBalance: toBaseAmount(
+      account.capitalBalance,
+      currency,
+      exchangeRateSnapshot,
+    ),
+
+    baseProfitBalance: toBaseAmount(
+      account.profitBalance,
+      currency,
+      exchangeRateSnapshot,
+    ),
+
+    baseTotalProfitEarned: toBaseAmount(
+      account.totalProfitEarned,
+      currency,
+      exchangeRateSnapshot,
+    ),
+
+    baseTotalProfitWithdrawn: toBaseAmount(
+      account.totalProfitWithdrawn,
+      currency,
+      exchangeRateSnapshot,
+    ),
+
+    baseTotalCapitalWithdrawn: toBaseAmount(
+      account.totalCapitalWithdrawn,
+      currency,
+      exchangeRateSnapshot,
+    ),
+
+    exchangeRateSnapshot,
+    hasValidExchangeRate:
+      currency === BASE_CURRENCY || Boolean(exchangeRateSnapshot),
+  };
+}
+
+function enrichTransactionForAdmin(transaction, account) {
+  const currency = normalizeCurrency(transaction.currency || account?.currency);
+  const exchangeRateSnapshot =
+    Number(transaction.exchangeRateSnapshot || account?.exchangeRateSnapshot) ||
+    (currency === BASE_CURRENCY ? 1 : 0);
+
+  return {
+    ...transaction,
+
+    localCurrency: currency,
+    baseCurrency: transaction.baseCurrency || BASE_CURRENCY,
+
+    baseAmount:
+      Number(transaction.baseAmount || 0) ||
+      toBaseAmount(transaction.amount, currency, exchangeRateSnapshot),
+
+    exchangeRateSnapshot,
+  };
+}
+
+function enrichWithdrawalForAdmin(withdrawal, account) {
+  const currency = normalizeCurrency(withdrawal.currency || account?.currency);
+  const exchangeRateSnapshot =
+    Number(withdrawal.exchangeRateSnapshot || account?.exchangeRateSnapshot) ||
+    (currency === BASE_CURRENCY ? 1 : 0);
+
+  return {
+    ...withdrawal,
+
+    localCurrency: currency,
+    baseCurrency: withdrawal.baseCurrency || BASE_CURRENCY,
+
+    baseAmount:
+      Number(withdrawal.baseAmount || 0) ||
+      toBaseAmount(withdrawal.amount, currency, exchangeRateSnapshot),
+
+    baseNetAmount:
+      Number(withdrawal.baseNetAmount || 0) ||
+      toBaseAmount(withdrawal.netAmount, currency, exchangeRateSnapshot),
+
+    baseFeeAmount:
+      Number(withdrawal.baseFeeAmount || 0) ||
+      toBaseAmount(withdrawal.feeAmount, currency, exchangeRateSnapshot),
+
+    exchangeRateSnapshot,
+  };
+}
+
 async function getAllAccounts(req, res) {
   try {
     const { status, packageId, userId } = req.query;
@@ -36,10 +170,12 @@ async function getAllAccounts(req, res) {
       userMap[user._id.toString()] = user;
     });
 
-    const enrichedAccounts = accounts.map((account) => ({
-      ...account,
-      user: userMap[account.userId?.toString()] || null,
-    }));
+    const enrichedAccounts = accounts.map((account) =>
+      enrichAccountForAdmin({
+        ...account,
+        user: userMap[account.userId?.toString()] || null,
+      }),
+    );
 
     return res.status(200).json({
       success: true,
@@ -72,27 +208,35 @@ async function getAccountById(req, res) {
       .select("fullName username email phone country accountStatus role")
       .lean();
 
-    const recentTransactions = await InvestmentTransaction.find({
-      investmentAccountId: account._id,
-    })
-      .sort({ createdAt: -1 })
-      .limit(30)
-      .lean();
+    const [recentTransactions, recentWithdrawals] = await Promise.all([
+      InvestmentTransaction.find({
+        investmentAccountId: account._id,
+      })
+        .sort({ createdAt: -1 })
+        .limit(30)
+        .lean(),
 
-    const recentWithdrawals = await InvestmentWithdrawal.find({
-      investmentAccountId: account._id,
-    })
-      .sort({ createdAt: -1 })
-      .limit(20)
-      .lean();
+      InvestmentWithdrawal.find({
+        investmentAccountId: account._id,
+      })
+        .sort({ createdAt: -1 })
+        .limit(20)
+        .lean(),
+    ]);
+
+    const enrichedAccount = enrichAccountForAdmin(account);
 
     return res.status(200).json({
       success: true,
       data: {
-        account,
+        account: enrichedAccount,
         user,
-        recentTransactions,
-        recentWithdrawals,
+        recentTransactions: recentTransactions.map((transaction) =>
+          enrichTransactionForAdmin(transaction, enrichedAccount),
+        ),
+        recentWithdrawals: recentWithdrawals.map((withdrawal) =>
+          enrichWithdrawalForAdmin(withdrawal, enrichedAccount),
+        ),
       },
     });
   } catch (error) {
@@ -130,7 +274,7 @@ async function suspendAccount(req, res) {
     return res.status(200).json({
       success: true,
       message: "AutoPilot account suspended successfully",
-      data: account,
+      data: enrichAccountForAdmin(account.toObject()),
     });
   } catch (error) {
     console.error("Suspend AutoPilot account error:", error.message);
@@ -167,7 +311,7 @@ async function reactivateAccount(req, res) {
     return res.status(200).json({
       success: true,
       message: "AutoPilot account reactivated successfully",
-      data: account,
+      data: enrichAccountForAdmin(account.toObject()),
     });
   } catch (error) {
     console.error("Reactivate AutoPilot account error:", error.message);
@@ -209,7 +353,7 @@ async function closeAccount(req, res) {
     return res.status(200).json({
       success: true,
       message: "AutoPilot account closed successfully",
-      data: account,
+      data: enrichAccountForAdmin(account.toObject()),
     });
   } catch (error) {
     console.error("Close AutoPilot account error:", error.message);

@@ -84,6 +84,38 @@ const userSchema = new mongoose.Schema(
       },
     ],
 
+    /*
+    REFERRAL SYSTEM
+    */
+
+    referralCode: {
+      type: String,
+      unique: true,
+      sparse: true,
+      uppercase: true,
+      trim: true,
+      index: true,
+    },
+
+    referredBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+      index: true,
+    },
+
+    referralBalance: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    totalReferralEarned: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
     trialEndsAt: {
       type: Date,
       default: null,

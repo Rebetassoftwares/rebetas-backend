@@ -21,10 +21,16 @@ const investmentTransactionSchema = new mongoose.Schema(
       required: true,
       enum: [
         "package_activation",
+
         "profit_credit",
         "profit_withdrawal",
         "profit_reinvest",
+
+        "referral_compound",
+        "referral_withdrawal",
+
         "capital_withdrawal",
+
         "payout_failed",
         "payout_successful",
       ],

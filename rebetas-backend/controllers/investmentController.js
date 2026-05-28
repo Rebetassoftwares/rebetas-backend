@@ -4,12 +4,19 @@ const InvestmentPackage = require("../models/InvestmentPackage");
 const InvestmentAccount = require("../models/InvestmentAccount");
 const InvestmentTransaction = require("../models/InvestmentTransaction");
 const InvestmentWithdrawal = require("../models/InvestmentWithdrawal");
+const User = require("../models/User");
+const Referral = require("../models/Referral");
+const ReferralBonus = require("../models/ReferralBonus");
 
 const PayoutDetail = require("../models/PayoutDetail");
 
 const {
   convertFromBaseCurrency,
 } = require("../services/currencyConversionService");
+
+const {
+  sendAutoPilotNotification,
+} = require("../services/notificationService");
 
 const BASE_CURRENCY = "USD";
 
@@ -125,6 +132,10 @@ exports.getDashboard = async (req, res) => {
       status: "active",
     });
 
+    const user = await User.findById(userId)
+      .select("referralCode referralBalance totalReferralEarned currency")
+      .lean();
+
     const payoutDetails = await PayoutDetail.findOne({
       ownerId: userId,
       isActive: true,
@@ -136,12 +147,28 @@ exports.getDashboard = async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(20);
 
+    const referralCode = user?.referralCode || null;
+
     return res.status(200).json({
       success: true,
       data: {
         account,
         payoutDetails,
         recentTransactions,
+
+        referral: {
+          referralCode,
+
+          referralLink: referralCode
+            ? `${process.env.CLIENT_URL}/register?ref=${encodeURIComponent(
+                referralCode,
+              )}`
+            : null,
+
+          referralBalance: user?.referralBalance || 0,
+          totalReferralEarned: user?.totalReferralEarned || 0,
+          currency: user?.currency || account?.currency || "USD",
+        },
       },
     });
   } catch (error) {
@@ -247,6 +274,18 @@ exports.compoundProfit = async (req, res) => {
 
     await session.commitTransaction();
 
+    await sendAutoPilotNotification({
+      event: "COMPOUND_PROFIT",
+      user: req.user,
+      data: {
+        amount,
+        currency,
+      },
+      metadata: {
+        investmentAccountId: account._id,
+      },
+    });
+
     return res.status(200).json({
       success: true,
       message: "Compound Profit completed successfully",
@@ -260,6 +299,156 @@ exports.compoundProfit = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: error.message || "Failed to complete Compound Profit",
+    });
+  } finally {
+    session.endSession();
+  }
+};
+
+exports.compoundReferral = async (req, res) => {
+  const session = await mongoose.startSession();
+
+  try {
+    session.startTransaction();
+
+    const userId = getUserId(req);
+    const amount = Number(req.body.amount);
+
+    if (!amount || amount <= 0) {
+      await session.abortTransaction();
+
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Referral Compound amount",
+      });
+    }
+
+    const user = await User.findById(userId).session(session);
+
+    if (!user) {
+      await session.abortTransaction();
+
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const account = await InvestmentAccount.findOne({
+      userId,
+      status: "active",
+    }).session(session);
+
+    if (!account) {
+      await session.abortTransaction();
+
+      return res.status(404).json({
+        success: false,
+        message: "AutoPilot account not found",
+      });
+    }
+
+    if (Number(user.referralBalance || 0) < amount) {
+      await session.abortTransaction();
+
+      return res.status(400).json({
+        success: false,
+        message: "Insufficient Referral Balance",
+      });
+    }
+
+    const currency = normalizeCurrency(account.currency);
+
+    const exchangeRateSnapshot =
+      currency === BASE_CURRENCY
+        ? 1
+        : Number(account.exchangeRateSnapshot || 0);
+
+    const baseAmount = toUsd(amount, currency, exchangeRateSnapshot);
+
+    const beforeCapital = Number(account.capitalBalance || 0);
+    const beforeReferral = Number(user.referralBalance || 0);
+
+    user.referralBalance = roundMoney(beforeReferral - amount);
+
+    account.capitalBalance = roundMoney(beforeCapital + amount);
+
+    account.lastReinvestDate = new Date();
+
+    account.capitalWithdrawAvailableAt = new Date(
+      Date.now() + 30 * 24 * 60 * 60 * 1000,
+    );
+
+    await user.save({ session });
+    await account.save({ session });
+
+    await InvestmentTransaction.create(
+      [
+        {
+          userId,
+          investmentAccountId: account._id,
+
+          type: "referral_compound",
+          status: "successful",
+
+          amount,
+          currency,
+
+          baseAmount,
+          baseCurrency: BASE_CURRENCY,
+          exchangeRateSnapshot,
+
+          balanceBefore: {
+            capitalBalance: beforeCapital,
+            profitBalance: null,
+          },
+
+          balanceAfter: {
+            capitalBalance: account.capitalBalance,
+            profitBalance: null,
+          },
+
+          metadata: {
+            referralBalanceBefore: beforeReferral,
+            referralBalanceAfter: user.referralBalance,
+          },
+
+          description: "Referral Balance compounded into Capital Balance",
+        },
+      ],
+      { session },
+    );
+
+    await session.commitTransaction();
+
+    await sendAutoPilotNotification({
+      event: "COMPOUND_REFERRAL",
+      user: req.user,
+      data: {
+        amount,
+        currency,
+      },
+      metadata: {
+        investmentAccountId: account._id,
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Referral Balance compounded successfully",
+      data: {
+        referralBalance: user.referralBalance,
+        capitalBalance: account.capitalBalance,
+      },
+    });
+  } catch (error) {
+    await session.abortTransaction();
+
+    console.error("Compound Referral error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Failed to compound Referral Balance",
     });
   } finally {
     session.endSession();
@@ -416,6 +605,20 @@ exports.withdrawProfit = async (req, res) => {
 
     await session.commitTransaction();
 
+    await sendAutoPilotNotification({
+      event: "PROFIT_WITHDRAWAL_REQUESTED",
+      user: req.user,
+      data: {
+        amount,
+        currency,
+        withdrawalType: "Profit Withdrawal",
+      },
+      metadata: {
+        withdrawalId: withdrawal[0]._id,
+        transactionId: transaction[0]._id,
+      },
+    });
+
     return res.status(200).json({
       success: true,
       message: "Profit Withdrawal request submitted for review",
@@ -429,6 +632,204 @@ exports.withdrawProfit = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: error.message || "Failed to submit Profit Withdrawal request",
+    });
+  } finally {
+    session.endSession();
+  }
+};
+
+exports.withdrawReferral = async (req, res) => {
+  const session = await mongoose.startSession();
+
+  try {
+    session.startTransaction();
+
+    const userId = getUserId(req);
+    const amount = Number(req.body.amount);
+
+    if (!amount || amount <= 0) {
+      await session.abortTransaction();
+
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Referral Withdrawal amount",
+      });
+    }
+
+    const user = await User.findById(userId).session(session);
+
+    if (!user) {
+      await session.abortTransaction();
+
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const account = await InvestmentAccount.findOne({
+      userId,
+      status: "active",
+    }).session(session);
+
+    if (!account) {
+      await session.abortTransaction();
+
+      return res.status(404).json({
+        success: false,
+        message: "AutoPilot account not found",
+      });
+    }
+
+    const existingPendingWithdrawal = await InvestmentWithdrawal.findOne({
+      userId,
+      investmentAccountId: account._id,
+      withdrawalType: "referral",
+      status: {
+        $in: ["pending", "approved", "processing"],
+      },
+    }).session(session);
+
+    if (existingPendingWithdrawal) {
+      await session.abortTransaction();
+
+      return res.status(400).json({
+        success: false,
+        message: "You already have a Referral Withdrawal under review",
+      });
+    }
+
+    if (Number(user.referralBalance || 0) < amount) {
+      await session.abortTransaction();
+
+      return res.status(400).json({
+        success: false,
+        message: "Insufficient Referral Balance",
+      });
+    }
+
+    const payoutDetails = await PayoutDetail.findOne({
+      ownerId: userId,
+      isActive: true,
+    }).session(session);
+
+    if (!payoutDetails) {
+      await session.abortTransaction();
+
+      return res.status(400).json({
+        success: false,
+        message: "Please add payout details first",
+      });
+    }
+
+    const currency = normalizeCurrency(account.currency);
+
+    const exchangeRateSnapshot =
+      currency === BASE_CURRENCY
+        ? 1
+        : Number(account.exchangeRateSnapshot || 0);
+
+    const baseAmount = toUsd(amount, currency, exchangeRateSnapshot);
+
+    const beforeReferral = Number(user.referralBalance || 0);
+
+    user.referralBalance = roundMoney(beforeReferral - amount);
+
+    await user.save({ session });
+
+    const transaction = await InvestmentTransaction.create(
+      [
+        {
+          userId,
+          investmentAccountId: account._id,
+
+          type: "referral_withdrawal",
+          status: "pending",
+
+          amount,
+          currency,
+
+          baseAmount,
+          baseCurrency: BASE_CURRENCY,
+          exchangeRateSnapshot,
+
+          metadata: {
+            referralBalanceBefore: beforeReferral,
+            referralBalanceAfter: user.referralBalance,
+          },
+
+          description: "Referral Withdrawal request submitted",
+        },
+      ],
+      { session },
+    );
+
+    const withdrawal = await InvestmentWithdrawal.create(
+      [
+        {
+          userId,
+          investmentAccountId: account._id,
+          transactionId: transaction[0]._id,
+
+          withdrawalType: "referral",
+
+          amount,
+          netAmount: 0,
+          feeAmount: 0,
+          feePolicy: "user_pays",
+
+          currency,
+
+          baseAmount,
+          baseNetAmount: 0,
+          baseFeeAmount: 0,
+          baseCurrency: BASE_CURRENCY,
+          exchangeRateSnapshot,
+
+          payoutDetailId: payoutDetails._id,
+
+          payoutDetails: {
+            accountName: payoutDetails.accountName,
+            accountNumber: payoutDetails.accountNumber,
+            bankName: payoutDetails.bankName,
+            bankCode: payoutDetails.bankCode,
+          },
+
+          status: "pending",
+        },
+      ],
+      { session },
+    );
+
+    await session.commitTransaction();
+
+    await sendAutoPilotNotification({
+      event: "REFERRAL_WITHDRAWAL_REQUESTED",
+      user: req.user,
+      data: {
+        amount,
+        currency,
+        withdrawalType: "Referral Withdrawal",
+      },
+      metadata: {
+        withdrawalId: withdrawal[0]._id,
+        transactionId: transaction[0]._id,
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Referral Withdrawal request submitted for review",
+      data: withdrawal[0],
+    });
+  } catch (error) {
+    await session.abortTransaction();
+
+    console.error("Referral Withdrawal error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Failed to submit Referral Withdrawal",
     });
   } finally {
     session.endSession();
@@ -589,6 +990,20 @@ exports.withdrawCapital = async (req, res) => {
 
     await session.commitTransaction();
 
+    await sendAutoPilotNotification({
+      event: "CAPITAL_WITHDRAWAL_REQUESTED",
+      user: req.user,
+      data: {
+        amount,
+        currency,
+        withdrawalType: "Capital Withdrawal",
+      },
+      metadata: {
+        withdrawalId: withdrawal[0]._id,
+        transactionId: transaction[0]._id,
+      },
+    });
+
     return res.status(200).json({
       success: true,
       message: "Capital Withdrawal request submitted for review",
@@ -652,6 +1067,45 @@ exports.getHistory = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to fetch AutoPilot activity",
+    });
+  }
+};
+
+exports.getReferralList = async (req, res) => {
+  try {
+    const userId = getUserId(req);
+
+    const referrals = await Referral.find({
+      referrer: userId,
+    })
+      .populate(
+        "referredUser",
+        "fullName username country currency emailVerified accountStatus createdAt",
+      )
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const bonuses = await ReferralBonus.find({
+      referrer: userId,
+    })
+      .populate("referredUser", "fullName username country currency")
+      .sort({ createdAt: -1 })
+      .limit(50)
+      .lean();
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        referrals,
+        bonuses,
+      },
+    });
+  } catch (error) {
+    console.error("Referral list error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch Referral list",
     });
   }
 };

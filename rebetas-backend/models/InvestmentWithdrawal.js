@@ -24,7 +24,7 @@ const investmentWithdrawalSchema = new mongoose.Schema(
 
     withdrawalType: {
       type: String,
-      enum: ["profit", "capital"],
+      enum: ["profit", "capital", "referral"],
       required: true,
       index: true,
     },

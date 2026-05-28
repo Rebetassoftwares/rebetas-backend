@@ -8,6 +8,10 @@ const {
   payWithdrawal,
 } = require("../services/autoPilotWithdrawalService");
 
+const {
+  sendAutoPilotNotification,
+} = require("../services/notificationService");
+
 async function getAllWithdrawals(req, res) {
   try {
     const { status, type, userId } = req.query;
@@ -112,6 +116,28 @@ async function approveWithdrawalController(req, res) {
       adminNote: req.body.adminNote,
     });
 
+    const user = await User.findById(withdrawal.userId)
+      .select("_id fullName email")
+      .lean();
+
+    if (user) {
+      await sendAutoPilotNotification({
+        event: "WITHDRAWAL_APPROVED",
+        user,
+        data: {
+          amount: withdrawal.amount,
+          currency: withdrawal.currency,
+          withdrawalType:
+            withdrawal.withdrawalType === "capital"
+              ? "Capital Withdrawal"
+              : "Profit Withdrawal",
+        },
+        metadata: {
+          withdrawalId: withdrawal._id,
+        },
+      });
+    }
+
     return res.status(200).json({
       success: true,
       message:
@@ -138,6 +164,29 @@ async function rejectWithdrawalController(req, res) {
       adminId: req.user._id,
       adminNote: req.body.adminNote,
     });
+
+    const user = await User.findById(withdrawal.userId)
+      .select("_id fullName email")
+      .lean();
+
+    if (user) {
+      await sendAutoPilotNotification({
+        event: "WITHDRAWAL_REJECTED",
+        user,
+        data: {
+          amount: withdrawal.amount,
+          currency: withdrawal.currency,
+          withdrawalType:
+            withdrawal.withdrawalType === "capital"
+              ? "Capital Withdrawal"
+              : "Profit Withdrawal",
+          reason: req.body.adminNote || "",
+        },
+        metadata: {
+          withdrawalId: withdrawal._id,
+        },
+      });
+    }
 
     return res.status(200).json({
       success: true,
@@ -166,6 +215,30 @@ async function payWithdrawalController(req, res) {
       mockSuccess: !!req.body.mockSuccess,
       mockFailure: !!req.body.mockFailure,
     });
+
+    if (withdrawal.status === "successful") {
+      const user = await User.findById(withdrawal.userId)
+        .select("_id fullName email")
+        .lean();
+
+      if (user) {
+        await sendAutoPilotNotification({
+          event: "WITHDRAWAL_PAID",
+          user,
+          data: {
+            amount: withdrawal.amount,
+            currency: withdrawal.currency,
+            withdrawalType:
+              withdrawal.withdrawalType === "capital"
+                ? "Capital Withdrawal"
+                : "Profit Withdrawal",
+          },
+          metadata: {
+            withdrawalId: withdrawal._id,
+          },
+        });
+      }
+    }
 
     return res.status(200).json({
       success: true,

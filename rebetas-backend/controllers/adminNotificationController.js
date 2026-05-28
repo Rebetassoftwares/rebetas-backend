@@ -54,13 +54,7 @@ async function getAllNotifications(req, res) {
 
 async function sendUserNotification(req, res) {
   try {
-    const {
-      userId,
-      title,
-      message,
-      type = "system",
-      channel = "in_app",
-    } = req.body;
+    const { userId, title, message, type = "system" } = req.body;
 
     if (!userId || !title || !message) {
       return res.status(400).json({
@@ -83,10 +77,11 @@ async function sendUserNotification(req, res) {
       title,
       message,
       type,
-      channel,
+      channel: "in_app",
       metadata: {
         createdByAdminId: req.user?._id || req.user?.id || null,
         manual: true,
+        source: "admin",
       },
     });
 

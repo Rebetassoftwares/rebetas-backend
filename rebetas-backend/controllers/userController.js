@@ -3,6 +3,13 @@ const crypto = require("crypto");
 
 const User = require("../models/User");
 const PromoCode = require("../models/PromoCode");
+
+const {
+  generateUniqueReferralCode,
+  findReferrerByCode,
+  createReferralRelationship,
+  buildReferralLink,
+} = require("../services/referralService");
 const { sendEmail } = require("../services/emailService");
 
 function generateToken(size = 32) {
@@ -33,6 +40,7 @@ async function registerUser(req, res) {
 
       password,
       confirmPassword,
+      referralCode,
       promoCode,
       acceptedTerms,
     } = req.body;
@@ -92,6 +100,21 @@ async function registerUser(req, res) {
     }
 
     /*
+    REFERRAL CODE VALIDATION
+   */
+    let referrer = null;
+
+    if (referralCode) {
+      referrer = await findReferrerByCode(referralCode);
+
+      if (!referrer) {
+        return res.status(400).json({
+          message: "Invalid referral code",
+        });
+      }
+    }
+
+    /*
     PROMO CODE VALIDATION
     */
     let promoCodeUsed = null;
@@ -139,6 +162,10 @@ async function registerUser(req, res) {
 
     const verificationToken = generateToken(24);
 
+    const newReferralCode = await generateUniqueReferralCode({
+      username: normalizedUsername,
+    });
+
     const user = await User.create({
       username: normalizedUsername,
       fullName,
@@ -150,6 +177,8 @@ async function registerUser(req, res) {
       currency: String(currency).toUpperCase(),
       password: hashedPassword,
       emailVerificationToken: verificationToken,
+      referralCode: newReferralCode,
+      referredBy: referrer ? referrer._id : null,
       promoCodeUsed,
       trialEndsAt,
       hasUsedTrial: !!trialEndsAt,
@@ -158,6 +187,14 @@ async function registerUser(req, res) {
       termsAccepted: true,
       termsAcceptedAt: new Date(),
     });
+
+    if (referrer) {
+      await createReferralRelationship({
+        referrerId: referrer._id,
+        referredUserId: user._id,
+        referralCodeUsed: referralCode,
+      });
+    }
 
     /*
     SEND EMAIL (SAFE - WILL NOT BREAK REGISTRATION)
@@ -684,6 +721,36 @@ async function resendLoginOtp(req, res) {
     });
   }
 }
+
+async function getMyReferral(req, res) {
+  try {
+    const user = await User.findById(req.user._id || req.user.id)
+      .select("referralCode")
+      .lean();
+
+    const referralCode = user?.referralCode || null;
+
+    return res.json({
+      success: true,
+      data: {
+        referralCode,
+        referralLink: referralCode
+          ? `${process.env.CLIENT_URL}/register?ref=${encodeURIComponent(
+              referralCode,
+            )}`
+          : null,
+      },
+    });
+  } catch (error) {
+    console.error("Get referral error:", error.message);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch referral details",
+    });
+  }
+}
+
 /*
 LOGOUT USER
 */
@@ -732,4 +799,5 @@ module.exports = {
   verifyLoginOtp,
   resendLoginOtp,
   logoutUser,
+  getMyReferral,
 };

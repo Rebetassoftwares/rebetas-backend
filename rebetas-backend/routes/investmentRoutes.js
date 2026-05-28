@@ -17,15 +17,33 @@ router.get("/dashboard", authenticateUser, investmentController.getDashboard);
 router.post("/compound", authenticateUser, investmentController.compoundProfit);
 
 router.post(
+  "/compound-referral",
+  authenticateUser,
+  investmentController.compoundReferral,
+);
+
+router.post(
   "/withdraw-profit",
   authenticateUser,
   investmentController.withdrawProfit,
 );
 
 router.post(
+  "/withdraw-referral",
+  authenticateUser,
+  investmentController.withdrawReferral,
+);
+
+router.post(
   "/withdraw-capital",
   authenticateUser,
   investmentController.withdrawCapital,
+);
+
+router.get(
+  "/referrals",
+  authenticateUser,
+  investmentController.getReferralList,
 );
 
 router.get("/history", authenticateUser, investmentController.getHistory);

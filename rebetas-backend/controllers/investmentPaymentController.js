@@ -14,6 +14,10 @@ const {
   getAdminExchangeRate,
 } = require("../services/currencyConversionService");
 
+const {
+  sendAutoPilotNotification,
+} = require("../services/notificationService");
+
 function generateAutoPilotReference() {
   return "AP_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
 }
@@ -163,6 +167,21 @@ exports.initializeDeposit = async (req, res) => {
     deposit.rawProviderResponse = paymentData;
 
     await deposit.save();
+
+    await sendAutoPilotNotification({
+      event: "PAYMENT_INITIALIZED",
+      user,
+      data: {
+        amount: localizedAmount,
+        currency: localCurrency,
+      },
+      metadata: {
+        depositId: deposit._id,
+        packageId: selectedPackage._id,
+        packageName: selectedPackage.name,
+        reference,
+      },
+    });
 
     return res.status(200).json({
       success: true,
@@ -426,6 +445,34 @@ exports.verifyDeposit = async (req, res) => {
     await deposit.save({ session });
     await session.commitTransaction();
 
+    await sendAutoPilotNotification({
+      event: "PAYMENT_SUCCESSFUL",
+      user: req.user,
+      data: {
+        amount: capitalAmount,
+        currency: deposit.currency,
+      },
+      metadata: {
+        depositId: deposit._id,
+        transactionId: transaction[0]._id,
+        reference,
+      },
+    });
+
+    await sendAutoPilotNotification({
+      event: "ACCOUNT_ACTIVATED",
+      user: req.user,
+      data: {
+        amount: capitalAmount,
+        currency: deposit.currency,
+        packageName: selectedPackage.name,
+      },
+      metadata: {
+        investmentAccountId: account[0]._id,
+        packageId: selectedPackage._id,
+      },
+    });
+
     return res.status(200).json({
       success: true,
       message: "AutoPilot Package activated successfully",
@@ -434,7 +481,9 @@ exports.verifyDeposit = async (req, res) => {
       },
     });
   } catch (error) {
-    await session.abortTransaction();
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
 
     console.error(
       "AutoPilot Package payment verification error:",

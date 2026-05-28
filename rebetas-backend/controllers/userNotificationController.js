@@ -12,6 +12,7 @@ async function getMyNotifications(req, res) {
 
     const filter = {
       userId: getUserId(req),
+      channel: "in_app",
     };
 
     if (unreadOnly === "true") {
@@ -29,6 +30,7 @@ async function getMyNotifications(req, res) {
 
       Notification.countDocuments({
         userId: getUserId(req),
+        channel: "in_app",
         isRead: false,
       }),
     ]);
@@ -62,6 +64,7 @@ async function markNotificationAsRead(req, res) {
       {
         _id: req.params.id,
         userId: getUserId(req),
+        channel: "in_app",
       },
       {
         isRead: true,
@@ -97,6 +100,7 @@ async function markAllNotificationsAsRead(req, res) {
     await Notification.updateMany(
       {
         userId: getUserId(req),
+        channel: "in_app",
         isRead: false,
       },
       {
@@ -123,6 +127,7 @@ async function getUnreadNotificationCount(req, res) {
   try {
     const unreadCount = await Notification.countDocuments({
       userId: getUserId(req),
+      channel: "in_app",
       isRead: false,
     });
 

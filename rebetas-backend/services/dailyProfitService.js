@@ -3,6 +3,11 @@ const mongoose = require("mongoose");
 const InvestmentAccount = require("../models/InvestmentAccount");
 const InvestmentTransaction = require("../models/InvestmentTransaction");
 
+const { sendAutoPilotNotification } = require("./notificationService");
+const { creditReferralBonus } = require("./referralService");
+
+const User = require("../models/User");
+
 const BASE_CURRENCY = "USD";
 
 function roundMoney(value) {
@@ -130,7 +135,7 @@ async function creditDailyProfits({ adminId = null, force = false } = {}) {
 
       await account.save({ session });
 
-      await InvestmentTransaction.create(
+      const transaction = await InvestmentTransaction.create(
         [
           {
             userId: account.userId,
@@ -170,6 +175,37 @@ async function creditDailyProfits({ adminId = null, force = false } = {}) {
         { session },
       );
 
+      try {
+        await creditReferralBonus({
+          referredUserId: account.userId,
+          sourceType: "autopilot_profit_credit",
+          sourceId: transaction[0]._id,
+
+          sourceAmount: profitAmount,
+          sourceCurrency: currency,
+          sourceExchangeRateSnapshot: exchangeRateSnapshot,
+
+          metadata: {
+            investmentAccountId: account._id,
+            packageId: account.packageId,
+            packageNameSnapshot: account.packageNameSnapshot,
+            creditedForDate: startOfToday,
+            dailyReturnPercentageSnapshot:
+              account.dailyReturnPercentageSnapshot,
+            triggeredByAdminId: adminId,
+            force,
+          },
+
+          note: "AutoPilot Profit Credit referral bonus",
+          session,
+        });
+      } catch (referralError) {
+        console.error(
+          "Daily Profit referral bonus error:",
+          referralError.message,
+        );
+      }
+
       creditedCount += 1;
       totalProfitCredited += profitAmount;
       totalBaseProfitCredited += baseProfitAmount;
@@ -196,6 +232,35 @@ async function creditDailyProfits({ adminId = null, force = false } = {}) {
     }
 
     await session.commitTransaction();
+
+    for (const credited of creditedAccounts) {
+      try {
+        const user = await User.findById(credited.userId)
+          .select("_id fullName email")
+          .lean();
+
+        if (!user) continue;
+
+        await sendAutoPilotNotification({
+          event: "PROFIT_CREDIT",
+          user,
+          data: {
+            amount: credited.profitCredited,
+            currency: credited.currency,
+          },
+          metadata: {
+            investmentAccountId: credited.accountId,
+            packageName: credited.packageName,
+            dailyReturnPercentage: credited.dailyReturnPercentage,
+          },
+        });
+      } catch (notificationError) {
+        console.error(
+          "Daily Profit notification error:",
+          notificationError.message,
+        );
+      }
+    }
 
     return {
       baseCurrency: BASE_CURRENCY,
