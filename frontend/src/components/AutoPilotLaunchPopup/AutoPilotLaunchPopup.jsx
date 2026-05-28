@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import logo from "../../assets/logo.png";
 import "./AutoPilotLaunchPopup.css";
+
+const logo = "/rebetas-icon.png";
 
 export default function AutoPilotLaunchPopup() {
   const [showPopup, setShowPopup] = useState(() => {
