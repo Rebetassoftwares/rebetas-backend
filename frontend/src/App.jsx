@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { isLoggedIn, getStoredUser } from "./utils/auth";
-import MaintenanceScreen from "./components/MaintenanceScreen";
+//import MaintenanceScreen from "./components/MaintenanceScreen";
 
 /* PUBLIC */
 import Landing from "./pages/Landing/Landing";
@@ -50,6 +50,7 @@ import AdminAutoPilotTransactions from "./pages/admin/AutoPilot/AdminAutoPilotTr
 import AdminAutoPilotAnalytics from "./pages/admin/AutoPilot/AdminAutoPilotAnalytics";
 import AdminDailyProfitCredit from "./pages/admin/AutoPilot/AdminDailyProfitCredit";
 import AdminCurrencyRates from "./pages/admin/CurrencyRates/AdminCurrencyRates";
+import AdminNotifications from "./pages/admin/Notifications/AdminNotifications";
 
 /* 🔥 NEW SCREENS */
 import PlatformPage from "./pages/admin/platforms/PlatformPage";
@@ -81,11 +82,10 @@ function AdminRoute({ children }) {
 /* ---------------- APP ---------------- */
 
 function App() {
-  const maintenanceMode = true;
+  //const maintenanceMode = true;
 
-  if (maintenanceMode) {
-    return <MaintenanceScreen />;
-  }
+  //if (maintenanceMode) {
+  //  return <MaintenanceScreen />;}
 
   return (
     <BrowserRouter>
@@ -177,6 +177,7 @@ function App() {
           <Route path="users" element={<Users />} />
           <Route path="users/:id" element={<UserDetail />} />
           <Route path="payments" element={<Payments />} />
+          <Route path="notifications" element={<AdminNotifications />} />
           <Route path="subscriptions" element={<Subscriptions />} />
           <Route path="system" element={<SystemSettings />} />
           <Route path="promos/:id" element={<PromoDetails />} />

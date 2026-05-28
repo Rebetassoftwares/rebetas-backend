@@ -8,10 +8,11 @@ import {
 } from "../../../services/adminApi";
 import "./AdminAutoPilotPackages.css";
 
+const PACKAGE_CURRENCY = "USD";
+
 const initialForm = {
   name: "",
   amount: "",
-  currency: "NGN",
   dailyReturnPercentage: "",
   benefits: "",
   description: "",
@@ -33,10 +34,11 @@ export default function AdminAutoPilotPackages() {
       setError("");
 
       const res = await getAutoPilotPackages();
+
       setPackages(Array.isArray(res?.data) ? res.data : []);
     } catch (err) {
-      console.error(err);
-      setError("Failed to load AutoPilot Packages");
+      console.error("Load AutoPilot Packages error:", err);
+      setError(err.message || "Failed to load AutoPilot Packages");
     } finally {
       setLoading(false);
     }
@@ -58,6 +60,7 @@ export default function AdminAutoPilotPackages() {
   function resetForm() {
     setForm(initialForm);
     setEditingId(null);
+    setError("");
   }
 
   function handleEdit(item) {
@@ -65,9 +68,8 @@ export default function AdminAutoPilotPackages() {
 
     setForm({
       name: item.name || "",
-      amount: item.amount || "",
-      currency: item.currency || "NGN",
-      dailyReturnPercentage: item.dailyReturnPercentage || "",
+      amount: item.amount ?? "",
+      dailyReturnPercentage: item.dailyReturnPercentage ?? "",
       benefits: Array.isArray(item.benefits) ? item.benefits.join("\n") : "",
       description: item.description || "",
       sortOrder: item.sortOrder || 0,
@@ -75,22 +77,60 @@ export default function AdminAutoPilotPackages() {
     });
   }
 
+  function validateForm() {
+    const amount = Number(form.amount);
+    const dailyReturnPercentage = Number(form.dailyReturnPercentage);
+    const sortOrder = Number(form.sortOrder || 0);
+
+    if (!form.name.trim()) {
+      return "Package name is required";
+    }
+
+    if (!amount || Number.isNaN(amount) || amount <= 0) {
+      return "Valid USD Package amount is required";
+    }
+
+    if (
+      dailyReturnPercentage === null ||
+      Number.isNaN(dailyReturnPercentage) ||
+      dailyReturnPercentage < 0
+    ) {
+      return "Valid Daily Profit Credit percentage is required";
+    }
+
+    if (Number.isNaN(sortOrder) || sortOrder < 0) {
+      return "Sort order must be a valid number";
+    }
+
+    return "";
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
+
+    const validationError = validateForm();
+
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
 
     try {
       setSaving(true);
       setError("");
 
       const payload = {
-        ...form,
+        name: form.name.trim(),
         amount: Number(form.amount),
+        currency: PACKAGE_CURRENCY,
         dailyReturnPercentage: Number(form.dailyReturnPercentage),
-        sortOrder: Number(form.sortOrder || 0),
         benefits: form.benefits
           .split("\n")
           .map((item) => item.trim())
           .filter(Boolean),
+        description: form.description.trim(),
+        sortOrder: Number(form.sortOrder || 0),
+        isActive: Boolean(form.isActive),
       };
 
       if (editingId) {
@@ -100,9 +140,9 @@ export default function AdminAutoPilotPackages() {
       }
 
       resetForm();
-      loadPackages();
+      await loadPackages();
     } catch (err) {
-      console.error(err);
+      console.error("Save AutoPilot Package error:", err);
       setError(err.message || "Failed to save AutoPilot Package");
     } finally {
       setSaving(false);
@@ -113,11 +153,12 @@ export default function AdminAutoPilotPackages() {
     if (!window.confirm("Activate this AutoPilot Package?")) return;
 
     try {
+      setError("");
       await activateAutoPilotPackage(id);
-      loadPackages();
+      await loadPackages();
     } catch (err) {
-      console.error(err);
-      setError("Failed to activate AutoPilot Package");
+      console.error("Activate AutoPilot Package error:", err);
+      setError(err.message || "Failed to activate AutoPilot Package");
     }
   }
 
@@ -125,16 +166,17 @@ export default function AdminAutoPilotPackages() {
     if (!window.confirm("Deactivate this AutoPilot Package?")) return;
 
     try {
+      setError("");
       await deactivateAutoPilotPackage(id);
-      loadPackages();
+      await loadPackages();
     } catch (err) {
-      console.error(err);
-      setError("Failed to deactivate AutoPilot Package");
+      console.error("Deactivate AutoPilot Package error:", err);
+      setError(err.message || "Failed to deactivate AutoPilot Package");
     }
   }
 
-  function formatAmount(value, currency) {
-    return `${currency || ""} ${Number(value || 0).toLocaleString()}`;
+  function formatAmount(value) {
+    return `${PACKAGE_CURRENCY} ${Number(value || 0).toLocaleString()}`;
   }
 
   return (
@@ -142,10 +184,12 @@ export default function AdminAutoPilotPackages() {
       <div className="autopilot-packages-header">
         <div>
           <h2>📦 AutoPilot Packages</h2>
-          <p>Create and manage the Packages users can activate.</p>
+          <p>Create and manage USD Packages users can activate.</p>
         </div>
 
-        <button onClick={loadPackages}>Refresh</button>
+        <button type="button" onClick={loadPackages} disabled={loading}>
+          {loading ? "Refreshing..." : "Refresh"}
+        </button>
       </div>
 
       {error && <div className="autopilot-packages-error">{error}</div>}
@@ -162,30 +206,25 @@ export default function AdminAutoPilotPackages() {
         <input
           name="amount"
           type="number"
-          placeholder="Amount"
+          min="1"
+          step="0.01"
+          placeholder="Package Amount in USD"
           value={form.amount}
           onChange={handleChange}
           required
         />
 
-        <select
-          name="currency"
-          value={form.currency}
-          onChange={handleChange}
-          required
-        >
-          <option value="NGN">NGN</option>
-          <option value="USD">USD</option>
-          <option value="GHS">GHS</option>
-          <option value="KES">KES</option>
-          <option value="ZAR">ZAR</option>
-        </select>
+        <div className="package-currency-field">
+          <span>Package Currency</span>
+          <strong>{PACKAGE_CURRENCY}</strong>
+        </div>
 
         <input
           name="dailyReturnPercentage"
           type="number"
+          min="0"
           step="0.01"
-          placeholder="Daily Return %"
+          placeholder="Daily Profit Credit %"
           value={form.dailyReturnPercentage}
           onChange={handleChange}
           required
@@ -194,6 +233,7 @@ export default function AdminAutoPilotPackages() {
         <input
           name="sortOrder"
           type="number"
+          min="0"
           placeholder="Sort Order"
           value={form.sortOrder}
           onChange={handleChange}
@@ -251,7 +291,7 @@ export default function AdminAutoPilotPackages() {
               <div className="package-card-top">
                 <div>
                   <h3>{item.name}</h3>
-                  <p>{formatAmount(item.amount, item.currency)}</p>
+                  <p>{formatAmount(item.amount)}</p>
                 </div>
 
                 <span
@@ -265,8 +305,8 @@ export default function AdminAutoPilotPackages() {
 
               <div className="package-meta">
                 <div>
-                  <span>Daily Return</span>
-                  <strong>{item.dailyReturnPercentage}%</strong>
+                  <span>Daily Profit Credit</span>
+                  <strong>{Number(item.dailyReturnPercentage || 0)}%</strong>
                 </div>
 
                 <div>
@@ -288,10 +328,13 @@ export default function AdminAutoPilotPackages() {
               )}
 
               <div className="package-actions">
-                <button onClick={() => handleEdit(item)}>Edit</button>
+                <button type="button" onClick={() => handleEdit(item)}>
+                  Edit
+                </button>
 
                 {item.isActive ? (
                   <button
+                    type="button"
                     className="danger-btn"
                     onClick={() => handleDeactivate(item._id)}
                   >
@@ -299,6 +342,7 @@ export default function AdminAutoPilotPackages() {
                   </button>
                 ) : (
                   <button
+                    type="button"
                     className="success-btn"
                     onClick={() => handleActivate(item._id)}
                   >

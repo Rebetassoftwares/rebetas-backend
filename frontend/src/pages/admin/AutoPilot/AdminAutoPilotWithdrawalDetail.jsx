@@ -9,6 +9,8 @@ import {
 } from "../../../services/adminApi";
 import "./AdminAutoPilotWithdrawalDetail.css";
 
+const BASE_CURRENCY = "USD";
+
 export default function AdminAutoPilotWithdrawalDetail() {
   const { id } = useParams();
 
@@ -29,51 +31,43 @@ export default function AdminAutoPilotWithdrawalDetail() {
       ]);
 
       setWithdrawal(withdrawalRes?.data || null);
-
       setAuditLogs(
         Array.isArray(auditRes?.data)
           ? auditRes.data
           : auditRes?.data?.logs || [],
       );
     } catch (err) {
-      console.error(err);
-      setError("Failed to load withdrawal details");
+      console.error("Load withdrawal detail error:", err);
+      setError(err.message || "Failed to load withdrawal details");
     } finally {
       setLoading(false);
     }
   }
 
   useEffect(() => {
-    async function fetchData() {
-      try {
-        setLoading(true);
-        setError("");
-
-        const [withdrawalRes, auditRes] = await Promise.all([
-          getAutoPilotWithdrawalById(id),
-          getAutoPilotWithdrawalAudit(id),
-        ]);
-
-        setWithdrawal(withdrawalRes?.data || null);
-
-        setAuditLogs(
-          Array.isArray(auditRes?.data)
-            ? auditRes.data
-            : auditRes?.data?.logs || [],
-        );
-      } catch (err) {
-        console.error(err);
-        setError("Failed to load withdrawal details");
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchData();
+    loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   function formatAmount(value, currency = "") {
     return `${currency} ${Number(value || 0).toLocaleString()}`;
+  }
+
+  function getLocalCurrency() {
+    return withdrawal?.localCurrency || withdrawal?.currency || "";
+  }
+
+  function getBaseCurrency() {
+    return withdrawal?.baseCurrency || BASE_CURRENCY;
+  }
+
+  function MoneyStack({ localValue, baseValue }) {
+    return (
+      <div className="money-stack">
+        <strong>{formatAmount(baseValue, getBaseCurrency())}</strong>
+        <span>{formatAmount(localValue, getLocalCurrency())}</span>
+      </div>
+    );
   }
 
   async function handleApprove() {
@@ -81,12 +75,12 @@ export default function AdminAutoPilotWithdrawalDetail() {
 
     try {
       setActionLoading(true);
+      setError("");
 
       await approveAutoPilotWithdrawal(id);
-
       await loadData();
     } catch (err) {
-      console.error(err);
+      console.error("Approve withdrawal error:", err);
       setError(err.message || "Failed to approve withdrawal");
     } finally {
       setActionLoading(false);
@@ -95,19 +89,16 @@ export default function AdminAutoPilotWithdrawalDetail() {
 
   async function handleReject() {
     const reason = window.prompt("Enter rejection reason");
-
     if (!reason) return;
 
     try {
       setActionLoading(true);
+      setError("");
 
-      await rejectAutoPilotWithdrawal(id, {
-        reason,
-      });
-
+      await rejectAutoPilotWithdrawal(id, { reason });
       await loadData();
     } catch (err) {
-      console.error(err);
+      console.error("Reject withdrawal error:", err);
       setError(err.message || "Failed to reject withdrawal");
     } finally {
       setActionLoading(false);
@@ -119,12 +110,12 @@ export default function AdminAutoPilotWithdrawalDetail() {
 
     try {
       setActionLoading(true);
+      setError("");
 
       await payAutoPilotWithdrawal(id);
-
       await loadData();
     } catch (err) {
-      console.error(err);
+      console.error("Process withdrawal payment error:", err);
       setError(err.message || "Failed to process payment");
     } finally {
       setActionLoading(false);
@@ -150,13 +141,16 @@ export default function AdminAutoPilotWithdrawalDetail() {
       <div className="withdrawal-detail-header">
         <div>
           <Link to="/admin/autopilot/withdrawals">← Back to Withdrawals</Link>
-
           <h2>🏦 Withdrawal Detail</h2>
-
-          <p>Review withdrawal information, payment status and audit logs.</p>
+          <p>
+            Review withdrawal information, local payout value, USD tracking,
+            payment status and audit logs.
+          </p>
         </div>
 
-        <button onClick={loadData}>Refresh</button>
+        <button type="button" onClick={loadData} disabled={loading}>
+          {loading ? "Refreshing..." : "Refresh"}
+        </button>
       </div>
 
       {error && <div className="withdrawal-detail-error">{error}</div>}
@@ -188,6 +182,11 @@ export default function AdminAutoPilotWithdrawalDetail() {
             <span>Country</span>
             <strong>{withdrawal.user?.country || "No country"}</strong>
           </p>
+
+          <p>
+            <span>Local Currency</span>
+            <strong>{getLocalCurrency() || "—"}</strong>
+          </p>
         </div>
 
         <div className="withdrawal-card">
@@ -195,7 +194,6 @@ export default function AdminAutoPilotWithdrawalDetail() {
 
           <p>
             <span>Type</span>
-
             <strong className={`withdrawal-type ${withdrawal.withdrawalType}`}>
               {withdrawal.withdrawalType}
             </strong>
@@ -203,7 +201,6 @@ export default function AdminAutoPilotWithdrawalDetail() {
 
           <p>
             <span>Status</span>
-
             <strong className={`withdrawal-status ${withdrawal.status}`}>
               {withdrawal.status}
             </strong>
@@ -211,25 +208,45 @@ export default function AdminAutoPilotWithdrawalDetail() {
 
           <p>
             <span>Amount</span>
-
-            <strong>
-              {formatAmount(withdrawal.amount, withdrawal.currency)}
-            </strong>
+            <MoneyStack
+              localValue={withdrawal.amount}
+              baseValue={withdrawal.baseAmount}
+            />
           </p>
 
           <p>
             <span>Fee</span>
-
-            <strong>
-              {formatAmount(withdrawal.feeAmount, withdrawal.currency)}
-            </strong>
+            <MoneyStack
+              localValue={withdrawal.feeAmount}
+              baseValue={withdrawal.baseFeeAmount}
+            />
           </p>
 
           <p>
             <span>Net Amount</span>
+            <MoneyStack
+              localValue={withdrawal.netAmount}
+              baseValue={withdrawal.baseNetAmount}
+            />
+          </p>
 
+          <p>
+            <span>Exchange Rate</span>
             <strong>
-              {formatAmount(withdrawal.netAmount, withdrawal.currency)}
+              {withdrawal.exchangeRateSnapshot
+                ? `1 ${getBaseCurrency()} = ${Number(
+                    withdrawal.exchangeRateSnapshot,
+                  ).toLocaleString()} ${getLocalCurrency()}`
+                : "—"}
+            </strong>
+          </p>
+
+          <p>
+            <span>Fee Policy</span>
+            <strong>
+              {withdrawal.feePolicy === "user_pays"
+                ? "User pays fee"
+                : "Platform pays fee"}
             </strong>
           </p>
         </div>
@@ -241,30 +258,38 @@ export default function AdminAutoPilotWithdrawalDetail() {
 
           <p>
             <span>Bank Name</span>
-
-            <strong>{withdrawal.payoutDetailsSnapshot?.bankName || "—"}</strong>
+            <strong>
+              {withdrawal.payoutDetailsSnapshot?.bankName ||
+                withdrawal.payoutDetails?.bankName ||
+                "—"}
+            </strong>
           </p>
 
           <p>
             <span>Account Name</span>
-
             <strong>
-              {withdrawal.payoutDetailsSnapshot?.accountName || "—"}
+              {withdrawal.payoutDetailsSnapshot?.accountName ||
+                withdrawal.payoutDetails?.accountName ||
+                "—"}
             </strong>
           </p>
 
           <p>
             <span>Account Number</span>
-
             <strong>
-              {withdrawal.payoutDetailsSnapshot?.accountNumber || "—"}
+              {withdrawal.payoutDetailsSnapshot?.accountNumber ||
+                withdrawal.payoutDetails?.accountNumber ||
+                "—"}
             </strong>
           </p>
 
           <p>
             <span>Bank Code</span>
-
-            <strong>{withdrawal.payoutDetailsSnapshot?.bankCode || "—"}</strong>
+            <strong>
+              {withdrawal.payoutDetailsSnapshot?.bankCode ||
+                withdrawal.payoutDetails?.bankCode ||
+                "—"}
+            </strong>
           </p>
         </div>
 
@@ -273,25 +298,39 @@ export default function AdminAutoPilotWithdrawalDetail() {
 
           <p>
             <span>Reference</span>
-
             <strong>{withdrawal.reference || "—"}</strong>
           </p>
 
           <p>
             <span>Provider Reference</span>
-
             <strong>{withdrawal.providerReference || "—"}</strong>
           </p>
 
           <p>
             <span>Transfer ID</span>
-
             <strong>{withdrawal.providerTransferId || "—"}</strong>
           </p>
 
           <p>
-            <span>Created</span>
+            <span>Processed At</span>
+            <strong>
+              {withdrawal.processedAt
+                ? new Date(withdrawal.processedAt).toLocaleString()
+                : "—"}
+            </strong>
+          </p>
 
+          <p>
+            <span>Paid At</span>
+            <strong>
+              {withdrawal.paidAt
+                ? new Date(withdrawal.paidAt).toLocaleString()
+                : "—"}
+            </strong>
+          </p>
+
+          <p>
+            <span>Created</span>
             <strong>
               {withdrawal.createdAt
                 ? new Date(withdrawal.createdAt).toLocaleString()
@@ -307,11 +346,16 @@ export default function AdminAutoPilotWithdrawalDetail() {
         <div className="withdrawal-actions">
           {withdrawal.status === "pending" && (
             <>
-              <button disabled={actionLoading} onClick={handleApprove}>
+              <button
+                type="button"
+                disabled={actionLoading}
+                onClick={handleApprove}
+              >
                 Approve Withdrawal
               </button>
 
               <button
+                type="button"
                 className="danger-btn"
                 disabled={actionLoading}
                 onClick={handleReject}
@@ -323,6 +367,7 @@ export default function AdminAutoPilotWithdrawalDetail() {
 
           {withdrawal.status === "approved" && (
             <button
+              type="button"
               className="success-btn"
               disabled={actionLoading}
               onClick={handlePay}
@@ -331,12 +376,39 @@ export default function AdminAutoPilotWithdrawalDetail() {
             </button>
           )}
 
-          {(withdrawal.status === "successful" ||
-            withdrawal.status === "processing") && (
-            <div className="completed-state">Withdrawal already processed.</div>
+          {withdrawal.status === "processing" && (
+            <div className="processing-state">
+              Withdrawal payment is processing.
+            </div>
+          )}
+
+          {withdrawal.status === "successful" && (
+            <div className="completed-state">
+              Withdrawal completed successfully.
+            </div>
+          )}
+
+          {["failed", "rejected"].includes(withdrawal.status) && (
+            <div className="failed-state">
+              Withdrawal is {withdrawal.status}.
+            </div>
           )}
         </div>
       </div>
+
+      {withdrawal.failureReason && (
+        <div className="withdrawal-card">
+          <h3>Failure / Rejection Reason</h3>
+          <p>{withdrawal.failureReason}</p>
+        </div>
+      )}
+
+      {withdrawal.adminNote && (
+        <div className="withdrawal-card">
+          <h3>Admin Note</h3>
+          <p>{withdrawal.adminNote}</p>
+        </div>
+      )}
 
       <div className="withdrawal-card">
         <h3>Audit Logs</h3>
@@ -346,7 +418,7 @@ export default function AdminAutoPilotWithdrawalDetail() {
         ) : (
           <div className="audit-list">
             {auditLogs.map((log, index) => (
-              <div key={index} className="audit-item">
+              <div key={log._id || index} className="audit-item">
                 <div className="audit-top">
                   <strong>{log.action || "Action"}</strong>
 

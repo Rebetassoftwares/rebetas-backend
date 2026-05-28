@@ -210,16 +210,16 @@
 }
 
 @media (max-width: 700px) {
-  .analytics-header button,
-  .analytics-filter-card select,
-  .analytics-limit-input input,
-  .analytics-filter-card button {
+  .analytics-header,
+  .analytics-filter-card {
     flex-direction: column;
     align-items: stretch;
   }
 
   .analytics-header button,
-  .analytics-filter-card select {
+  .analytics-filter-card select,
+  .analytics-limit-input input,
+  .analytics-filter-card button {
     width: 100%;
   }
 }

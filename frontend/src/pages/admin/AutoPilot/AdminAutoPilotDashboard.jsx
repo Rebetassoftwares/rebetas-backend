@@ -31,19 +31,31 @@ export default function AdminAutoPilotDashboard() {
   const packageBreakdown = dashboard?.packageBreakdown || [];
   const byCurrency = dashboard?.byCurrency || [];
   const transactionTypes = dashboard?.transactionTypes || [];
+  const baseCurrency =
+    dashboard?.baseCurrency || overview?.baseCurrency || "USD";
 
-  function formatAmount(value) {
+  function formatCount(value) {
     return Number(value || 0).toLocaleString();
   }
 
+  function formatMoney(value) {
+    return `${baseCurrency} ${Number(value || 0).toLocaleString()}`;
+  }
+
+  const totalWithdrawals =
+    Number(overview.pendingWithdrawalsAmount || 0) +
+    Number(overview.approvedWithdrawalsAmount || 0) +
+    Number(overview.processingWithdrawalsAmount || 0) +
+    Number(overview.successfulWithdrawalsAmount || 0);
+
   return (
     <div className="autopilot-dashboard-page">
-      {/* HEADER */}
       <div className="autopilot-dashboard-header">
         <div>
           <h2>🚀 AutoPilot Dashboard</h2>
           <p>
-            Monitor accounts, balances, withdrawals and platform performance.
+            Monitor AutoPilot accounts, USD balances, withdrawals, and platform
+            performance.
           </p>
         </div>
 
@@ -56,94 +68,116 @@ export default function AdminAutoPilotDashboard() {
         <div className="autopilot-loading">Loading dashboard...</div>
       ) : (
         <>
-          {/* OVERVIEW */}
           <div className="overview-grid">
             <div className="overview-card">
               <span>Total Packages</span>
-              <h3>{overview.totalPackages || 0}</h3>
+              <h3>{formatCount(overview.totalPackages)}</h3>
+            </div>
+
+            <div className="overview-card">
+              <span>Active Packages</span>
+              <h3>{formatCount(overview.activePackages)}</h3>
             </div>
 
             <div className="overview-card">
               <span>Total Accounts</span>
-              <h3>{overview.totalAccounts || 0}</h3>
+              <h3>{formatCount(overview.totalAccounts)}</h3>
             </div>
 
             <div className="overview-card">
               <span>Active Accounts</span>
-              <h3>{overview.activeAccounts || 0}</h3>
+              <h3>{formatCount(overview.activeAccounts)}</h3>
             </div>
 
             <div className="overview-card">
               <span>Suspended Accounts</span>
-              <h3>{overview.suspendedAccounts || 0}</h3>
+              <h3>{formatCount(overview.suspendedAccounts)}</h3>
             </div>
 
             <div className="overview-card">
-              <span>Total Capital Balance</span>
-              <h3>{formatAmount(overview.totalCapitalBalance)}</h3>
+              <span>Closed Accounts</span>
+              <h3>{formatCount(overview.closedAccounts)}</h3>
             </div>
 
             <div className="overview-card">
-              <span>Total Profit Balance</span>
-              <h3>{formatAmount(overview.totalProfitBalance)}</h3>
+              <span>Total Deposits ({baseCurrency})</span>
+              <h3>{formatMoney(overview.totalDepositsAmount)}</h3>
             </div>
 
             <div className="overview-card">
-              <span>Total Profit Earned</span>
-              <h3>{formatAmount(overview.totalProfitEarned)}</h3>
+              <span>Successful Deposits ({baseCurrency})</span>
+              <h3>{formatMoney(overview.successfulDepositsAmount)}</h3>
             </div>
 
             <div className="overview-card">
-              <span>Total Withdrawals</span>
-              <h3>
-                {formatAmount(
-                  Number(overview.successfulWithdrawalsAmount || 0) +
-                    Number(overview.pendingWithdrawalsAmount || 0),
-                )}
-              </h3>
+              <span>Total Capital Balance ({baseCurrency})</span>
+              <h3>{formatMoney(overview.totalCapitalBalance)}</h3>
+            </div>
+
+            <div className="overview-card">
+              <span>Total Profit Balance ({baseCurrency})</span>
+              <h3>{formatMoney(overview.totalProfitBalance)}</h3>
+            </div>
+
+            <div className="overview-card">
+              <span>Total Profit Earned ({baseCurrency})</span>
+              <h3>{formatMoney(overview.totalProfitEarned)}</h3>
+            </div>
+
+            <div className="overview-card">
+              <span>Total Withdrawals ({baseCurrency})</span>
+              <h3>{formatMoney(totalWithdrawals)}</h3>
+            </div>
+
+            <div className="overview-card">
+              <span>Total Fees ({baseCurrency})</span>
+              <h3>{formatMoney(overview.totalFees)}</h3>
+            </div>
+
+            <div className="overview-card">
+              <span>Missing Exchange Rates</span>
+              <h3>{formatCount(overview.missingExchangeRateCount)}</h3>
             </div>
           </div>
 
-          {/* WITHDRAWAL STATUS */}
           <div className="withdrawal-status-grid">
             <div className="status-card pending">
-              <span>Pending</span>
-              <h3>{formatAmount(overview.pendingWithdrawalsAmount)}</h3>
-              <p>{overview.countPendingWithdrawals || 0} requests</p>
+              <span>Pending ({baseCurrency})</span>
+              <h3>{formatMoney(overview.pendingWithdrawalsAmount)}</h3>
+              <p>{formatCount(overview.countPendingWithdrawals)} requests</p>
             </div>
 
             <div className="status-card approved">
-              <span>Approved</span>
-              <h3>{formatAmount(overview.approvedWithdrawalsAmount)}</h3>
-              <p>{overview.countApprovedWithdrawals || 0} requests</p>
+              <span>Approved ({baseCurrency})</span>
+              <h3>{formatMoney(overview.approvedWithdrawalsAmount)}</h3>
+              <p>{formatCount(overview.countApprovedWithdrawals)} requests</p>
             </div>
 
             <div className="status-card processing">
-              <span>Processing</span>
-              <h3>{formatAmount(overview.processingWithdrawalsAmount)}</h3>
-              <p>{overview.countProcessingWithdrawals || 0} requests</p>
+              <span>Processing ({baseCurrency})</span>
+              <h3>{formatMoney(overview.processingWithdrawalsAmount)}</h3>
+              <p>{formatCount(overview.countProcessingWithdrawals)} requests</p>
             </div>
 
             <div className="status-card successful">
-              <span>Successful</span>
-              <h3>{formatAmount(overview.successfulWithdrawalsAmount)}</h3>
-              <p>{overview.countSuccessfulWithdrawals || 0} requests</p>
+              <span>Successful ({baseCurrency})</span>
+              <h3>{formatMoney(overview.successfulWithdrawalsAmount)}</h3>
+              <p>{formatCount(overview.countSuccessfulWithdrawals)} requests</p>
             </div>
 
             <div className="status-card failed">
-              <span>Failed</span>
-              <h3>{formatAmount(overview.failedWithdrawalsAmount)}</h3>
-              <p>{overview.countFailedWithdrawals || 0} requests</p>
+              <span>Failed ({baseCurrency})</span>
+              <h3>{formatMoney(overview.failedWithdrawalsAmount)}</h3>
+              <p>{formatCount(overview.countFailedWithdrawals)} requests</p>
             </div>
 
             <div className="status-card rejected">
-              <span>Rejected</span>
-              <h3>{formatAmount(overview.rejectedWithdrawalsAmount)}</h3>
-              <p>{overview.countRejectedWithdrawals || 0} requests</p>
+              <span>Rejected ({baseCurrency})</span>
+              <h3>{formatMoney(overview.rejectedWithdrawalsAmount)}</h3>
+              <p>{formatCount(overview.countRejectedWithdrawals)} requests</p>
             </div>
           </div>
 
-          {/* PACKAGE PERFORMANCE */}
           <div className="dashboard-section">
             <div className="section-header">
               <h3>📦 Package Performance</h3>
@@ -156,64 +190,80 @@ export default function AdminAutoPilotDashboard() {
                     <th>Package</th>
                     <th>Users</th>
                     <th>Active Users</th>
-                    <th>Capital Balance</th>
-                    <th>Profit Balance</th>
-                    <th>Profit Earned</th>
+                    <th>Capital Balance ({baseCurrency})</th>
+                    <th>Profit Balance ({baseCurrency})</th>
+                    <th>Profit Earned ({baseCurrency})</th>
                   </tr>
                 </thead>
 
                 <tbody>
-                  {packageBreakdown.map((item, index) => (
-                    <tr key={index}>
-                      <td>{item.packageName}</td>
-                      <td>{item.users}</td>
-                      <td>{item.activeUsers}</td>
-                      <td>{formatAmount(item.totalCapitalBalance)}</td>
-                      <td>{formatAmount(item.totalProfitBalance)}</td>
-                      <td>{formatAmount(item.totalProfitEarned)}</td>
+                  {packageBreakdown.length > 0 ? (
+                    packageBreakdown.map((item, index) => (
+                      <tr key={item.packageId || index}>
+                        <td>{item.packageName}</td>
+                        <td>{formatCount(item.users)}</td>
+                        <td>{formatCount(item.activeUsers)}</td>
+                        <td>{formatMoney(item.totalCapitalBalance)}</td>
+                        <td>{formatMoney(item.totalProfitBalance)}</td>
+                        <td>{formatMoney(item.totalProfitEarned)}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="6">No package performance yet.</td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>
           </div>
 
-          {/* CURRENCY BREAKDOWN */}
           <div className="dashboard-section">
             <div className="section-header">
               <h3>💱 Currency Breakdown</h3>
+              <p>
+                Amounts below are shown in {baseCurrency}, grouped by users'
+                local currency.
+              </p>
             </div>
 
             <div className="table-wrapper">
               <table className="dashboard-table">
                 <thead>
                   <tr>
-                    <th>Currency</th>
-                    <th>Deposits</th>
-                    <th>Pending Withdrawals</th>
-                    <th>Successful Withdrawals</th>
-                    <th>Capital Balance</th>
-                    <th>Profit Balance</th>
+                    <th>User Currency</th>
+                    <th>Deposits ({baseCurrency})</th>
+                    <th>Pending Withdrawals ({baseCurrency})</th>
+                    <th>Successful Withdrawals ({baseCurrency})</th>
+                    <th>Capital Balance ({baseCurrency})</th>
+                    <th>Profit Balance ({baseCurrency})</th>
+                    <th>Fees ({baseCurrency})</th>
                   </tr>
                 </thead>
 
                 <tbody>
-                  {byCurrency.map((item, index) => (
-                    <tr key={index}>
-                      <td>{item.currency}</td>
-                      <td>{formatAmount(item.deposits)}</td>
-                      <td>{formatAmount(item.pendingWithdrawals)}</td>
-                      <td>{formatAmount(item.successfulWithdrawals)}</td>
-                      <td>{formatAmount(item.capitalBalance)}</td>
-                      <td>{formatAmount(item.profitBalance)}</td>
+                  {byCurrency.length > 0 ? (
+                    byCurrency.map((item, index) => (
+                      <tr key={item.currency || index}>
+                        <td>{item.currency}</td>
+                        <td>{formatMoney(item.deposits)}</td>
+                        <td>{formatMoney(item.pendingWithdrawals)}</td>
+                        <td>{formatMoney(item.successfulWithdrawals)}</td>
+                        <td>{formatMoney(item.capitalBalance)}</td>
+                        <td>{formatMoney(item.profitBalance)}</td>
+                        <td>{formatMoney(item.fees)}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="7">No currency breakdown yet.</td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>
           </div>
 
-          {/* TRANSACTION TYPES */}
           <div className="dashboard-section">
             <div className="section-header">
               <h3>🧾 Transaction Types</h3>
@@ -225,18 +275,24 @@ export default function AdminAutoPilotDashboard() {
                   <tr>
                     <th>Type</th>
                     <th>Count</th>
-                    <th>Amount</th>
+                    <th>Amount ({baseCurrency})</th>
                   </tr>
                 </thead>
 
                 <tbody>
-                  {transactionTypes.map((item, index) => (
-                    <tr key={index}>
-                      <td>{item.type}</td>
-                      <td>{item.count}</td>
-                      <td>{formatAmount(item.amount)}</td>
+                  {transactionTypes.length > 0 ? (
+                    transactionTypes.map((item, index) => (
+                      <tr key={item.type || index}>
+                        <td>{String(item.type || "").replaceAll("_", " ")}</td>
+                        <td>{formatCount(item.count)}</td>
+                        <td>{formatMoney(item.amount)}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="3">No transactions yet.</td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>

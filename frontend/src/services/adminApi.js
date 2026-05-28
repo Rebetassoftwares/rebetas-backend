@@ -336,3 +336,28 @@ export const updateCurrencyRateStatus = (id, isActive) =>
 
 export const deleteCurrencyRate = (id) =>
   api.delete(`/admin/currency-rates/${id}`, authConfig());
+
+export const getAdminNotifications = (filters = {}) => {
+  const params = new URLSearchParams();
+
+  if (filters.userId) params.append("userId", filters.userId);
+  if (filters.type) params.append("type", filters.type);
+  if (filters.channel) params.append("channel", filters.channel);
+  if (filters.isRead !== "" && filters.isRead !== undefined) {
+    params.append("isRead", filters.isRead);
+  }
+  if (filters.page) params.append("page", filters.page);
+  if (filters.limit) params.append("limit", filters.limit);
+
+  const query = params.toString();
+
+  return api.get(
+    query ? `/admin/notifications?${query}` : "/admin/notifications",
+  );
+};
+
+export const sendAdminUserNotification = (payload) =>
+  api.post("/admin/notifications/send-user", payload);
+
+export const deleteAdminNotification = (id) =>
+  api.delete(`/admin/notifications/${id}`);

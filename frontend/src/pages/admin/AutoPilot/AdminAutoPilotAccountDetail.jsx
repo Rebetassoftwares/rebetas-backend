@@ -9,6 +9,8 @@ import {
 } from "../../../services/adminApi";
 import "./AdminAutoPilotAccountDetail.css";
 
+const BASE_CURRENCY = "USD";
+
 export default function AdminAutoPilotAccountDetail() {
   const { id } = useParams();
 
@@ -25,6 +27,7 @@ export default function AdminAutoPilotAccountDetail() {
       setError("");
 
       const res = await getAutoPilotAccountById(id);
+
       setData(res?.data || null);
     } catch (err) {
       console.error(err);
@@ -35,31 +38,38 @@ export default function AdminAutoPilotAccountDetail() {
   }
 
   useEffect(() => {
-    async function fetchAccount() {
-      try {
-        setLoading(true);
-        setError("");
-
-        const res = await getAutoPilotAccountById(id);
-        setData(res?.data || null);
-      } catch (err) {
-        console.error(err);
-        setError("Failed to load AutoPilot account");
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchAccount();
+    loadAccount();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const account = data?.account;
   const user = data?.user;
+
   const recentTransactions = data?.recentTransactions || [];
   const recentWithdrawals = data?.recentWithdrawals || [];
 
-  function formatAmount(value, currency = account?.currency || "") {
+  function formatAmount(value, currency = "") {
     return `${currency} ${Number(value || 0).toLocaleString()}`;
+  }
+
+  function localAmount(value) {
+    return formatAmount(
+      value,
+      account?.localCurrency || account?.currency || "",
+    );
+  }
+
+  function baseAmount(value) {
+    return formatAmount(value, account?.baseCurrency || BASE_CURRENCY);
+  }
+
+  function MoneyStack({ localValue, baseValue }) {
+    return (
+      <div className="money-stack">
+        <strong>{baseAmount(baseValue)}</strong>
+        <span>{localAmount(localValue)}</span>
+      </div>
+    );
   }
 
   async function handleSuspend() {
@@ -67,7 +77,9 @@ export default function AdminAutoPilotAccountDetail() {
 
     try {
       setActionLoading(true);
+
       await suspendAutoPilotAccount(id);
+
       await loadAccount();
     } catch (err) {
       console.error(err);
@@ -82,7 +94,9 @@ export default function AdminAutoPilotAccountDetail() {
 
     try {
       setActionLoading(true);
+
       await reactivateAutoPilotAccount(id);
+
       await loadAccount();
     } catch (err) {
       console.error(err);
@@ -97,7 +111,9 @@ export default function AdminAutoPilotAccountDetail() {
 
     try {
       setActionLoading(true);
+
       await closeAutoPilotAccount(id);
+
       await loadAccount();
     } catch (err) {
       console.error(err);
@@ -151,8 +167,12 @@ export default function AdminAutoPilotAccountDetail() {
       <div className="account-detail-header">
         <div>
           <Link to="/admin/autopilot/accounts">← Back to Accounts</Link>
+
           <h2>👤 AutoPilot Account Detail</h2>
-          <p>View balances, user info, recent activity and admin actions.</p>
+
+          <p>
+            View balances, exchange tracking, recent activity and admin actions.
+          </p>
         </div>
 
         <button onClick={loadAccount}>Refresh</button>
@@ -163,48 +183,83 @@ export default function AdminAutoPilotAccountDetail() {
       <div className="account-detail-grid">
         <div className="detail-card user-card">
           <h3>User Information</h3>
+
           <p>
             <span>Name</span>
+
             <strong>
               {user?.fullName || user?.username || "Unknown User"}
             </strong>
           </p>
+
           <p>
             <span>Email</span>
+
             <strong>{user?.email || "No email"}</strong>
           </p>
+
           <p>
             <span>Phone</span>
+
             <strong>{user?.phone || "No phone"}</strong>
           </p>
+
           <p>
             <span>Country</span>
+
             <strong>{user?.country || "No country"}</strong>
+          </p>
+
+          <p>
+            <span>Local Currency</span>
+
+            <strong>{account.localCurrency || account.currency || "—"}</strong>
+          </p>
+
+          <p>
+            <span>Exchange Rate</span>
+
+            <strong>
+              {account.exchangeRateSnapshot
+                ? `1 ${account.baseCurrency || BASE_CURRENCY} = ${Number(
+                    account.exchangeRateSnapshot,
+                  ).toLocaleString()} ${
+                    account.localCurrency || account.currency || ""
+                  }`
+                : "Not available"}
+            </strong>
           </p>
         </div>
 
         <div className="detail-card">
           <h3>Package Information</h3>
+
           <p>
             <span>Package</span>
+
             <strong>
               {account.packageNameSnapshot || account.packageId?.name}
             </strong>
           </p>
+
           <p>
             <span>Package Amount</span>
-            <strong>
-              {formatAmount(
-                account.packageAmountSnapshot || account.packageId?.amount,
-              )}
-            </strong>
+
+            <MoneyStack
+              localValue={account.packageAmountSnapshot}
+              baseValue={account.basePackageAmountSnapshot}
+            />
           </p>
+
           <p>
             <span>Daily Return</span>
+
             <strong>{account.dailyReturnPercentageSnapshot || 0}%</strong>
           </p>
+
           <p>
             <span>Status</span>
+
             <strong className={`detail-status ${account.status}`}>
               {account.status}
             </strong>
@@ -215,31 +270,52 @@ export default function AdminAutoPilotAccountDetail() {
       <div className="balance-grid">
         <div className="balance-card">
           <span>Capital Balance</span>
-          <h3>{formatAmount(account.capitalBalance)}</h3>
+
+          <MoneyStack
+            localValue={account.capitalBalance}
+            baseValue={account.baseCapitalBalance}
+          />
         </div>
 
         <div className="balance-card">
           <span>Profit Balance</span>
-          <h3>{formatAmount(account.profitBalance)}</h3>
+
+          <MoneyStack
+            localValue={account.profitBalance}
+            baseValue={account.baseProfitBalance}
+          />
         </div>
 
         <div className="balance-card">
           <span>Total Profit Earned</span>
-          <h3>{formatAmount(account.totalProfitEarned)}</h3>
+
+          <MoneyStack
+            localValue={account.totalProfitEarned}
+            baseValue={account.baseTotalProfitEarned}
+          />
         </div>
 
         <div className="balance-card">
           <span>Total Profit Withdrawn</span>
-          <h3>{formatAmount(account.totalProfitWithdrawn)}</h3>
+
+          <MoneyStack
+            localValue={account.totalProfitWithdrawn}
+            baseValue={account.baseTotalProfitWithdrawn}
+          />
         </div>
 
         <div className="balance-card">
           <span>Total Capital Withdrawn</span>
-          <h3>{formatAmount(account.totalCapitalWithdrawn)}</h3>
+
+          <MoneyStack
+            localValue={account.totalCapitalWithdrawn}
+            baseValue={account.baseTotalCapitalWithdrawn}
+          />
         </div>
 
         <div className="balance-card">
           <span>Last Profit Credit</span>
+
           <h3>
             {account.lastProfitCreditedAt
               ? new Date(account.lastProfitCreditedAt).toLocaleDateString()
@@ -285,7 +361,9 @@ export default function AdminAutoPilotAccountDetail() {
 
           <input
             type="number"
-            placeholder="Profit Credit Amount"
+            placeholder={`Amount in ${
+              account.localCurrency || account.currency || ""
+            }`}
             value={manualAmount}
             onChange={(e) => setManualAmount(e.target.value)}
           />
@@ -302,6 +380,11 @@ export default function AdminAutoPilotAccountDetail() {
           >
             Apply Profit Credit
           </button>
+
+          <p className="small-warning">
+            Admin finance tracking automatically converts this Profit Credit
+            into USD equivalent.
+          </p>
 
           {account.status !== "active" && (
             <p className="small-warning">
@@ -321,6 +404,7 @@ export default function AdminAutoPilotAccountDetail() {
                 <th>Type</th>
                 <th>Status</th>
                 <th>Amount</th>
+                <th>USD Value</th>
                 <th>Description</th>
                 <th>Date</th>
               </tr>
@@ -329,15 +413,31 @@ export default function AdminAutoPilotAccountDetail() {
             <tbody>
               {recentTransactions.length === 0 ? (
                 <tr>
-                  <td colSpan="5">No recent transactions.</td>
+                  <td colSpan="6">No recent transactions.</td>
                 </tr>
               ) : (
                 recentTransactions.map((item) => (
                   <tr key={item._id}>
                     <td>{item.type}</td>
+
                     <td>{item.status}</td>
-                    <td>{formatAmount(item.amount, item.currency)}</td>
+
+                    <td>
+                      {formatAmount(
+                        item.amount,
+                        item.localCurrency || item.currency,
+                      )}
+                    </td>
+
+                    <td>
+                      {formatAmount(
+                        item.baseAmount,
+                        item.baseCurrency || BASE_CURRENCY,
+                      )}
+                    </td>
+
                     <td>{item.description || "—"}</td>
+
                     <td>
                       {item.createdAt
                         ? new Date(item.createdAt).toLocaleString()
@@ -361,6 +461,7 @@ export default function AdminAutoPilotAccountDetail() {
                 <th>Type</th>
                 <th>Status</th>
                 <th>Amount</th>
+                <th>USD Value</th>
                 <th>Fee</th>
                 <th>Net Amount</th>
                 <th>Date</th>
@@ -370,16 +471,43 @@ export default function AdminAutoPilotAccountDetail() {
             <tbody>
               {recentWithdrawals.length === 0 ? (
                 <tr>
-                  <td colSpan="6">No recent withdrawals.</td>
+                  <td colSpan="7">No recent withdrawals.</td>
                 </tr>
               ) : (
                 recentWithdrawals.map((item) => (
                   <tr key={item._id}>
                     <td>{item.withdrawalType}</td>
+
                     <td>{item.status}</td>
-                    <td>{formatAmount(item.amount, item.currency)}</td>
-                    <td>{formatAmount(item.feeAmount, item.currency)}</td>
-                    <td>{formatAmount(item.netAmount, item.currency)}</td>
+
+                    <td>
+                      {formatAmount(
+                        item.amount,
+                        item.localCurrency || item.currency,
+                      )}
+                    </td>
+
+                    <td>
+                      {formatAmount(
+                        item.baseAmount,
+                        item.baseCurrency || BASE_CURRENCY,
+                      )}
+                    </td>
+
+                    <td>
+                      {formatAmount(
+                        item.feeAmount,
+                        item.localCurrency || item.currency,
+                      )}
+                    </td>
+
+                    <td>
+                      {formatAmount(
+                        item.netAmount,
+                        item.localCurrency || item.currency,
+                      )}
+                    </td>
+
                     <td>
                       {item.createdAt
                         ? new Date(item.createdAt).toLocaleString()

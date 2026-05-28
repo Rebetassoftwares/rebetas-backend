@@ -11,6 +11,7 @@ export default function InvestmentDashboard() {
   const [account, setAccount] = useState(null);
   const [payoutDetails, setPayoutDetails] = useState(null);
   const [history, setHistory] = useState([]);
+  const [referral, setReferral] = useState(null);
 
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
@@ -32,6 +33,7 @@ export default function InvestmentDashboard() {
 
       setAccount(res?.data?.account || null);
       setPayoutDetails(res?.data?.payoutDetails || null);
+      setReferral(res?.data?.referral || null);
       setHistory(
         Array.isArray(res?.data?.recentTransactions)
           ? res.data.recentTransactions
@@ -99,8 +101,14 @@ export default function InvestmentDashboard() {
 
   const currency = account?.currency || account?.userDisplayCurrency || "";
 
-  const formatMoney = (value, currencyCode = currency) => {
-    return `${currencyCode || ""} ${Number(value || 0).toLocaleString()}`;
+  const formatMoney = (value) => {
+    return `${currency || ""} ${Number(value || 0).toLocaleString()}`;
+  };
+
+  const referralCurrency = referral?.currency || currency;
+
+  const formatReferralMoney = (value) => {
+    return `${referralCurrency || ""} ${Number(value || 0).toLocaleString()}`;
   };
 
   const capitalWithdrawAvailableAt = account?.capitalWithdrawAvailableAt
@@ -131,6 +139,22 @@ export default function InvestmentDashboard() {
 
     if (value > Number(account?.profitBalance || 0)) {
       alert("Amount cannot be greater than your Profit Balance");
+      return null;
+    }
+
+    return value;
+  }
+
+  function validateReferralAmount() {
+    const value = Number(amount);
+
+    if (!value || value <= 0) {
+      alert("Enter a valid amount");
+      return null;
+    }
+
+    if (value > Number(referral?.referralBalance || 0)) {
+      alert("Amount cannot be greater than your Referral Balance");
       return null;
     }
 
@@ -190,6 +214,64 @@ export default function InvestmentDashboard() {
     } catch (err) {
       console.error("Compound Profit error:", err);
       setError(err.message || "Failed to complete Compound Profit.");
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
+  async function handleCompoundReferral() {
+    const value = validateReferralAmount();
+
+    if (!value) return;
+
+    try {
+      setActionLoading(true);
+      setError("");
+
+      await api.post("/investments/compound-referral", {
+        amount: value,
+      });
+
+      resetAction();
+      await loadDashboard();
+      await loadHistory();
+
+      alert("Referral Balance compounded successfully.");
+    } catch (err) {
+      console.error("Compound Referral error:", err);
+      setError(err.message || "Failed to compound Referral Balance.");
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
+  async function handleWithdrawReferral() {
+    if (!payoutDetails) {
+      alert("Please add payout details before withdrawing.");
+      navigate("/payout-details");
+      return;
+    }
+
+    const value = validateReferralAmount();
+
+    if (!value) return;
+
+    try {
+      setActionLoading(true);
+      setError("");
+
+      await api.post("/investments/withdraw-referral", {
+        amount: value,
+      });
+
+      resetAction();
+      await loadDashboard();
+      await loadHistory();
+
+      alert("Referral Withdrawal request submitted successfully.");
+    } catch (err) {
+      console.error("Referral Withdrawal error:", err);
+      setError(err.message || "Failed to submit Referral Withdrawal.");
     } finally {
       setActionLoading(false);
     }
@@ -308,9 +390,7 @@ export default function InvestmentDashboard() {
 
               <div className="owner-package-amount">
                 <label>Package Amount</label>
-                <h3>
-                  {formatMoney(account.packageAmountSnapshot, account.currency)}
-                </h3>
+                <h3>{formatMoney(account.packageAmountSnapshot)}</h3>
               </div>
             </div>
           </div>
@@ -330,7 +410,7 @@ export default function InvestmentDashboard() {
           <div className="main-balance-card capital-card">
             <span>Capital Balance</span>
 
-            <h2>{formatMoney(account.capitalBalance, account.currency)}</h2>
+            <h2>{formatMoney(account.capitalBalance)}</h2>
 
             <p>This increases whenever you Compound Profit.</p>
           </div>
@@ -338,9 +418,17 @@ export default function InvestmentDashboard() {
           <div className="main-balance-card profit-card">
             <span>Profit Balance</span>
 
-            <h2>{formatMoney(account.profitBalance, account.currency)}</h2>
+            <h2>{formatMoney(account.profitBalance)}</h2>
 
             <p>Available for Profit Withdrawal or Compound Profit.</p>
+          </div>
+
+          <div className="main-balance-card referral-card">
+            <span>Referral Balance</span>
+
+            <h2>{formatReferralMoney(referral?.referralBalance)}</h2>
+
+            <p>Available for Referral Withdrawal or Compound Referral.</p>
           </div>
         </section>
 
@@ -368,6 +456,24 @@ export default function InvestmentDashboard() {
             </button>
 
             <button
+              onClick={() => setActiveAction("withdraw-referral")}
+              disabled={
+                actionLoading || Number(referral?.referralBalance || 0) <= 0
+              }
+            >
+              Referral Withdrawal
+            </button>
+
+            <button
+              onClick={() => setActiveAction("compound-referral")}
+              disabled={
+                actionLoading || Number(referral?.referralBalance || 0) <= 0
+              }
+            >
+              Compound Referral
+            </button>
+
+            <button
               disabled={!canWithdrawCapital || actionLoading}
               onClick={handleWithdrawCapital}
             >
@@ -383,14 +489,28 @@ export default function InvestmentDashboard() {
                 <h4>
                   {activeAction === "withdraw"
                     ? "Profit Withdrawal"
-                    : "Compound Profit"}
+                    : activeAction === "compound"
+                      ? "Compound Profit"
+                      : activeAction === "withdraw-referral"
+                        ? "Referral Withdrawal"
+                        : "Compound Referral"}
                 </h4>
 
                 <p>
-                  Profit Balance:{" "}
-                  <strong>
-                    {formatMoney(account.profitBalance, account.currency)}
-                  </strong>
+                  {activeAction === "withdraw" ||
+                  activeAction === "compound" ? (
+                    <>
+                      Profit Balance:{" "}
+                      <strong>{formatMoney(account.profitBalance)}</strong>
+                    </>
+                  ) : (
+                    <>
+                      Referral Balance:{" "}
+                      <strong>
+                        {formatReferralMoney(referral?.referralBalance)}
+                      </strong>
+                    </>
+                  )}
                 </p>
               </div>
 
@@ -435,10 +555,18 @@ export default function InvestmentDashboard() {
 
               <input
                 type="number"
-                placeholder="Enter amount"
+                placeholder={`Enter amount in ${
+                  activeAction === "withdraw" || activeAction === "compound"
+                    ? currency
+                    : referralCurrency
+                }`}
                 value={amount}
                 min="1"
-                max={account.profitBalance}
+                max={
+                  activeAction === "withdraw" || activeAction === "compound"
+                    ? account.profitBalance
+                    : referral?.referralBalance
+                }
                 onChange={(e) => setAmount(e.target.value)}
               />
 
@@ -447,11 +575,16 @@ export default function InvestmentDashboard() {
                   onClick={
                     activeAction === "withdraw"
                       ? handleWithdrawProfit
-                      : handleCompoundProfit
+                      : activeAction === "compound"
+                        ? handleCompoundProfit
+                        : activeAction === "withdraw-referral"
+                          ? handleWithdrawReferral
+                          : handleCompoundReferral
                   }
                   disabled={
                     actionLoading ||
-                    (activeAction === "withdraw" && !payoutDetails)
+                    (activeAction === "withdraw" && !payoutDetails) ||
+                    (activeAction === "withdraw-referral" && !payoutDetails)
                   }
                 >
                   {actionLoading ? "Processing..." : "Confirm"}
@@ -490,6 +623,8 @@ export default function InvestmentDashboard() {
               <option value="capital_withdrawal">Capital Withdrawal</option>
               <option value="payout_successful">Payout Successful</option>
               <option value="payout_failed">Payout Failed</option>
+              <option value="referral_compound">Compound Referral</option>
+              <option value="referral_withdrawal">Referral Withdrawal</option>
             </select>
 
             <select
@@ -535,7 +670,7 @@ export default function InvestmentDashboard() {
                 <div className="history-table-row" key={item._id}>
                   <span>{formatType(item.type)}</span>
 
-                  <strong>{formatMoney(item.amount, item.currency)}</strong>
+                  <strong>{formatMoney(item.amount)}</strong>
 
                   <b className={`status-badge ${item.status}`}>{item.status}</b>
 

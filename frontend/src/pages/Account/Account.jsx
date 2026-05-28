@@ -18,17 +18,20 @@ export default function Account() {
   const [hasPromo, setHasPromo] = useState(false);
   const [autoPilotAccount, setAutoPilotAccount] = useState(null);
   const [loadingAutoPilot, setLoadingAutoPilot] = useState(true);
+  const [referralData, setReferralData] = useState(null);
 
   useEffect(() => {
     async function loadData() {
       try {
-        const [subRes, autoPilotRes] = await Promise.all([
+        const [subRes, autoPilotRes, referralRes] = await Promise.all([
           api.get("/subscriptions/status"),
           api.get("/investments/my"),
+          api.get("/user/referral"),
         ]);
 
         setSubscriptionData(subRes);
         setAutoPilotAccount(autoPilotRes?.data || null);
+        setReferralData(referralRes?.data || null);
 
         try {
           await api.get("/promo/my");
@@ -51,9 +54,20 @@ export default function Account() {
     loadData();
   }, []);
 
+  function copyToClipboard(value) {
+    if (!value) return;
+
+    navigator.clipboard
+      .writeText(value)
+      .catch((error) => console.error("Copy failed:", error));
+  }
+
   const subscription = subscriptionData.subscription;
   const isActive = subscriptionData.active;
   const hasAutoPilot = !!autoPilotAccount;
+
+  const referralCode = referralData?.referralCode || null;
+  const referralLink = referralData?.referralLink || null;
 
   const supportEmail = "support@rebetas.com";
 
@@ -159,6 +173,54 @@ export default function Account() {
             )}
           </div>
         </div>
+
+        {referralCode && (
+          <div className="account-card referral-card-pro">
+            <div className="referral-card-header">
+              <div>
+                <span className="referral-kicker">Referral Program</span>
+                <h3>Invite friends and earn from AutoPilot</h3>
+                <p>
+                  Share your referral link. When your referred users earn with
+                  AutoPilot, your referral bonus is credited to your Referral
+                  Balance.
+                </p>
+              </div>
+            </div>
+
+            <div className="referral-grid">
+              <div className="referral-item">
+                <span>Referral Code</span>
+
+                <div className="referral-value-box">
+                  <strong>{referralCode}</strong>
+
+                  <button
+                    type="button"
+                    onClick={() => copyToClipboard(referralCode)}
+                  >
+                    Copy
+                  </button>
+                </div>
+              </div>
+
+              <div className="referral-item referral-link-item">
+                <span>Referral Link</span>
+
+                <div className="referral-value-box">
+                  <strong>{referralLink}</strong>
+
+                  <button
+                    type="button"
+                    onClick={() => copyToClipboard(referralLink)}
+                  >
+                    Copy
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="account-card">
           <h3>Rebetas AutoPilot</h3>

@@ -198,6 +198,24 @@
   color: #ffffff;
 }
 
+.currency-form-card select,
+.currency-filter-card select {
+  color: #ffffff;
+  background: rgba(10, 2, 22, 0.92);
+}
+
+.currency-form-card select option,
+.currency-filter-card select option {
+  background: #14051f;
+  color: #ffffff;
+}
+
+.currency-form-card select:focus,
+.currency-filter-card select:focus {
+  border-color: #a020f0;
+  box-shadow: 0 0 0 3px rgba(160, 32, 240, 0.2);
+}
+
 @media (max-width: 1100px) {
   .currency-form-grid,
   .currency-filter-card {

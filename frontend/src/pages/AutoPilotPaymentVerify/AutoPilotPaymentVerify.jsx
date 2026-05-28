@@ -11,8 +11,11 @@ export default function AutoPilotPaymentVerify() {
 
   const [status, setStatus] = useState("processing");
   const [message, setMessage] = useState("Verifying your AutoPilot payment...");
+  const [account, setAccount] = useState(null);
 
-  const [paymentData, setPaymentData] = useState(null);
+  function formatMoney(value, currency) {
+    return `${currency || ""} ${Number(value || 0).toLocaleString()}`;
+  }
 
   useEffect(() => {
     async function verifyPayment() {
@@ -40,11 +43,9 @@ export default function AutoPilotPaymentVerify() {
           return;
         }
 
-        setPaymentData(res?.data || null);
-
+        setAccount(res?.data?.account || null);
         setStatus("successful");
-
-        setMessage("Your AutoPilot payment has been verified successfully.");
+        setMessage("Your AutoPilot Package has been activated successfully.");
 
         setTimeout(() => {
           navigate("/investment-dashboard");
@@ -53,7 +54,6 @@ export default function AutoPilotPaymentVerify() {
         console.error("Payment verification error:", err);
 
         setStatus("failed");
-
         setMessage(err.message || "Failed to verify AutoPilot payment.");
       }
     }
@@ -81,34 +81,34 @@ export default function AutoPilotPaymentVerify() {
             {status === "processing"
               ? "Processing Payment"
               : status === "successful"
-                ? "Payment Successful"
+                ? "AutoPilot Activated"
                 : "Payment Failed"}
           </h1>
 
           <p>{message}</p>
 
-          {paymentData && (
+          {account && (
             <div className="verify-summary">
               <div className="summary-row">
-                <span>Reference</span>
+                <span>Package</span>
                 <strong>
-                  {paymentData.reference ||
-                    paymentData.providerReference ||
-                    "-"}
+                  {account.packageNameSnapshot || "AutoPilot Package"}
                 </strong>
               </div>
 
               <div className="summary-row">
-                <span>Amount</span>
+                <span>Package Amount</span>
                 <strong>
-                  {paymentData.currency || "₦"}
-                  {Number(paymentData.amount || 0).toLocaleString("en-NG")}
+                  {formatMoney(
+                    account.packageAmountSnapshot,
+                    account.currency || account.userDisplayCurrency,
+                  )}
                 </strong>
               </div>
 
               <div className="summary-row">
                 <span>Status</span>
-                <strong className="success-text">Successful</strong>
+                <strong className="success-text">Active</strong>
               </div>
             </div>
           )}

@@ -15,14 +15,6 @@ export default function Investments() {
     return `${currency || ""} ${Number(amount || 0).toLocaleString()}`;
   };
 
-  const getDisplayAmount = (pkg) => {
-    return pkg.localizedAmount ?? pkg.amount;
-  };
-
-  const getDisplayCurrency = (pkg) => {
-    return pkg.localizedCurrency ?? pkg.currency;
-  };
-
   useEffect(() => {
     async function loadPackages() {
       try {
@@ -30,12 +22,14 @@ export default function Investments() {
         setError("");
 
         const res = await api.get("/investments/packages");
+
         const data = Array.isArray(res?.data) ? res.data : [];
 
         setPackages(data.filter((pkg) => pkg.isActive !== false));
       } catch (err) {
         console.error("AutoPilot Packages error:", err);
-        setError("Failed to load AutoPilot Packages.");
+
+        setError(err.message || "Failed to load AutoPilot Packages.");
       } finally {
         setLoading(false);
       }
@@ -58,11 +52,7 @@ export default function Investments() {
         packageId: selectedPackage._id,
       });
 
-      const paymentLink =
-        res?.data?.paymentLink ||
-        res?.data?.link ||
-        res?.paymentLink ||
-        res?.link;
+      const paymentLink = res?.data?.paymentLink;
 
       if (!paymentLink) {
         throw new Error("Payment link was not returned.");
@@ -71,6 +61,7 @@ export default function Investments() {
       window.location.href = paymentLink;
     } catch (err) {
       console.error("AutoPilot payment init error:", err);
+
       setError(err.message || "Failed to start AutoPilot payment.");
     } finally {
       setPaying(false);
@@ -132,7 +123,7 @@ export default function Investments() {
                 </div>
 
                 <div className="package-amount">
-                  {formatMoney(getDisplayAmount(pkg), getDisplayCurrency(pkg))}
+                  {formatMoney(pkg.amount, pkg.currency)}
                 </div>
 
                 <div className="daily-return-pill">
@@ -169,17 +160,20 @@ export default function Investments() {
         <section className="checkout-panel">
           <div>
             <span className="panel-label">Activation</span>
+
             <h3>Complete AutoPilot Setup</h3>
+
             <p>Your payment will be processed securely through Flutterwave.</p>
           </div>
 
           <div className="selected-summary">
             <span>Selected Package</span>
+
             <strong>
               {selectedPackage
                 ? `${selectedPackage.name} • ${formatMoney(
-                    getDisplayAmount(selectedPackage),
-                    getDisplayCurrency(selectedPackage),
+                    selectedPackage.amount,
+                    selectedPackage.currency,
                   )}`
                 : "No Package selected"}
             </strong>

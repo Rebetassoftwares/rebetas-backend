@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { getAutoPilotAnalytics } from "../../../services/adminApi";
 import "./AdminAutoPilotAnalytics.css";
 
+const BASE_CURRENCY = "USD";
+
 export default function AdminAutoPilotAnalytics() {
   const [analytics, setAnalytics] = useState(null);
   const [limit, setLimit] = useState(10);
@@ -13,36 +15,26 @@ export default function AdminAutoPilotAnalytics() {
       setLoading(true);
       setError("");
 
-      const res = await getAutoPilotAnalytics(selectedLimit);
+      const safeLimit = Math.min(Math.max(Number(selectedLimit) || 10, 1), 50);
+      const res = await getAutoPilotAnalytics(safeLimit);
+
       setAnalytics(res?.data || null);
     } catch (err) {
-      console.error(err);
-      setError("Failed to load AutoPilot analytics");
+      console.error("Load AutoPilot analytics error:", err);
+      setError(err.message || "Failed to load AutoPilot analytics");
     } finally {
       setLoading(false);
     }
   }
 
   useEffect(() => {
-    async function fetchAnalytics() {
-      try {
-        setLoading(true);
-        setError("");
-
-        const res = await getAutoPilotAnalytics(limit);
-        setAnalytics(res?.data || null);
-      } catch (err) {
-        console.error(err);
-        setError("Failed to load AutoPilot analytics");
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchAnalytics();
+    loadAnalytics(limit);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [limit]);
 
-  function formatAmount(value, currency = "") {
+  const baseCurrency = analytics?.baseCurrency || BASE_CURRENCY;
+
+  function formatAmount(value, currency = baseCurrency) {
     return `${currency} ${Number(value || 0).toLocaleString()}`;
   }
 
@@ -56,7 +48,7 @@ export default function AdminAutoPilotAnalytics() {
   }
 
   function formatType(value = "") {
-    return String(value).replaceAll("_", " ");
+    return String(value || "—").replaceAll("_", " ");
   }
 
   const topCapitalAccounts = analytics?.topCapitalAccounts || [];
@@ -72,12 +64,18 @@ export default function AdminAutoPilotAnalytics() {
         <div>
           <h2>📈 AutoPilot Analytics</h2>
           <p>
-            Advanced performance insights for AutoPilot accounts, Packages,
+            Advanced USD performance insights for AutoPilot accounts, Packages,
             balances and withdrawals.
           </p>
         </div>
 
-        <button onClick={() => loadAnalytics(limit)}>Refresh</button>
+        <button
+          type="button"
+          onClick={() => loadAnalytics(limit)}
+          disabled={loading}
+        >
+          {loading ? "Refreshing..." : "Refresh"}
+        </button>
       </div>
 
       {error && <div className="analytics-error">{error}</div>}
@@ -89,7 +87,7 @@ export default function AdminAutoPilotAnalytics() {
           <input
             type="number"
             min="1"
-            max="5000"
+            max="50"
             value={limit}
             onChange={(e) => {
               const value = Number(e.target.value);
@@ -99,8 +97,8 @@ export default function AdminAutoPilotAnalytics() {
                 return;
               }
 
-              if (value > 5000) {
-                setLimit(5000);
+              if (value > 50) {
+                setLimit(50);
                 return;
               }
 
@@ -115,7 +113,13 @@ export default function AdminAutoPilotAnalytics() {
           />
         </div>
 
-        <button onClick={() => loadAnalytics(limit)}>Apply</button>
+        <button
+          type="button"
+          onClick={() => loadAnalytics(limit)}
+          disabled={loading}
+        >
+          Apply
+        </button>
       </div>
 
       {loading ? (
@@ -127,18 +131,14 @@ export default function AdminAutoPilotAnalytics() {
               title="💰 Top Capital Accounts"
               rows={topCapitalAccounts}
               columns={[
-                {
-                  label: "User",
-                  render: (item) => userName(item),
-                },
+                { label: "User", render: (item) => userName(item) },
                 {
                   label: "Package",
                   render: (item) => item.packageNameSnapshot || "Package",
                 },
                 {
                   label: "Capital Balance",
-                  render: (item) =>
-                    formatAmount(item.capitalBalance, item.currency),
+                  render: (item) => formatAmount(item.baseCapitalBalance),
                 },
               ]}
             />
@@ -147,18 +147,14 @@ export default function AdminAutoPilotAnalytics() {
               title="💜 Top Profit Balances"
               rows={topProfitAccounts}
               columns={[
-                {
-                  label: "User",
-                  render: (item) => userName(item),
-                },
+                { label: "User", render: (item) => userName(item) },
                 {
                   label: "Package",
                   render: (item) => item.packageNameSnapshot || "Package",
                 },
                 {
                   label: "Profit Balance",
-                  render: (item) =>
-                    formatAmount(item.profitBalance, item.currency),
+                  render: (item) => formatAmount(item.baseProfitBalance),
                 },
               ]}
             />
@@ -167,18 +163,14 @@ export default function AdminAutoPilotAnalytics() {
               title="🏆 Top Profit Earners"
               rows={topProfitEarners}
               columns={[
-                {
-                  label: "User",
-                  render: (item) => userName(item),
-                },
+                { label: "User", render: (item) => userName(item) },
                 {
                   label: "Package",
                   render: (item) => item.packageNameSnapshot || "Package",
                 },
                 {
                   label: "Total Profit Earned",
-                  render: (item) =>
-                    formatAmount(item.totalProfitEarned, item.currency),
+                  render: (item) => formatAmount(item.baseTotalProfitEarned),
                 },
               ]}
             />
@@ -187,17 +179,18 @@ export default function AdminAutoPilotAnalytics() {
               title="🏦 Top Withdrawals"
               rows={topWithdrawals}
               columns={[
-                {
-                  label: "User",
-                  render: (item) => userName(item),
-                },
+                { label: "User", render: (item) => userName(item) },
                 {
                   label: "Type",
                   render: (item) => item.withdrawalType || "withdrawal",
                 },
                 {
                   label: "Amount",
-                  render: (item) => formatAmount(item.amount, item.currency),
+                  render: (item) =>
+                    formatAmount(
+                      item.baseAmount,
+                      item.baseCurrency || baseCurrency,
+                    ),
                 },
               ]}
             />
@@ -228,34 +221,15 @@ export default function AdminAutoPilotAnalytics() {
                     </tr>
                   ) : (
                     packagePerformance.map((item, index) => (
-                      <tr key={index}>
+                      <tr key={item.packageId || index}>
                         <td>{item.packageName || "Package"}</td>
                         <td>{item.totalAccounts || 0}</td>
                         <td>{item.activeAccounts || 0}</td>
-                        <td>
-                          {formatAmount(
-                            item.totalCapitalBalance,
-                            item.currency,
-                          )}
-                        </td>
-                        <td>
-                          {formatAmount(item.totalProfitBalance, item.currency)}
-                        </td>
-                        <td>
-                          {formatAmount(item.totalProfitEarned, item.currency)}
-                        </td>
-                        <td>
-                          {formatAmount(
-                            item.totalProfitWithdrawn,
-                            item.currency,
-                          )}
-                        </td>
-                        <td>
-                          {formatAmount(
-                            item.totalCapitalWithdrawn,
-                            item.currency,
-                          )}
-                        </td>
+                        <td>{formatAmount(item.totalBaseCapitalBalance)}</td>
+                        <td>{formatAmount(item.totalBaseProfitBalance)}</td>
+                        <td>{formatAmount(item.totalBaseProfitEarned)}</td>
+                        <td>{formatAmount(item.totalBaseProfitWithdrawn)}</td>
+                        <td>{formatAmount(item.totalBaseCapitalWithdrawn)}</td>
                       </tr>
                     ))
                   )}
@@ -273,7 +247,7 @@ export default function AdminAutoPilotAnalytics() {
                   <tr>
                     <th>Type</th>
                     <th>Status</th>
-                    <th>Currency</th>
+                    <th>Base Currency</th>
                     <th>Count</th>
                     <th>Total Amount</th>
                   </tr>
@@ -285,20 +259,19 @@ export default function AdminAutoPilotAnalytics() {
                       <td colSpan="5">No transaction summary data.</td>
                     </tr>
                   ) : (
-                    transactionSummary.map((item, index) => (
-                      <tr key={index}>
-                        <td>{formatType(item._id?.type)}</td>
-                        <td>{item._id?.status || "—"}</td>
-                        <td>{item._id?.currency || "—"}</td>
-                        <td>{item.count || 0}</td>
-                        <td>
-                          {formatAmount(
-                            item.totalAmount,
-                            item._id?.currency || "",
-                          )}
-                        </td>
-                      </tr>
-                    ))
+                    transactionSummary.map((item, index) => {
+                      const currency = item._id?.baseCurrency || baseCurrency;
+
+                      return (
+                        <tr key={index}>
+                          <td>{formatType(item._id?.type)}</td>
+                          <td>{item._id?.status || "—"}</td>
+                          <td>{currency}</td>
+                          <td>{item.count || 0}</td>
+                          <td>{formatAmount(item.totalAmount, currency)}</td>
+                        </tr>
+                      );
+                    })
                   )}
                 </tbody>
               </table>

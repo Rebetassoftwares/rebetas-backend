@@ -49,6 +49,11 @@ const menu = [
   {
     title: "MANAGEMENT",
     items: [
+      {
+        name: "Notifications",
+        path: "/admin/notifications",
+        icon: "🔔",
+      },
       { name: "Payments", path: "/admin/payments", icon: "💸" },
       { name: "Subscriptions", path: "/admin/subscriptions", icon: "🧾" },
       { name: "System", path: "/admin/system", icon: "⚙️" },

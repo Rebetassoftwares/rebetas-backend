@@ -8,6 +8,8 @@ import {
 } from "../../../services/adminApi";
 import "./AdminAutoPilotAccounts.css";
 
+const BASE_CURRENCY = "USD";
+
 export default function AdminAutoPilotAccounts() {
   const [accounts, setAccounts] = useState([]);
   const [status, setStatus] = useState("");
@@ -21,36 +23,40 @@ export default function AdminAutoPilotAccounts() {
       setError("");
 
       const res = await getAutoPilotAccounts(status ? { status } : {});
+
       setAccounts(Array.isArray(res?.data) ? res.data : []);
     } catch (err) {
-      console.error(err);
-      setError("Failed to load AutoPilot Accounts");
+      console.error("Load AutoPilot Accounts error:", err);
+      setError(err.message || "Failed to load AutoPilot Accounts");
     } finally {
       setLoading(false);
     }
   }
 
   useEffect(() => {
-    async function fetchAccounts() {
-      try {
-        setLoading(true);
-        setError("");
-
-        const res = await getAutoPilotAccounts(status ? { status } : {});
-        setAccounts(Array.isArray(res?.data) ? res.data : []);
-      } catch (err) {
-        console.error(err);
-        setError("Failed to load AutoPilot Accounts");
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchAccounts();
+    loadAccounts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status]);
 
   function formatAmount(value, currency = "") {
     return `${currency} ${Number(value || 0).toLocaleString()}`;
+  }
+
+  function formatLocalAmount(value, account) {
+    return formatAmount(value, account.localCurrency || account.currency || "");
+  }
+
+  function formatBaseAmount(value, account) {
+    return formatAmount(value, account.baseCurrency || BASE_CURRENCY);
+  }
+
+  function MoneyStack({ localValue, baseValue, account }) {
+    return (
+      <div className="money-stack">
+        <strong>{formatBaseAmount(baseValue, account)}</strong>
+        <span>{formatLocalAmount(localValue, account)}</span>
+      </div>
+    );
   }
 
   async function handleSuspend(id) {
@@ -58,11 +64,13 @@ export default function AdminAutoPilotAccounts() {
 
     try {
       setActionLoading(id);
+      setError("");
+
       await suspendAutoPilotAccount(id);
-      loadAccounts();
+      await loadAccounts();
     } catch (err) {
-      console.error(err);
-      setError("Failed to suspend AutoPilot account");
+      console.error("Suspend AutoPilot account error:", err);
+      setError(err.message || "Failed to suspend AutoPilot account");
     } finally {
       setActionLoading("");
     }
@@ -73,11 +81,13 @@ export default function AdminAutoPilotAccounts() {
 
     try {
       setActionLoading(id);
+      setError("");
+
       await reactivateAutoPilotAccount(id);
-      loadAccounts();
+      await loadAccounts();
     } catch (err) {
-      console.error(err);
-      setError("Failed to reactivate AutoPilot account");
+      console.error("Reactivate AutoPilot account error:", err);
+      setError(err.message || "Failed to reactivate AutoPilot account");
     } finally {
       setActionLoading("");
     }
@@ -94,10 +104,12 @@ export default function AdminAutoPilotAccounts() {
 
     try {
       setActionLoading(id);
+      setError("");
+
       await closeAutoPilotAccount(id);
-      loadAccounts();
+      await loadAccounts();
     } catch (err) {
-      console.error(err);
+      console.error("Close AutoPilot account error:", err);
       setError(err.message || "Failed to close AutoPilot account");
     } finally {
       setActionLoading("");
@@ -109,10 +121,15 @@ export default function AdminAutoPilotAccounts() {
       <div className="autopilot-accounts-header">
         <div>
           <h2>👤 AutoPilot Accounts</h2>
-          <p>Manage user AutoPilot accounts, balances and account status.</p>
+          <p>
+            Manage user AutoPilot accounts, local balances, and admin USD
+            tracking.
+          </p>
         </div>
 
-        <button onClick={loadAccounts}>Refresh</button>
+        <button type="button" onClick={loadAccounts} disabled={loading}>
+          {loading ? "Refreshing..." : "Refresh"}
+        </button>
       </div>
 
       {error && <div className="autopilot-accounts-error">{error}</div>}
@@ -143,6 +160,7 @@ export default function AdminAutoPilotAccounts() {
                   <th>Capital Balance</th>
                   <th>Profit Balance</th>
                   <th>Total Profit Earned</th>
+                  <th>Currency / Rate</th>
                   <th>Status</th>
                   <th>Created</th>
                   <th>Actions</th>
@@ -160,28 +178,73 @@ export default function AdminAutoPilotAccounts() {
                             "Unknown User"}
                         </strong>
                         <span>{account.user?.email || "No email"}</span>
+                        <span>{account.user?.country || "No country"}</span>
                       </div>
                     </td>
 
                     <td>
-                      {account.packageNameSnapshot ||
-                        account.packageId?.name ||
-                        "Package"}
+                      <div className="package-cell">
+                        <strong>
+                          {account.packageNameSnapshot ||
+                            account.packageId?.name ||
+                            "Package"}
+                        </strong>
+
+                        <span>
+                          Package:{" "}
+                          {formatBaseAmount(
+                            account.basePackageAmountSnapshot,
+                            account,
+                          )}
+                        </span>
+                      </div>
                     </td>
 
                     <td>
-                      {formatAmount(account.capitalBalance, account.currency)}
+                      <MoneyStack
+                        localValue={account.capitalBalance}
+                        baseValue={account.baseCapitalBalance}
+                        account={account}
+                      />
                     </td>
 
                     <td>
-                      {formatAmount(account.profitBalance, account.currency)}
+                      <MoneyStack
+                        localValue={account.profitBalance}
+                        baseValue={account.baseProfitBalance}
+                        account={account}
+                      />
                     </td>
 
                     <td>
-                      {formatAmount(
-                        account.totalProfitEarned,
-                        account.currency,
-                      )}
+                      <MoneyStack
+                        localValue={account.totalProfitEarned}
+                        baseValue={account.baseTotalProfitEarned}
+                        account={account}
+                      />
+                    </td>
+
+                    <td>
+                      <div className="currency-cell">
+                        <strong>
+                          {account.localCurrency || account.currency || "—"}
+                        </strong>
+
+                        <span>
+                          Rate:{" "}
+                          {account.exchangeRateSnapshot
+                            ? `1 ${account.baseCurrency || BASE_CURRENCY} = ${Number(
+                                account.exchangeRateSnapshot,
+                              ).toLocaleString()} ${
+                                account.localCurrency || account.currency || ""
+                              }`
+                            : "Not available"}
+                        </span>
+
+                        {!account.hasValidExchangeRate && (
+                          <small>Missing exchange rate</small>
+                        )}
+                      </div>
                     </td>
 
                     <td>
@@ -204,6 +267,7 @@ export default function AdminAutoPilotAccounts() {
 
                         {account.status === "active" && (
                           <button
+                            type="button"
                             disabled={actionLoading === account._id}
                             onClick={() => handleSuspend(account._id)}
                           >
@@ -213,6 +277,7 @@ export default function AdminAutoPilotAccounts() {
 
                         {account.status === "suspended" && (
                           <button
+                            type="button"
                             disabled={actionLoading === account._id}
                             onClick={() => handleReactivate(account._id)}
                           >
@@ -222,6 +287,7 @@ export default function AdminAutoPilotAccounts() {
 
                         {account.status !== "closed" && (
                           <button
+                            type="button"
                             className="danger-btn"
                             disabled={actionLoading === account._id}
                             onClick={() => handleClose(account._id)}

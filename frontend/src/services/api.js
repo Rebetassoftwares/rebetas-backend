@@ -7,11 +7,9 @@ const API_BASE_URL =
 async function request(endpoint, options = {}) {
   const token = getStoredToken();
 
-  // 🔥 detect FormData
   const isFormData = options.body instanceof FormData;
 
   const headers = {
-    // ✅ ONLY set JSON header if NOT FormData
     ...(!isFormData && options.body
       ? { "Content-Type": "application/json" }
       : {}),
@@ -41,8 +39,6 @@ async function request(endpoint, options = {}) {
       endpoint,
     });
 
-    // 🔥 HANDLE EXPIRED SESSION
-    // BUT allow auth pages to receive backend errors normally
     if (
       response.status === 401 &&
       endpoint !== "/user/login" &&
@@ -73,30 +69,34 @@ const api = {
     });
   },
 
-  post(endpoint, body) {
+  post(endpoint, body, options = {}) {
     return request(endpoint, {
       method: "POST",
       body: body instanceof FormData ? body : JSON.stringify(body),
+      ...options,
     });
   },
 
-  put(endpoint, body) {
+  put(endpoint, body, options = {}) {
     return request(endpoint, {
       method: "PUT",
       body: body instanceof FormData ? body : JSON.stringify(body),
+      ...options,
     });
   },
 
-  patch(endpoint, body) {
+  patch(endpoint, body, options = {}) {
     return request(endpoint, {
       method: "PATCH",
       body: body instanceof FormData ? body : JSON.stringify(body),
+      ...options,
     });
   },
 
-  delete(endpoint) {
+  delete(endpoint, options = {}) {
     return request(endpoint, {
       method: "DELETE",
+      ...options,
     });
   },
 };

@@ -1,6 +1,6 @@
 import Navbar from "../../components/Navbar/Navbar";
 import Footer from "../../components/Footer/Footer";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useState } from "react";
 import ReactCountryFlag from "react-country-flag";
 import { COUNTRIES } from "../../data/countries";
@@ -9,6 +9,8 @@ import api from "../../services/api";
 
 export default function Register() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const referralFromLink = searchParams.get("ref");
 
   const [formData, setFormData] = useState({
     username: "",
@@ -21,6 +23,7 @@ export default function Register() {
     countryDialCode: "+44",
     currency: "",
 
+    referralCode: referralFromLink || "",
     promoCode: "",
     password: "",
     confirmPassword: "",
@@ -263,6 +266,19 @@ export default function Register() {
                   {showConfirmPassword ? "🙈" : "👁️"}
                 </span>
               </div>
+
+              <input
+                name="referralCode"
+                placeholder="Referral Code"
+                value={formData.referralCode}
+                readOnly={!!referralFromLink}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    referralCode: e.target.value.toUpperCase(),
+                  }))
+                }
+              />
 
               <input
                 name="promoCode"

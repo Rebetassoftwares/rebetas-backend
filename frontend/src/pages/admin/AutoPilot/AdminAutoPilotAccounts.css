@@ -225,6 +225,33 @@
   border: 1px solid rgba(220, 53, 69, 0.5);
 }
 
+.money-stack,
+.package-cell,
+.currency-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.money-stack strong {
+  color: #ffffff !important;
+  font-size: 14px;
+}
+
+.money-stack span,
+.package-cell span,
+.currency-cell span {
+  color: rgba(255, 255, 255, 0.68) !important;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.currency-cell small {
+  color: #ffb4c4 !important;
+  font-size: 11px;
+  font-weight: 800;
+}
+
 /* RESPONSIVE */
 
 @media (max-width: 700px) {

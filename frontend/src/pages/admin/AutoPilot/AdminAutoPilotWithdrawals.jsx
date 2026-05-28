@@ -8,6 +8,8 @@ import {
 } from "../../../services/adminApi";
 import "./AdminAutoPilotWithdrawals.css";
 
+const BASE_CURRENCY = "USD";
+
 export default function AdminAutoPilotWithdrawals() {
   const [withdrawals, setWithdrawals] = useState([]);
   const [status, setStatus] = useState("");
@@ -30,40 +32,36 @@ export default function AdminAutoPilotWithdrawals() {
 
       setWithdrawals(Array.isArray(res?.data) ? res.data : []);
     } catch (err) {
-      console.error(err);
-      setError("Failed to load AutoPilot withdrawals");
+      console.error("Load AutoPilot withdrawals error:", err);
+      setError(err.message || "Failed to load AutoPilot withdrawals");
     } finally {
       setLoading(false);
     }
   }
 
   useEffect(() => {
-    async function fetchWithdrawals() {
-      try {
-        setLoading(true);
-        setError("");
-
-        const params = {};
-
-        if (status) params.status = status;
-        if (type) params.withdrawalType = type;
-
-        const res = await getAutoPilotWithdrawals(params);
-
-        setWithdrawals(Array.isArray(res?.data) ? res.data : []);
-      } catch (err) {
-        console.error(err);
-        setError("Failed to load AutoPilot withdrawals");
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchWithdrawals();
+    loadWithdrawals();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, type]);
 
   function formatAmount(value, currency = "") {
     return `${currency} ${Number(value || 0).toLocaleString()}`;
+  }
+
+  function getLocalCurrency(item) {
+    return item.localCurrency || item.currency || "";
+  }
+
+  function getBaseCurrency(item) {
+    return item.baseCurrency || BASE_CURRENCY;
+  }
+
+  function formatRate(item) {
+    if (!item.exchangeRateSnapshot) return "Rate: —";
+
+    return `Rate: 1 ${getBaseCurrency(item)} = ${Number(
+      item.exchangeRateSnapshot,
+    ).toLocaleString()} ${getLocalCurrency(item)}`;
   }
 
   async function handleApprove(id) {
@@ -71,12 +69,12 @@ export default function AdminAutoPilotWithdrawals() {
 
     try {
       setActionLoading(id);
+      setError("");
 
       await approveAutoPilotWithdrawal(id);
-
       await loadWithdrawals();
     } catch (err) {
-      console.error(err);
+      console.error("Approve withdrawal error:", err);
       setError(err.message || "Failed to approve withdrawal");
     } finally {
       setActionLoading("");
@@ -90,6 +88,7 @@ export default function AdminAutoPilotWithdrawals() {
 
     try {
       setActionLoading(id);
+      setError("");
 
       await rejectAutoPilotWithdrawal(id, {
         reason,
@@ -97,7 +96,7 @@ export default function AdminAutoPilotWithdrawals() {
 
       await loadWithdrawals();
     } catch (err) {
-      console.error(err);
+      console.error("Reject withdrawal error:", err);
       setError(err.message || "Failed to reject withdrawal");
     } finally {
       setActionLoading("");
@@ -105,18 +104,18 @@ export default function AdminAutoPilotWithdrawals() {
   }
 
   async function handlePay(id) {
-    if (!window.confirm("Proceed to mark/send this withdrawal for payment?")) {
+    if (!window.confirm("Proceed to send this withdrawal for payment?")) {
       return;
     }
 
     try {
       setActionLoading(id);
+      setError("");
 
       await payAutoPilotWithdrawal(id);
-
       await loadWithdrawals();
     } catch (err) {
-      console.error(err);
+      console.error("Pay withdrawal error:", err);
       setError(err.message || "Failed to process payment");
     } finally {
       setActionLoading("");
@@ -128,10 +127,15 @@ export default function AdminAutoPilotWithdrawals() {
       <div className="withdrawals-header">
         <div>
           <h2>🏦 AutoPilot Withdrawals</h2>
-          <p>Manage Profit Withdrawal and Capital Withdrawal requests.</p>
+          <p>
+            Manage Profit Withdrawal and Capital Withdrawal requests with local
+            payout values and USD admin tracking.
+          </p>
         </div>
 
-        <button onClick={loadWithdrawals}>Refresh</button>
+        <button type="button" onClick={loadWithdrawals} disabled={loading}>
+          {loading ? "Refreshing..." : "Refresh"}
+        </button>
       </div>
 
       {error && <div className="withdrawals-error">{error}</div>}
@@ -179,8 +183,10 @@ export default function AdminAutoPilotWithdrawals() {
                   <th>User</th>
                   <th>Type</th>
                   <th>Amount</th>
+                  <th>USD Amount</th>
                   <th>Fee</th>
                   <th>Net Amount</th>
+                  <th>USD Net</th>
                   <th>Status</th>
                   <th>Bank</th>
                   <th>Created</th>
@@ -211,11 +217,31 @@ export default function AdminAutoPilotWithdrawals() {
                       </span>
                     </td>
 
-                    <td>{formatAmount(item.amount, item.currency)}</td>
+                    <td>
+                      <div className="money-stack">
+                        <strong>
+                          {formatAmount(item.amount, getLocalCurrency(item))}
+                        </strong>
 
-                    <td>{formatAmount(item.feeAmount, item.currency)}</td>
+                        <span>{formatRate(item)}</span>
+                      </div>
+                    </td>
 
-                    <td>{formatAmount(item.netAmount, item.currency)}</td>
+                    <td>
+                      {formatAmount(item.baseAmount, getBaseCurrency(item))}
+                    </td>
+
+                    <td>
+                      {formatAmount(item.feeAmount, getLocalCurrency(item))}
+                    </td>
+
+                    <td>
+                      {formatAmount(item.netAmount, getLocalCurrency(item))}
+                    </td>
+
+                    <td>
+                      {formatAmount(item.baseNetAmount, getBaseCurrency(item))}
+                    </td>
 
                     <td>
                       <span className={`withdrawal-status ${item.status}`}>
@@ -226,11 +252,15 @@ export default function AdminAutoPilotWithdrawals() {
                     <td>
                       <div className="bank-info">
                         <strong>
-                          {item.payoutDetailsSnapshot?.bankName || "No Bank"}
+                          {item.payoutDetailsSnapshot?.bankName ||
+                            item.payoutDetails?.bankName ||
+                            "No Bank"}
                         </strong>
 
                         <span>
-                          {item.payoutDetailsSnapshot?.accountNumber || "—"}
+                          {item.payoutDetailsSnapshot?.accountNumber ||
+                            item.payoutDetails?.accountNumber ||
+                            "—"}
                         </span>
                       </div>
                     </td>
@@ -246,9 +276,11 @@ export default function AdminAutoPilotWithdrawals() {
                         <Link to={`/admin/autopilot/withdrawals/${item._id}`}>
                           View
                         </Link>
+
                         {item.status === "pending" && (
                           <>
                             <button
+                              type="button"
                               disabled={actionLoading === item._id}
                               onClick={() => handleApprove(item._id)}
                             >
@@ -256,6 +288,7 @@ export default function AdminAutoPilotWithdrawals() {
                             </button>
 
                             <button
+                              type="button"
                               className="danger-btn"
                               disabled={actionLoading === item._id}
                               onClick={() => handleReject(item._id)}
@@ -267,6 +300,7 @@ export default function AdminAutoPilotWithdrawals() {
 
                         {item.status === "approved" && (
                           <button
+                            type="button"
                             className="success-btn"
                             disabled={actionLoading === item._id}
                             onClick={() => handlePay(item._id)}
@@ -275,8 +309,11 @@ export default function AdminAutoPilotWithdrawals() {
                           </button>
                         )}
 
-                        {(item.status === "successful" ||
-                          item.status === "processing") && (
+                        {item.status === "processing" && (
+                          <span className="processing-badge">Processing</span>
+                        )}
+
+                        {item.status === "successful" && (
                           <span className="completed-badge">Completed</span>
                         )}
                       </div>

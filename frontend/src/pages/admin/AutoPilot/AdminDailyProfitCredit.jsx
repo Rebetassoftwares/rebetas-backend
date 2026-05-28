@@ -2,6 +2,8 @@ import { useState } from "react";
 import { applyDailyProfitCredit } from "../../../services/adminApi";
 import "./AdminDailyProfitCredit.css";
 
+const BASE_CURRENCY = "USD";
+
 export default function AdminDailyProfitCredit() {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -37,6 +39,7 @@ export default function AdminDailyProfitCredit() {
   }
 
   const creditedAccounts = result?.creditedAccounts || [];
+  const baseCurrency = result?.baseCurrency || BASE_CURRENCY;
 
   return (
     <div className="daily-profit-page">
@@ -45,6 +48,8 @@ export default function AdminDailyProfitCredit() {
           <h2>💜 Daily Profit Credit</h2>
           <p>
             Apply daily Profit Credit to eligible active AutoPilot accounts.
+            Admin totals are tracked in USD while users receive local currency
+            credit.
           </p>
         </div>
       </div>
@@ -62,7 +67,8 @@ export default function AdminDailyProfitCredit() {
 
         <p>
           Accounts already credited today will be skipped automatically by the
-          backend.
+          backend. Accounts without a valid exchange rate snapshot will also be
+          skipped for finance safety.
         </p>
 
         <button disabled={loading} onClick={handleApplyCredit}>
@@ -84,8 +90,22 @@ export default function AdminDailyProfitCredit() {
             </div>
 
             <div className="summary-card">
+              <span>Missing Exchange Rates</span>
+              <h3>{result.missingExchangeRateCount || 0}</h3>
+            </div>
+
+            <div className="summary-card">
               <span>Total Profit Credited</span>
-              <h3>{formatAmount(result.totalProfitCredited)}</h3>
+
+              <div className="money-stack">
+                <strong>
+                  {formatAmount(result.totalBaseProfitCredited, baseCurrency)}
+                </strong>
+
+                <small>
+                  Local total: {formatAmount(result.totalProfitCredited)}
+                </small>
+              </div>
             </div>
           </div>
 
@@ -105,8 +125,11 @@ export default function AdminDailyProfitCredit() {
                       <th>User ID</th>
                       <th>Package</th>
                       <th>Capital Balance</th>
+                      <th>Capital USD</th>
                       <th>Daily Return %</th>
                       <th>Profit Credited</th>
+                      <th>Profit USD</th>
+                      <th>Exchange Rate</th>
                       <th>Currency</th>
                     </tr>
                   </thead>
@@ -117,13 +140,39 @@ export default function AdminDailyProfitCredit() {
                         <td>{item.accountId}</td>
                         <td>{item.userId}</td>
                         <td>{item.packageName || "Package"}</td>
+
                         <td>
                           {formatAmount(item.capitalBalance, item.currency)}
                         </td>
+
+                        <td>
+                          {formatAmount(
+                            item.baseCapitalBalance,
+                            item.baseCurrency || baseCurrency,
+                          )}
+                        </td>
+
                         <td>{item.dailyReturnPercentage}%</td>
+
                         <td>
                           {formatAmount(item.profitCredited, item.currency)}
                         </td>
+
+                        <td>
+                          {formatAmount(
+                            item.baseProfitCredited,
+                            item.baseCurrency || baseCurrency,
+                          )}
+                        </td>
+
+                        <td>
+                          {item.exchangeRateSnapshot
+                            ? `1 ${item.baseCurrency || baseCurrency} = ${Number(
+                                item.exchangeRateSnapshot,
+                              ).toLocaleString()} ${item.currency}`
+                            : "—"}
+                        </td>
+
                         <td>{item.currency}</td>
                       </tr>
                     ))}

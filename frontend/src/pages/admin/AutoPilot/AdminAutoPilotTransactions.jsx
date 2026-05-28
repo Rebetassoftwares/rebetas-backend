@@ -2,27 +2,26 @@ import { useEffect, useState } from "react";
 import { getAutoPilotTransactions } from "../../../services/adminApi";
 import "./AdminAutoPilotTransactions.css";
 
+const BASE_CURRENCY = "USD";
+
 export default function AdminAutoPilotTransactions() {
   const [transactions, setTransactions] = useState([]);
-  const [pagination, setPagination] = useState(null);
 
   const [type, setType] = useState("");
   const [status, setStatus] = useState("");
   const [currency, setCurrency] = useState("");
   const [date, setDate] = useState("");
 
-  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  async function loadTransactions(targetPage = page) {
+  async function loadTransactions() {
     try {
       setLoading(true);
       setError("");
 
       const params = {
-        page: targetPage,
-        limit: 50,
+        limit: 1000,
       };
 
       if (type) params.type = type;
@@ -35,48 +34,17 @@ export default function AdminAutoPilotTransactions() {
       setTransactions(
         Array.isArray(res?.data?.transactions) ? res.data.transactions : [],
       );
-      setPagination(res?.data?.pagination || null);
-      setPage(targetPage);
     } catch (err) {
-      console.error(err);
-      setError("Failed to load AutoPilot transactions");
+      console.error("Load AutoPilot transactions error:", err);
+      setError(err.message || "Failed to load AutoPilot transactions");
     } finally {
       setLoading(false);
     }
   }
 
   useEffect(() => {
-    async function fetchTransactions() {
-      try {
-        setLoading(true);
-        setError("");
-
-        const params = {
-          page: 1,
-          limit: 50,
-        };
-
-        if (type) params.type = type;
-        if (status) params.status = status;
-        if (currency) params.currency = currency;
-        if (date) params.date = date;
-
-        const res = await getAutoPilotTransactions(params);
-
-        setTransactions(
-          Array.isArray(res?.data?.transactions) ? res.data.transactions : [],
-        );
-        setPagination(res?.data?.pagination || null);
-        setPage(1);
-      } catch (err) {
-        console.error(err);
-        setError("Failed to load AutoPilot transactions");
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchTransactions();
+    loadTransactions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [type, status, currency, date]);
 
   function formatAmount(value, currencyCode = "") {
@@ -87,12 +55,31 @@ export default function AdminAutoPilotTransactions() {
     return String(value).replaceAll("_", " ");
   }
 
+  function getLocalCurrency(item) {
+    return item.currency || item.account?.currency || "";
+  }
+
+  function getBaseCurrency(item) {
+    return item.baseCurrency || BASE_CURRENCY;
+  }
+
+  function formatRate(item) {
+    if (!item.exchangeRateSnapshot) return "Rate: —";
+
+    return `Rate: 1 ${getBaseCurrency(item)} = ${Number(
+      item.exchangeRateSnapshot,
+    ).toLocaleString()} ${getLocalCurrency(item)}`;
+  }
+
+  const currencyOptions = [
+    ...new Set(transactions.map((item) => item.currency).filter(Boolean)),
+  ].sort();
+
   function resetFilters() {
     setType("");
     setStatus("");
     setCurrency("");
     setDate("");
-    setPage(1);
   }
 
   return (
@@ -101,12 +88,14 @@ export default function AdminAutoPilotTransactions() {
         <div>
           <h2>🧾 AutoPilot Transactions</h2>
           <p>
-            View the full AutoPilot ledger for deposits, Profit Credit,
-            withdrawals and Compound Profit.
+            View the full AutoPilot ledger with local user values and USD admin
+            tracking.
           </p>
         </div>
 
-        <button onClick={() => loadTransactions(page)}>Refresh</button>
+        <button type="button" onClick={loadTransactions} disabled={loading}>
+          {loading ? "Refreshing..." : "Refresh"}
+        </button>
       </div>
 
       {error && <div className="transactions-error">{error}</div>}
@@ -116,11 +105,13 @@ export default function AdminAutoPilotTransactions() {
           <label>Type</label>
           <select value={type} onChange={(e) => setType(e.target.value)}>
             <option value="">All Types</option>
-            <option value="deposit">Deposit</option>
+            <option value="package_activation">Package Activation</option>
             <option value="profit_credit">Profit Credit</option>
-            <option value="compound">Compound Profit</option>
+            <option value="profit_reinvest">Compound Profit</option>
             <option value="profit_withdrawal">Profit Withdrawal</option>
             <option value="capital_withdrawal">Capital Withdrawal</option>
+            <option value="payout_failed">Payout Failed</option>
+            <option value="payout_successful">Payout Successful</option>
           </select>
         </div>
 
@@ -137,17 +128,18 @@ export default function AdminAutoPilotTransactions() {
         </div>
 
         <div className="filter-item">
-          <label>Currency</label>
+          <label>User Currency</label>
           <select
             value={currency}
             onChange={(e) => setCurrency(e.target.value)}
           >
             <option value="">All Currency</option>
-            <option value="NGN">NGN</option>
-            <option value="USD">USD</option>
-            <option value="GHS">GHS</option>
-            <option value="KES">KES</option>
-            <option value="ZAR">ZAR</option>
+
+            {currencyOptions.map((currencyCode) => (
+              <option key={currencyCode} value={currencyCode}>
+                {currencyCode}
+              </option>
+            ))}
           </select>
         </div>
 
@@ -160,7 +152,11 @@ export default function AdminAutoPilotTransactions() {
           />
         </div>
 
-        <button className="reset-filter-btn" onClick={resetFilters}>
+        <button
+          type="button"
+          className="reset-filter-btn"
+          onClick={resetFilters}
+        >
           Reset
         </button>
       </div>
@@ -182,11 +178,13 @@ export default function AdminAutoPilotTransactions() {
                   <th>User</th>
                   <th>Type</th>
                   <th>Status</th>
-                  <th>Amount</th>
+                  <th>Local Amount</th>
+                  <th>USD Amount</th>
                   <th>Capital Before</th>
                   <th>Profit Before</th>
                   <th>Capital After</th>
                   <th>Profit After</th>
+                  <th>Package</th>
                   <th>Description</th>
                   <th>Date</th>
                 </tr>
@@ -218,34 +216,51 @@ export default function AdminAutoPilotTransactions() {
                       </span>
                     </td>
 
-                    <td>{formatAmount(item.amount, item.currency)}</td>
+                    <td>
+                      <div className="money-stack">
+                        <strong>
+                          {formatAmount(item.amount, getLocalCurrency(item))}
+                        </strong>
+                        <span>{formatRate(item)}</span>
+                      </div>
+                    </td>
+
+                    <td>
+                      {formatAmount(item.baseAmount, getBaseCurrency(item))}
+                    </td>
 
                     <td>
                       {formatAmount(
                         item.balanceBefore?.capitalBalance,
-                        item.currency,
+                        getLocalCurrency(item),
                       )}
                     </td>
 
                     <td>
                       {formatAmount(
                         item.balanceBefore?.profitBalance,
-                        item.currency,
+                        getLocalCurrency(item),
                       )}
                     </td>
 
                     <td>
                       {formatAmount(
                         item.balanceAfter?.capitalBalance,
-                        item.currency,
+                        getLocalCurrency(item),
                       )}
                     </td>
 
                     <td>
                       {formatAmount(
                         item.balanceAfter?.profitBalance,
-                        item.currency,
+                        getLocalCurrency(item),
                       )}
+                    </td>
+
+                    <td>
+                      {item.account?.packageNameSnapshot ||
+                        item.metadata?.packageNameSnapshot ||
+                        "—"}
                     </td>
 
                     <td>{item.description || "—"}</td>
@@ -260,28 +275,6 @@ export default function AdminAutoPilotTransactions() {
               </tbody>
             </table>
           </div>
-
-          {pagination && (
-            <div className="transactions-pagination">
-              <button
-                disabled={page <= 1}
-                onClick={() => loadTransactions(page - 1)}
-              >
-                Previous
-              </button>
-
-              <span>
-                Page {pagination.page} of {pagination.pages || 1}
-              </span>
-
-              <button
-                disabled={page >= pagination.pages}
-                onClick={() => loadTransactions(page + 1)}
-              >
-                Next
-              </button>
-            </div>
-          )}
         </div>
       )}
     </div>

@@ -21,13 +21,10 @@
   justify-content: space-between;
   align-items: center;
   gap: 20px;
-
   padding: 24px;
   border-radius: 20px;
-
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.12);
-
   backdrop-filter: blur(20px);
 }
 
@@ -46,12 +43,16 @@
   padding: 12px 20px;
   border-radius: 12px;
   border: none;
-
   background: linear-gradient(135deg, #a020f0, #7b2cff);
-
   color: #ffffff;
   font-weight: 700;
   cursor: pointer;
+}
+
+.transactions-header button:disabled,
+.reset-filter-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 /* FILTERS */
@@ -60,10 +61,8 @@
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 16px;
-
   padding: 20px;
   border-radius: 18px;
-
   background: rgba(255, 255, 255, 0.07);
   border: 1px solid rgba(255, 255, 255, 0.14);
 }
@@ -81,14 +80,10 @@
 .filter-item select,
 .filter-item input {
   width: 100%;
-
   padding: 12px;
   border-radius: 12px;
-
   border: 1px solid rgba(255, 255, 255, 0.25);
-
   background: rgba(255, 255, 255, 0.13);
-
   color: #ffffff;
   outline: none;
 }
@@ -106,10 +101,8 @@
 .transactions-table-card {
   padding: 20px;
   border-radius: 20px;
-
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.12);
-
   backdrop-filter: blur(20px);
 }
 
@@ -119,35 +112,50 @@
 
 .transactions-table {
   width: 100%;
-  min-width: 1450px;
+  min-width: 1650px;
   border-collapse: collapse;
 }
 
 .transactions-table th {
   text-align: left;
   padding: 14px;
-
   color: rgba(255, 255, 255, 0.7);
-
   font-size: 13px;
   font-weight: 700;
-
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .transactions-table td {
   padding: 16px 14px;
-
   color: #ffffff;
-
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-
   vertical-align: top;
 }
 
 .transactions-table tr:hover {
   background: rgba(255, 255, 255, 0.04);
 }
+
+/* MONEY */
+
+.money-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.money-stack strong {
+  color: #ffffff !important;
+  font-size: 13px;
+}
+
+.money-stack span {
+  color: rgba(255, 255, 255, 0.68) !important;
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+/* USER */
 
 .transaction-user {
   display: flex;
@@ -165,17 +173,15 @@
 .transaction-type,
 .transaction-status {
   display: inline-flex;
-
   padding: 6px 10px;
   border-radius: 999px;
-
   font-size: 12px;
   font-weight: 800;
   text-transform: capitalize;
   white-space: nowrap;
 }
 
-.transaction-type.deposit {
+.transaction-type.package_activation {
   background: rgba(0, 123, 255, 0.2);
   border: 1px solid rgba(0, 123, 255, 0.5);
 }
@@ -185,7 +191,7 @@
   border: 1px solid rgba(160, 32, 240, 0.5);
 }
 
-.transaction-type.compound {
+.transaction-type.profit_reinvest {
   background: rgba(255, 193, 7, 0.18);
   border: 1px solid rgba(255, 193, 7, 0.5);
 }
@@ -194,6 +200,16 @@
 .transaction-type.capital_withdrawal {
   background: rgba(255, 77, 109, 0.18);
   border: 1px solid rgba(255, 77, 109, 0.45);
+}
+
+.transaction-type.payout_failed {
+  background: rgba(220, 53, 69, 0.2);
+  border: 1px solid rgba(220, 53, 69, 0.5);
+}
+
+.transaction-type.payout_successful {
+  background: rgba(40, 167, 69, 0.22);
+  border: 1px solid rgba(40, 167, 69, 0.5);
 }
 
 .transaction-status.pending,
@@ -220,7 +236,6 @@
   justify-content: center;
   align-items: center;
   gap: 14px;
-
   margin-top: 20px;
 }
 
@@ -228,12 +243,9 @@
   padding: 10px 14px;
   border-radius: 10px;
   border: none;
-
   background: #a020f0;
-
   color: #ffffff;
   font-weight: 700;
-
   cursor: pointer;
 }
 
@@ -252,9 +264,7 @@
 .transactions-error {
   padding: 18px;
   border-radius: 14px;
-
   background: rgba(255, 255, 255, 0.07);
-
   color: #ffffff;
 }
 

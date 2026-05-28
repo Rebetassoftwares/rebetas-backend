@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import COUNTRIES from "../../../data/countries";
 import {
   deleteCurrencyRate,
   getCurrencyRates,
@@ -6,6 +7,20 @@ import {
   updateCurrencyRateStatus,
 } from "../../../services/adminApi";
 import "./AdminCurrencyRates.css";
+
+const BASE_CURRENCY = "USD";
+
+const currencyOptions = Array.from(
+  new Map(
+    COUNTRIES.map((country) => [
+      country.currency,
+      {
+        currency: country.currency,
+        country: country.name,
+      },
+    ]),
+  ).values(),
+).sort((a, b) => a.currency.localeCompare(b.currency));
 
 export default function AdminCurrencyRates() {
   const [rates, setRates] = useState([]);
@@ -16,13 +31,11 @@ export default function AdminCurrencyRates() {
   const [success, setSuccess] = useState("");
 
   const [filters, setFilters] = useState({
-    baseCurrency: "",
     targetCurrency: "",
     isActive: "",
   });
 
   const [form, setForm] = useState({
-    baseCurrency: "USD",
     targetCurrency: "",
     rate: "",
     isActive: true,
@@ -33,7 +46,11 @@ export default function AdminCurrencyRates() {
       setLoading(true);
       setError("");
 
-      const res = await getCurrencyRates(filters);
+      const res = await getCurrencyRates({
+        baseCurrency: BASE_CURRENCY,
+        ...filters,
+      });
+
       setRates(Array.isArray(res?.data) ? res.data : []);
     } catch (err) {
       console.error("Currency rates error:", err);
@@ -50,8 +67,19 @@ export default function AdminCurrencyRates() {
   async function handleSave(e) {
     e.preventDefault();
 
-    if (!form.baseCurrency || !form.targetCurrency || !form.rate) {
-      setError("Base currency, target currency and rate are required.");
+    const targetCurrency = String(form.targetCurrency || "")
+      .trim()
+      .toUpperCase();
+
+    const numericRate = Number(form.rate);
+
+    if (!targetCurrency || !numericRate || numericRate <= 0) {
+      setError("Target currency and a valid rate are required.");
+      return;
+    }
+
+    if (targetCurrency === BASE_CURRENCY) {
+      setError("Target currency cannot be the same as USD.");
       return;
     }
 
@@ -61,16 +89,15 @@ export default function AdminCurrencyRates() {
       setSuccess("");
 
       await saveCurrencyRate({
-        baseCurrency: form.baseCurrency,
-        targetCurrency: form.targetCurrency,
-        rate: Number(form.rate),
+        baseCurrency: BASE_CURRENCY,
+        targetCurrency,
+        rate: numericRate,
         isActive: form.isActive,
       });
 
       setSuccess("Currency rate saved successfully.");
 
       setForm({
-        baseCurrency: "USD",
         targetCurrency: "",
         rate: "",
         isActive: true,
@@ -106,9 +133,7 @@ export default function AdminCurrencyRates() {
   }
 
   async function handleDelete(id) {
-    if (!window.confirm("Delete this currency rate?")) {
-      return;
-    }
+    if (!window.confirm("Delete this currency rate?")) return;
 
     try {
       setError("");
@@ -130,7 +155,7 @@ export default function AdminCurrencyRates() {
 
     setFilters((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: name === "targetCurrency" ? value.toUpperCase() : value,
     }));
   }
 
@@ -143,18 +168,38 @@ export default function AdminCurrencyRates() {
     }));
   }
 
+  function handleEdit(rate) {
+    setForm({
+      targetCurrency: rate.targetCurrency || "",
+      rate: rate.rate || "",
+      isActive: rate.isActive !== false,
+    });
+
+    setError("");
+    setSuccess("");
+  }
+
+  function clearFilters() {
+    setFilters({
+      targetCurrency: "",
+      isActive: "",
+    });
+  }
+
   return (
     <div className="admin-currency-page">
       <div className="currency-header">
         <div>
           <h2>🌍 Currency Rates</h2>
           <p>
-            Manage admin-controlled exchange rates for AutoPilot Package
-            localization and payments.
+            Manage USD exchange rates used for AutoPilot Package localization,
+            balances and payments.
           </p>
         </div>
 
-        <button onClick={loadRates}>Refresh</button>
+        <button type="button" onClick={loadRates} disabled={loading}>
+          {loading ? "Refreshing..." : "Refresh"}
+        </button>
       </div>
 
       {error && <div className="currency-alert error">{error}</div>}
@@ -166,22 +211,25 @@ export default function AdminCurrencyRates() {
         <div className="currency-form-grid">
           <div>
             <label>Base Currency</label>
-            <input
-              name="baseCurrency"
-              value={form.baseCurrency}
-              onChange={handleFormChange}
-              placeholder="USD"
-            />
+            <input value={BASE_CURRENCY} readOnly />
           </div>
 
           <div>
             <label>Target Currency</label>
-            <input
+
+            <select
               name="targetCurrency"
               value={form.targetCurrency}
               onChange={handleFormChange}
-              placeholder="NGN"
-            />
+            >
+              <option value="">Select Currency</option>
+
+              {currencyOptions.map((item) => (
+                <option key={item.currency} value={item.currency}>
+                  {item.currency} — {item.country}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div>
@@ -214,19 +262,21 @@ export default function AdminCurrencyRates() {
       </form>
 
       <div className="currency-filter-card">
-        <input
-          name="baseCurrency"
-          value={filters.baseCurrency}
-          onChange={handleFilterChange}
-          placeholder="Filter base e.g USD"
-        />
+        <input value={BASE_CURRENCY} readOnly />
 
-        <input
+        <select
           name="targetCurrency"
           value={filters.targetCurrency}
           onChange={handleFilterChange}
-          placeholder="Filter target e.g NGN"
-        />
+        >
+          <option value="">All Currencies</option>
+
+          {currencyOptions.map((item) => (
+            <option key={item.currency} value={item.currency}>
+              {item.currency} — {item.country}
+            </option>
+          ))}
+        </select>
 
         <select
           name="isActive"
@@ -238,18 +288,11 @@ export default function AdminCurrencyRates() {
           <option value="false">Inactive</option>
         </select>
 
-        <button onClick={loadRates}>Apply Filters</button>
+        <button type="button" onClick={loadRates}>
+          Apply Filters
+        </button>
 
-        <button
-          className="clear-btn"
-          onClick={() =>
-            setFilters({
-              baseCurrency: "",
-              targetCurrency: "",
-              isActive: "",
-            })
-          }
-        >
+        <button type="button" className="clear-btn" onClick={clearFilters}>
           Clear
         </button>
       </div>
@@ -303,24 +346,19 @@ export default function AdminCurrencyRates() {
                     </td>
                     <td>
                       <div className="currency-actions">
-                        <button
-                          onClick={() =>
-                            setForm({
-                              baseCurrency: rate.baseCurrency,
-                              targetCurrency: rate.targetCurrency,
-                              rate: rate.rate,
-                              isActive: rate.isActive,
-                            })
-                          }
-                        >
+                        <button type="button" onClick={() => handleEdit(rate)}>
                           Edit
                         </button>
 
-                        <button onClick={() => handleToggleStatus(rate)}>
+                        <button
+                          type="button"
+                          onClick={() => handleToggleStatus(rate)}
+                        >
                           {rate.isActive ? "Deactivate" : "Activate"}
                         </button>
 
                         <button
+                          type="button"
                           className="delete-btn"
                           onClick={() => handleDelete(rate._id)}
                         >

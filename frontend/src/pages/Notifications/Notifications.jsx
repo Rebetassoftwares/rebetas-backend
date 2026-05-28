@@ -17,7 +17,7 @@ export default function Notifications() {
   const [error, setError] = useState("");
 
   const loadNotifications = useCallback(
-    async (targetPage = page) => {
+    async (targetPage = 1) => {
       try {
         setLoading(true);
         setError("");
@@ -47,7 +47,7 @@ export default function Notifications() {
         setLoading(false);
       }
     },
-    [page, unreadOnly],
+    [unreadOnly],
   );
 
   useEffect(() => {
