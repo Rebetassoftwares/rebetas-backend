@@ -75,15 +75,36 @@ exports.initializeDeposit = async (req, res) => {
       });
     }
 
+    const pendingExpiryMinutes = 2;
+    const pendingExpiryDate = new Date(
+      Date.now() - pendingExpiryMinutes * 60 * 1000,
+    );
+
+    /*
+Expire old abandoned AutoPilot payment attempts
+*/
+    await InvestmentDeposit.updateMany(
+      {
+        userId,
+        status: "pending",
+        createdAt: { $lt: pendingExpiryDate },
+      },
+      {
+        status: "failed",
+      },
+    );
+
     const existingPendingDeposit = await InvestmentDeposit.findOne({
       userId,
       status: { $in: ["pending", "processing"] },
+      createdAt: { $gte: pendingExpiryDate },
     });
 
     if (existingPendingDeposit) {
       return res.status(400).json({
         success: false,
-        message: "You already have a pending AutoPilot Package payment",
+        message:
+          "You already have a pending AutoPilot Package payment. Please complete it or wait a few minutes to start again.",
         data: {
           reference: existingPendingDeposit.providerReference,
           paymentLink: existingPendingDeposit.paymentLink,
