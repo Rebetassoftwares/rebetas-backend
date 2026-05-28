@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { isLoggedIn, getStoredUser } from "./utils/auth";
 //import MaintenanceScreen from "./components/MaintenanceScreen";
-import AutoPilotLaunchPopup from "./components/AutoPilotLaunchPopup/AutoPilotLaunchPopup";
+import AutoPilotLaunchPopup from "./components/AutoPilotLaunchPopup/AutoPilotLaunchPopup.jsx";
 
 /* PUBLIC */
 import Landing from "./pages/Landing/Landing";
