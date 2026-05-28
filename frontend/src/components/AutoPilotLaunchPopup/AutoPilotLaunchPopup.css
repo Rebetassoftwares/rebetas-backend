@@ -1,0 +1,139 @@
+.autopilot-popup-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(10, 5, 25, 0.78);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: popupFadeIn 0.25s ease;
+}
+
+.autopilot-popup {
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+  background: linear-gradient(145deg, #170b35, #24104f);
+  color: #ffffff;
+  border-radius: 24px;
+  padding: 34px 28px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  text-align: center;
+  animation: popupScaleIn 0.3s ease;
+}
+
+.autopilot-popup-close {
+  position: absolute;
+  top: 16px;
+  right: 18px;
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.autopilot-popup-badge {
+  display: inline-block;
+  margin-bottom: 16px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(255, 199, 87, 0.15);
+  color: #ffd166;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.autopilot-popup h2 {
+  margin: 0 0 14px;
+  font-size: 30px;
+  line-height: 1.2;
+}
+
+.autopilot-popup p {
+  margin: 0 auto 22px;
+  max-width: 440px;
+  color: rgba(255, 255, 255, 0.78);
+  line-height: 1.7;
+  font-size: 15px;
+}
+
+.autopilot-popup-benefits {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 26px;
+}
+
+.autopilot-popup-benefits span {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 12px 10px;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.autopilot-popup-btn {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 15px 18px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #7c3aed, #a855f7);
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 800;
+}
+
+.autopilot-popup-logo {
+  width: 78px;
+  margin-bottom: 18px;
+  object-fit: contain;
+}
+
+.autopilot-popup {
+  background:
+    radial-gradient(circle at top, rgba(124, 58, 237, 0.35), transparent 45%),
+    linear-gradient(145deg, #120826, #1a0f38 55%, #24104f);
+}
+
+@keyframes popupFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes popupScaleIn {
+  from {
+    transform: scale(0.94);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@media (max-width: 520px) {
+  .autopilot-popup {
+    padding: 30px 20px;
+  }
+
+  .autopilot-popup h2 {
+    font-size: 24px;
+  }
+
+  .autopilot-popup-benefits {
+    grid-template-columns: 1fr;
+  }
+}

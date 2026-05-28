@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { isLoggedIn, getStoredUser } from "./utils/auth";
 //import MaintenanceScreen from "./components/MaintenanceScreen";
+import AutoPilotLaunchPopup from "./components/AutoPilotLaunchPopup/AutoPilotLaunchPopup";
 
 /* PUBLIC */
 import Landing from "./pages/Landing/Landing";
@@ -89,6 +90,7 @@ function App() {
 
   return (
     <BrowserRouter>
+      <AutoPilotLaunchPopup />;
       <Routes>
         {/* -------- PUBLIC -------- */}
         <Route path="/" element={<Landing />} />
