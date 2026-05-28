@@ -46,7 +46,7 @@ export default function Login() {
 
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: name === "username" ? value.trimStart().toLowerCase() : value,
     }));
   }
 
@@ -234,7 +234,7 @@ export default function Login() {
                   <input
                     type="text"
                     name="username"
-                    placeholder="Username"
+                    placeholder="Username or Email"
                     value={formData.username}
                     onChange={handleChange}
                   />
