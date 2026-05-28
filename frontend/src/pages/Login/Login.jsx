@@ -29,6 +29,9 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
 
   const [countdown, setCountdown] = useState(0);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [showForgotBox, setShowForgotBox] = useState(false);
 
   // ⏱️ COUNTDOWN TIMER
   useEffect(() => {
@@ -210,6 +213,30 @@ export default function Login() {
     }
   }
 
+  async function handleForgotPassword() {
+    if (!forgotEmail) {
+      return setError("Enter your email address");
+    }
+
+    setForgotLoading(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      const res = await api.post("/user/forgot-password", {
+        email: forgotEmail,
+      });
+
+      setSuccess(res.message);
+      setForgotEmail("");
+      setShowForgotBox(false);
+    } catch (err) {
+      setError(err.message || "Failed to send reset link");
+    } finally {
+      setForgotLoading(false);
+    }
+  }
+
   return (
     <div className="login-page">
       <Navbar />
@@ -250,6 +277,39 @@ export default function Login() {
                       {showPassword ? "🙈" : "👁️"}
                     </span>
                   </div>
+
+                  <div className="forgot-password-row">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowForgotBox((prev) => !prev);
+                        setError("");
+                        setSuccess("");
+                      }}
+                    >
+                      Forgot Password?
+                    </button>
+                  </div>
+
+                  {showForgotBox && (
+                    <div className="forgot-password-box">
+                      <input
+                        type="email"
+                        placeholder="Enter your account email"
+                        value={forgotEmail}
+                        onChange={(e) => setForgotEmail(e.target.value)}
+                      />
+
+                      <button
+                        type="button"
+                        onClick={handleForgotPassword}
+                        disabled={forgotLoading}
+                        className="forgot-password-send"
+                      >
+                        {forgotLoading ? "Sending..." : "Send Reset Link"}
+                      </button>
+                    </div>
+                  )}
 
                   {error && <p style={{ color: "#ff6b6b" }}>{error}</p>}
                   {success && <p style={{ color: "#22c55e" }}>{success}</p>}

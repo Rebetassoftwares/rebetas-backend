@@ -195,6 +195,39 @@
   opacity: 1;
 }
 
+.forgot-password-row {
+  margin-top: -5px;
+  margin-bottom: 5px;
+  text-align: right;
+}
+
+.forgot-password-row button {
+  background: transparent;
+  border: none;
+  color: #a855f7;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0;
+}
+
+.forgot-password-row button:hover {
+  text-decoration: underline;
+}
+
+.forgot-password-box {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 10px;
+  background: rgba(160, 32, 240, 0.12);
+  border: 1px solid rgba(160, 32, 240, 0.25);
+}
+
+.forgot-password-send {
+  background: #7c3aed !important;
+}
+
 /* TABLET */
 
 @media (max-width: 1024px) {

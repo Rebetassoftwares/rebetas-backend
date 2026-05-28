@@ -13,6 +13,7 @@ import Login from "./pages/Login/Login";
 import Register from "./pages/Register/Register";
 import SupportedPlatforms from "./pages/SupportedPlatforms/SupportedPlatforms";
 import VerifyEmail from "./pages/VerifyEmail/VerifyEmail";
+import ResetPassword from "./pages/ResetPassword/ResetPassword";
 import Terms from "./pages/Register/Terms";
 import Privacy from "./pages/Register/Privacy";
 import PaymentVerify from "./pages/PaymentVerify/PaymentVerify";
@@ -101,6 +102,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/payment/verify" element={<PaymentVerify />} />
         <Route path="/supported-platforms" element={<SupportedPlatforms />} />
         <Route path="/promo-dashboard" element={<PromoDashboard />} />
