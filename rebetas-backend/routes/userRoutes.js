@@ -9,6 +9,8 @@ const {
   loginUser,
   verifyLoginOtp,
   resendLoginOtp,
+  forgotPassword,
+  resetPassword,
   logoutUser,
   getMyReferral,
 } = require("../controllers/userController");
@@ -29,6 +31,12 @@ router.post("/verify-login-otp", verifyLoginOtp);
 
 // Resend OTP
 router.post("/resend-login-otp", resendLoginOtp);
+
+// Forgot password
+router.post("/forgot-password", forgotPassword);
+
+// Reset password
+router.post("/reset-password/:token", resetPassword);
 
 // Logout
 router.post("/logout", logoutUser);

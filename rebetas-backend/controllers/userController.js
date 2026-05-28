@@ -722,6 +722,220 @@ async function resendLoginOtp(req, res) {
   }
 }
 
+/*
+FORGOT PASSWORD
+*/
+async function forgotPassword(req, res) {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        message: "Email is required",
+      });
+    }
+
+    const normalizedEmail = String(email).trim().toLowerCase();
+
+    const user = await User.findOne({ email: normalizedEmail });
+
+    // Do not expose whether email exists
+    if (!user) {
+      return res.json({
+        message:
+          "If this email exists on Rebetas, a password reset link has been sent.",
+      });
+    }
+
+    const rawToken = generateToken(32);
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(rawToken)
+      .digest("hex");
+
+    user.resetPasswordToken = hashedToken;
+    user.resetPasswordExpires = new Date(Date.now() + 15 * 60 * 1000);
+
+    await user.save();
+
+    const resetUrl = `${process.env.CLIENT_URL}/reset-password/${rawToken}`;
+
+    try {
+      await sendEmail({
+        to: user.email,
+        subject: "🔐 Reset Your Rebetas Password",
+        html: `
+  <div style="
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f6fb;
+    padding: 40px 20px;
+  ">
+    <div style="
+      max-width: 520px;
+      margin: auto;
+      background: #ffffff;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 12px 35px rgba(0,0,0,0.08);
+    ">
+
+      <div style="
+        background: linear-gradient(135deg, #6c2bd9, #a855f7);
+        padding: 30px;
+        text-align: center;
+        color: white;
+      ">
+        <h1 style="margin: 0; font-size: 26px;">Rebetas</h1>
+        <p style="margin: 8px 0 0; font-size: 14px;">
+          Password Reset Request
+        </p>
+      </div>
+
+      <div style="padding: 35px; text-align: center; color: #333;">
+        <h2 style="margin-bottom: 10px;">
+          Hello ${user.fullName},
+        </h2>
+
+        <p style="color: #666; font-size: 15px;">
+          We received a request to reset your Rebetas account password.
+        </p>
+
+        <p style="margin-top: 20px; font-size: 15px;">
+          Click the button below to create a new password.
+        </p>
+
+        <a href="${resetUrl}" style="
+          display: inline-block;
+          margin-top: 25px;
+          padding: 14px 28px;
+          background: linear-gradient(135deg, #6c2bd9, #a855f7);
+          color: #ffffff;
+          text-decoration: none;
+          font-weight: 600;
+          border-radius: 8px;
+          font-size: 15px;
+          box-shadow: 0 5px 15px rgba(108, 43, 217, 0.3);
+        ">
+          Reset Password
+        </a>
+
+        <p style="margin-top: 25px; font-size: 13px; color: #999;">
+          This link will expire in 15 minutes.
+        </p>
+
+        <p style="margin-top: 15px; font-size: 13px; color: #999;">
+          If you did not request this, please ignore this email.
+        </p>
+
+        <p style="
+          word-break: break-all;
+          font-size: 12px;
+          color: #6c2bd9;
+          margin-top: 20px;
+        ">
+          ${resetUrl}
+        </p>
+      </div>
+
+      <div style="
+        background: #fafafa;
+        padding: 18px;
+        text-align: center;
+        font-size: 12px;
+        color: #999;
+      ">
+        © ${new Date().getFullYear()} Rebetas. All rights reserved.
+      </div>
+    </div>
+  </div>
+  `,
+      });
+    } catch (emailError) {
+      console.error("Password reset email error:", emailError);
+    }
+
+    return res.json({
+      message:
+        "If this email exists on Rebetas, a password reset link has been sent.",
+    });
+  } catch (error) {
+    console.error("Forgot password error:", error.message);
+
+    return res.status(500).json({
+      message: "Server error",
+    });
+  }
+}
+
+/*
+RESET PASSWORD
+*/
+async function resetPassword(req, res) {
+  try {
+    const { token } = req.params;
+    const { password, confirmPassword } = req.body;
+
+    if (!token) {
+      return res.status(400).json({
+        message: "Reset token is required",
+      });
+    }
+
+    if (!password || !confirmPassword) {
+      return res.status(400).json({
+        message: "Password and confirm password are required",
+      });
+    }
+
+    if (password !== confirmPassword) {
+      return res.status(400).json({
+        message: "Passwords do not match",
+      });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({
+        message: "Password must be at least 6 characters",
+      });
+    }
+
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+    const user = await User.findOne({
+      resetPasswordToken: hashedToken,
+      resetPasswordExpires: { $gt: new Date() },
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        message: "Password reset link is invalid or has expired",
+      });
+    }
+
+    user.password = await bcrypt.hash(password, 10);
+    user.resetPasswordToken = null;
+    user.resetPasswordExpires = null;
+
+    // security: force fresh login after password reset
+    user.activeDeviceToken = null;
+    user.loginOtp = null;
+    user.loginOtpExpires = null;
+
+    await user.save();
+
+    return res.json({
+      message:
+        "Password reset successful. Please login with your new password.",
+    });
+  } catch (error) {
+    console.error("Reset password error:", error.message);
+
+    return res.status(500).json({
+      message: "Server error",
+    });
+  }
+}
+
 async function getMyReferral(req, res) {
   try {
     const user = await User.findById(req.user._id || req.user.id)
@@ -798,6 +1012,8 @@ module.exports = {
   loginUser,
   verifyLoginOtp,
   resendLoginOtp,
+  forgotPassword,
+  resetPassword,
   logoutUser,
   getMyReferral,
 };
