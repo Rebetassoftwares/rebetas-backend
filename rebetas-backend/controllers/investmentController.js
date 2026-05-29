@@ -1074,6 +1074,7 @@ exports.getHistory = async (req, res) => {
 exports.getReferralList = async (req, res) => {
   try {
     const userId = getUserId(req);
+    const referrerObjectId = new mongoose.Types.ObjectId(userId);
 
     const referrals = await Referral.find({
       referrer: userId,
@@ -1093,11 +1094,162 @@ exports.getReferralList = async (req, res) => {
       .limit(50)
       .lean();
 
+    const referredUserIds = referrals
+      .map((item) => item?.referredUser?._id)
+      .filter(Boolean);
+
+    const accounts = await InvestmentAccount.find({
+      userId: { $in: referredUserIds },
+    })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const accountMap = new Map();
+
+    accounts.forEach((account) => {
+      const key = String(account.userId);
+      const existing = accountMap.get(key);
+
+      if (!existing) {
+        accountMap.set(key, account);
+        return;
+      }
+
+      if (account.status === "active" && existing.status !== "active") {
+        accountMap.set(key, account);
+      }
+    });
+
+    const bonusSummary = await ReferralBonus.aggregate([
+      {
+        $match: {
+          referrer: referrerObjectId,
+          status: "credited",
+        },
+      },
+      {
+        $group: {
+          _id: "$referredUser",
+          totalCommissionGenerated: { $sum: "$amount" },
+          totalSourceProfitGenerated: { $sum: "$sourceAmount" },
+          bonusCount: { $sum: 1 },
+          latestCommission: { $last: "$amount" },
+          latestSourceProfit: { $last: "$sourceAmount" },
+          latestCommissionAt: { $last: "$createdAt" },
+        },
+      },
+    ]);
+
+    const bonusMap = new Map();
+
+    bonusSummary.forEach((item) => {
+      bonusMap.set(String(item._id), item);
+    });
+
+    const enrichedReferrals = referrals.map((item) => {
+      const referredUser = item.referredUser || null;
+      const referredUserId = referredUser?._id
+        ? String(referredUser._id)
+        : null;
+
+      const account = referredUserId ? accountMap.get(referredUserId) : null;
+      const bonus = referredUserId ? bonusMap.get(referredUserId) : null;
+
+      const capitalBalance = Number(account?.capitalBalance || 0);
+      const dailyReturnPercentage = Number(
+        account?.dailyReturnPercentageSnapshot || 0,
+      );
+
+      const estimatedDailyProfit = roundMoney(
+        (capitalBalance * dailyReturnPercentage) / 100,
+      );
+
+      const estimatedReferralCommission = roundMoney(
+        (estimatedDailyProfit * 10) / 100,
+      );
+
+      return {
+        ...item,
+
+        referredUser,
+
+        autopilot: account
+          ? {
+              accountId: account._id,
+              status: account.status,
+
+              packageId: account.packageId,
+              packageName: account.packageNameSnapshot,
+
+              packageAmount: account.packageAmountSnapshot,
+              basePackageAmount: account.basePackageAmountSnapshot,
+              basePackageCurrency: account.basePackageCurrencySnapshot,
+
+              capitalBalance: account.capitalBalance,
+              profitBalance: account.profitBalance,
+              totalProfitEarned: account.totalProfitEarned,
+              totalProfitWithdrawn: account.totalProfitWithdrawn,
+
+              currency: account.currency,
+              userDisplayCurrency: account.userDisplayCurrency,
+              exchangeRateSnapshot: account.exchangeRateSnapshot,
+
+              dailyReturnPercentage,
+              estimatedDailyProfit,
+              estimatedReferralCommission,
+
+              activatedAt: account.activatedAt,
+              lastProfitCreditedAt: account.lastProfitCreditedAt,
+              lastReinvestDate: account.lastReinvestDate,
+              capitalWithdrawAvailableAt: account.capitalWithdrawAvailableAt,
+            }
+          : null,
+
+        referralEarnings: {
+          totalCommissionGenerated: roundMoney(
+            bonus?.totalCommissionGenerated || 0,
+          ),
+          totalSourceProfitGenerated: roundMoney(
+            bonus?.totalSourceProfitGenerated || 0,
+          ),
+          latestCommission: roundMoney(bonus?.latestCommission || 0),
+          latestSourceProfit: roundMoney(bonus?.latestSourceProfit || 0),
+          latestCommissionAt: bonus?.latestCommissionAt || null,
+          bonusCount: bonus?.bonusCount || 0,
+        },
+      };
+    });
+
+    const activeAutoPilotReferrals = enrichedReferrals.filter(
+      (item) => item.autopilot?.status === "active",
+    );
+
+    const totalReferralEarnings = bonusSummary.reduce(
+      (sum, item) => sum + Number(item.totalCommissionGenerated || 0),
+      0,
+    );
+
+    const totalSourceProfitGenerated = bonusSummary.reduce(
+      (sum, item) => sum + Number(item.totalSourceProfitGenerated || 0),
+      0,
+    );
+
     return res.status(200).json({
       success: true,
       data: {
+        summary: {
+          totalReferrals: referrals.length,
+          activeAutoPilotReferrals: activeAutoPilotReferrals.length,
+          totalReferralEarnings: roundMoney(totalReferralEarnings),
+          totalSourceProfitGenerated: roundMoney(totalSourceProfitGenerated),
+        },
+
+        // old response kept
         referrals,
         bonuses,
+
+        // new rich response for future referral screen
+        enrichedReferrals,
       },
     });
   } catch (error) {
