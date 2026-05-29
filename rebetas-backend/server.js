@@ -8,6 +8,7 @@ const { startRoundScheduler } = require("./services/roundScheduler");
 const { recoverPendingPayments } = require("./services/paymentRecoveryService");
 const runSemiAuto = require("./services/semiAutoService");
 const startCleanupScheduler = require("./services/cleanupScheduler");
+const flutterwaveUnifiedWebhookRoutes = require("./routes/flutterwaveUnifiedWebhookRoutes");
 const webhookRoutes = require("./routes/webhookRoutes");
 
 const SystemState = require("./models/SystemState");
@@ -69,6 +70,9 @@ app.use(
     credentials: true,
   }),
 );
+
+app.use("/api/flutterwave/webhook", express.raw({ type: "application/json" }));
+app.use("/api/flutterwave/webhook", flutterwaveUnifiedWebhookRoutes);
 
 /*
 PAYMENT WEBHOOK ROUTE (RAW BODY REQUIRED)
@@ -148,25 +152,6 @@ app.get("/", (req, res) => {
 /*
 SERVER IP CHECK
 */
-app.get("/server-ip", async (req, res) => {
-  try {
-    const response = await fetch("https://api.ipify.org?format=json");
-
-    const data = await response.json();
-
-    res.json({
-      success: true,
-      ip: data.ip,
-    });
-  } catch (error) {
-    console.error("Server IP fetch error:", error.message);
-
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch server IP",
-    });
-  }
-});
 
 const PORT = process.env.PORT || 5000;
 const seedDefaultPricing = require("./config/seedPricing");
