@@ -29,6 +29,7 @@ import PromoDashboard from "./pages/PromoDashboard";
 import PayoutDetails from "./pages/PayoutDetails";
 import Investments from "./pages/Investments/Investments";
 import InvestmentDashboard from "./pages/Investments/InvestmentDashboard";
+import AutoPilotReferrals from "./pages/AutoPilotReferrals/AutoPilotReferrals";
 
 /* ADMIN */
 import AdminLayout from "./layouts/admin/AdminLayout";
@@ -160,6 +161,7 @@ function App() {
         />
 
         <Route path="/notifications" element={<Notifications />} />
+        <Route path="/autopilot/referrals" element={<AutoPilotReferrals />} />
 
         <Route
           path="/autopilot/payment/verify"

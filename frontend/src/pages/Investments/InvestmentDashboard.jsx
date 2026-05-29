@@ -602,6 +602,27 @@ export default function InvestmentDashboard() {
           )}
         </section>
 
+        <section className="referral-navigation-card">
+          <div className="referral-navigation-left">
+            <span>Referral Network</span>
+
+            <h3>View Your AutoPilot Referrals</h3>
+
+            <p>
+              See everyone who joined through your referral link, their
+              AutoPilot package, Capital Balance, estimated daily profit and the
+              commissions generated for you.
+            </p>
+          </div>
+
+          <button
+            className="referral-navigation-btn"
+            onClick={() => navigate("/autopilot/referrals")}
+          >
+            👥 View Referrals
+          </button>
+        </section>
+
         <section className="history-card">
           <div className="history-header">
             <div>
