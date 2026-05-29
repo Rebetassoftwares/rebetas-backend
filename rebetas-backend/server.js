@@ -152,6 +152,25 @@ app.get("/", (req, res) => {
 /*
 SERVER IP CHECK
 */
+app.get("/server-ip", async (req, res) => {
+  try {
+    const response = await fetch("https://api.ipify.org?format=json");
+
+    const data = await response.json();
+
+    res.json({
+      success: true,
+      ip: data.ip,
+    });
+  } catch (error) {
+    console.error("Server IP fetch error:", error.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch server IP",
+    });
+  }
+});
 
 const PORT = process.env.PORT || 5000;
 const seedDefaultPricing = require("./config/seedPricing");
