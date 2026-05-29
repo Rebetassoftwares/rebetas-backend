@@ -23,6 +23,20 @@ const {
   markFailedFromWebhook: markAutoPilotFailedFromWebhook,
 } = require("../services/autoPilotWithdrawalService");
 
+function parseWebhookBody(body) {
+  if (!body) return {};
+
+  if (Buffer.isBuffer(body)) {
+    return JSON.parse(body.toString("utf8"));
+  }
+
+  if (typeof body === "string") {
+    return JSON.parse(body);
+  }
+
+  return body;
+}
+
 async function handleFlutterwaveUnifiedWebhook(req, res) {
   try {
     const isValid = verifyPaymentWebhook(req);
@@ -33,15 +47,22 @@ async function handleFlutterwaveUnifiedWebhook(req, res) {
       });
     }
 
-    const payload = req.body || {};
+    const payload = parseWebhookBody(req.body);
     const event = payload.event;
     const data = payload.data || {};
+
+    console.log("FLW UNIFIED WEBHOOK EVENT:", event);
+    console.log(
+      "FLW UNIFIED WEBHOOK REFERENCE:",
+      data.tx_ref || data.reference,
+    );
+    console.log("FLW UNIFIED WEBHOOK STATUS:", data.status);
 
     /*
     PAYMENT EVENTS
     Handles:
     - normal Rebetas subscription payments
-    - AutoPilot package activation payments
+    - AutoPilot package activation payment records
     */
     if (event === "charge.completed") {
       const reference = data.tx_ref;
@@ -57,7 +78,9 @@ async function handleFlutterwaveUnifiedWebhook(req, res) {
       const payment = await Payment.findOne({ reference });
 
       if (payment) {
-        await activateSubscription(payment, data.id ? String(data.id) : null);
+        if (String(data.status).toLowerCase() === "successful") {
+          await activateSubscription(payment, data.id ? String(data.id) : null);
+        }
 
         return res.status(200).json({
           received: true,
@@ -128,6 +151,7 @@ async function handleFlutterwaveUnifiedWebhook(req, res) {
         return res.status(200).json({
           received: true,
           handled: "autopilot_withdrawal",
+          status: normalizedStatus,
         });
       }
 
@@ -153,6 +177,7 @@ async function handleFlutterwaveUnifiedWebhook(req, res) {
         return res.status(200).json({
           received: true,
           handled: "promo_withdrawal",
+          status: normalizedStatus,
         });
       }
 
@@ -160,6 +185,9 @@ async function handleFlutterwaveUnifiedWebhook(req, res) {
         received: true,
         ignored: true,
         reason: "Transfer reference not found",
+        reference,
+        transferId,
+        status: normalizedStatus,
       });
     }
 
