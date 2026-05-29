@@ -682,6 +682,23 @@ export default function InvestmentDashboard() {
             )}
           </div>
         </section>
+
+        <div
+          className="autopilot-guide-link"
+          onClick={() => navigate("/autopilot-guide")}
+        >
+          Not sure how AutoPilot works? Read the complete AutoPilot Guide. New
+          to AutoPilot? Click here to understand how the Rebetas AutoPilot AI
+          system works, including profits, compounding, referrals and
+          withdrawals →
+        </div>
+
+        <button
+          className="autopilot-guide-button"
+          onClick={() => navigate("/autopilot-guide")}
+        >
+          Understand AutoPilot
+        </button>
       </main>
 
       <Footer />

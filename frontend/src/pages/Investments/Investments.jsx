@@ -189,6 +189,59 @@ export default function Investments() {
               : "Continue to Secure Payment"}
           </button>
         </section>
+
+        <section className="autopilot-guide-preview">
+          <div className="guide-preview-header">
+            <h2>How AutoPilot Works</h2>
+
+            <p>
+              Activate a package, earn daily profits, compound your earnings,
+              and build your Capital Balance over time.
+            </p>
+          </div>
+
+          <div className="guide-preview-grid">
+            <div className="guide-preview-card">
+              <h3>Daily Profit Credits</h3>
+
+              <p>
+                Every package has its own daily profit rate. Profits are
+                credited daily into your Profit Balance.
+              </p>
+            </div>
+
+            <div className="guide-preview-card">
+              <h3>Compound & Grow</h3>
+
+              <p>
+                Instead of withdrawing profits, you can add them back into your
+                Capital Balance to increase future profit calculations.
+              </p>
+            </div>
+
+            <div className="guide-preview-card">
+              <h3>Earn Referral Commissions</h3>
+
+              <p>
+                Earn 10% of the daily profits credited to users who joined
+                through your referral link or referral code.
+              </p>
+            </div>
+
+            <div className="guide-preview-card">
+              <h3>Withdraw When Needed</h3>
+
+              <p>
+                Withdraw Profit Balance anytime. Capital Withdrawal becomes
+                available 30 days after your most recent compounding activity.
+              </p>
+            </div>
+          </div>
+
+          <a href="/autopilot-guide" className="autopilot-guide-btn">
+            Read Full AutoPilot Guide
+          </a>
+        </section>
       </main>
 
       <Footer />

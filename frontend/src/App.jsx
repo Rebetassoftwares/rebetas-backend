@@ -19,6 +19,7 @@ import Privacy from "./pages/Register/Privacy";
 import PaymentVerify from "./pages/PaymentVerify/PaymentVerify";
 import Notifications from "./pages/Notifications/Notifications";
 import AutoPilotPaymentVerify from "./pages/AutoPilotPaymentVerify/AutoPilotPaymentVerify";
+import AutoPilotGuide from "./pages/AutoPilotGuide/AutoPilotGuide";
 
 /* USER */
 import Dashboard from "./pages/Dashboard/Dashboard";
@@ -107,6 +108,7 @@ function App() {
         <Route path="/supported-platforms" element={<SupportedPlatforms />} />
         <Route path="/promo-dashboard" element={<PromoDashboard />} />
         <Route path="/payout-details" element={<PayoutDetails />} />
+        <Route path="/autopilot-guide" element={<AutoPilotGuide />} />
 
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />

@@ -181,9 +181,10 @@ export default function Account() {
                 <span className="referral-kicker">Referral Program</span>
                 <h3>Invite friends and earn from AutoPilot</h3>
                 <p>
-                  Share your referral link. When your referred users earn with
-                  AutoPilot, your referral bonus is credited to your Referral
-                  Balance.
+                  Share your referral link. Every user gets a referral link and
+                  referral code. When someone joins Rebetas through you and
+                  activates AutoPilot, you earn 10% of every daily profit
+                  credited to that user.
                 </p>
               </div>
             </div>
@@ -226,8 +227,9 @@ export default function Account() {
           <h3>Rebetas AutoPilot</h3>
 
           <p>
-            Let Rebetas handle the daily activity while you monitor your Capital
-            Balance, Profit Balance, withdrawals, and Compound Profit.
+            Let Rebetas AutoPilot AI handle the daily virtual football betting
+            activities for you while you monitor your Capital Balance, Profit
+            Balance, withdrawals, and Compound Profit.
           </p>
 
           {loadingAutoPilot ? (

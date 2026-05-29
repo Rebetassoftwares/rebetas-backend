@@ -481,6 +481,55 @@
   color: #6c2bd9;
 }
 
+.autopilot-guide-link {
+  max-width: 850px;
+  margin: 60px auto 18px;
+  padding: 0 20px;
+
+  text-align: center;
+
+  color: #d6cdef;
+  font-size: 15px;
+  line-height: 1.9;
+  font-weight: 500;
+
+  cursor: pointer;
+}
+
+.autopilot-guide-link:hover {
+  color: #ffffff;
+}
+
+.autopilot-guide-button {
+  display: block;
+  margin: 0 auto 20px;
+
+  min-width: 220px;
+
+  padding: 15px 28px;
+
+  border: none;
+  border-radius: 14px;
+
+  background: linear-gradient(135deg, #a020f0, #c14dff);
+
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 800;
+
+  cursor: pointer;
+
+  transition: all 0.25s ease;
+
+  box-shadow: 0 12px 25px rgba(160, 32, 240, 0.3);
+}
+
+.autopilot-guide-button:hover {
+  transform: translateY(-2px);
+
+  box-shadow: 0 16px 35px rgba(160, 32, 240, 0.4);
+}
+
 @media (max-width: 900px) {
   .auto-dashboard-container {
     max-width: 100%;
