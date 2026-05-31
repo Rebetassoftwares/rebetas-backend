@@ -49,7 +49,8 @@ const manualPredictionSchema = new mongoose.Schema(
 
     prediction: {
       type: String,
-      default: "Over 1.5",
+      enum: ["Over 2.5", "Under 2.5"],
+      default: "Over 2.5",
     },
 
     odd: {

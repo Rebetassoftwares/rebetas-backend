@@ -14,6 +14,12 @@ function pickRandomTeam(teams) {
   return teams[index];
 }
 
+function getNextPredictionPick(lastPrediction) {
+  if (!lastPrediction) return "Over 2.5";
+
+  return lastPrediction.prediction === "Over 2.5" ? "Under 2.5" : "Over 2.5";
+}
+
 async function runSemiAuto() {
   try {
     const now = new Date();
@@ -85,7 +91,6 @@ async function runSemiAuto() {
           Number(league.oddRange.max),
         );
 
-        // ✅ CORRECT STAKE LOGIC (PER-LEAGUE CAPITAL)
         const capital = Number(league.capital);
         const basePercent = Number(systemState.baseStakePercent);
 
@@ -99,13 +104,13 @@ async function runSemiAuto() {
 
         const stake = getStake(capital, basePercent);
 
-        // 🔥 get last prediction for this league
         const lastPrediction = await ManualPrediction.findOne({
           leagueId: league._id,
           type: "SEMI_AUTO",
         }).sort({ scheduledFor: -1 });
 
-        // 🔥 RESET LOGIC
+        const nextPredictionPick = getNextPredictionPick(lastPrediction);
+
         const shouldReset =
           !lastPrediction ||
           (league.lastUpdatedAt &&
@@ -115,7 +120,7 @@ async function runSemiAuto() {
         let cycles;
 
         if (shouldReset) {
-          cycles = calculateCycles(league, null); // behave like fresh create
+          cycles = calculateCycles(league, null);
         } else {
           cycles = calculateCycles(league, lastPrediction.cycles);
         }
@@ -130,7 +135,7 @@ async function runSemiAuto() {
           stake,
           scheduledFor,
           cycles,
-          prediction: "Over 1.5",
+          prediction: nextPredictionPick,
           status: "pending",
         });
       } catch (err) {
