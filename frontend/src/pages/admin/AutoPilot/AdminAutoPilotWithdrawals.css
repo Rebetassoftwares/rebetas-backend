@@ -290,6 +290,49 @@
   border: 1px solid rgba(220, 53, 69, 0.5);
 }
 
+.withdrawals-table-card,
+.withdrawals-table-wrapper,
+.withdrawals-table,
+.withdrawals-table thead,
+.withdrawals-table tbody,
+.withdrawals-table tr,
+.withdrawals-table th,
+.withdrawals-table td {
+  background: transparent !important;
+}
+
+.withdrawals-table-wrapper {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-radius: 16px;
+}
+
+.withdrawals-table {
+  background: transparent !important;
+  color: #ffffff !important;
+}
+
+.withdrawals-table th,
+.withdrawals-table td {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+}
+
+@media (max-width: 700px) {
+  .withdrawals-table-card {
+    padding: 14px;
+    overflow: hidden;
+  }
+
+  .withdrawals-table-wrapper {
+    overflow-x: auto;
+    background: transparent !important;
+  }
+
+  .withdrawals-table {
+    min-width: 1100px;
+  }
+}
+
 /* RESPONSIVE */
 
 @media (max-width: 700px) {
