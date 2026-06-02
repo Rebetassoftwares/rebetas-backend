@@ -150,22 +150,10 @@ export const getLeagueById = (id) =>
   api.get(`/manual-leagues/${id}`, authConfig());
 
 export const createLeague = (data) =>
-  api.post("/manual-leagues", data, {
-    ...authConfig(),
-    headers: {
-      ...authConfig().headers,
-      "Content-Type": "multipart/form-data",
-    },
-  });
+  api.post("/manual-leagues", data, authConfig());
 
 export const updateLeague = (id, data) =>
-  api.put(`/manual-leagues/${id}`, data, {
-    ...authConfig(),
-    headers: {
-      ...authConfig().headers,
-      "Content-Type": "multipart/form-data",
-    },
-  });
+  api.put(`/manual-leagues/${id}`, data, authConfig());
 
 /* ================================
    🔵 PREDICTIONS
