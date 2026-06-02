@@ -8,14 +8,27 @@ const {
   updateLeague,
 } = require("../controllers/manualLeagueController");
 
-// Later you can protect with admin middleware
-
 const upload = require("../middleware/upload");
+
+function handleLogoUpload(req, res, next) {
+  upload.single("logo")(req, res, function (err) {
+    if (err) {
+      console.error("Logo upload middleware error:", err);
+
+      return res.status(400).json({
+        message: "Logo upload failed",
+        error: err.message,
+      });
+    }
+
+    next();
+  });
+}
 
 router.get("/", getLeagues);
 router.get("/:id", getLeagueById);
 
-router.post("/", upload.single("logo"), createLeague);
-router.put("/:id", upload.single("logo"), updateLeague);
+router.post("/", handleLogoUpload, createLeague);
+router.put("/:id", handleLogoUpload, updateLeague);
 
 module.exports = router;
