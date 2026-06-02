@@ -422,8 +422,24 @@ exports.updateLeague = async (req, res) => {
       });
     }
 
+    if (err.name === "ValidationError") {
+      return res.status(400).json({
+        message: "League validation failed",
+        error: err.message,
+        errors: Object.values(err.errors || {}).map((e) => e.message),
+      });
+    }
+
+    if (err instanceof SyntaxError) {
+      return res.status(400).json({
+        message: "Invalid teams, cycleConfig, or oddRange format",
+        error: err.message,
+      });
+    }
+
     return res.status(500).json({
       message: "Failed to update league",
+      error: err.message,
     });
   }
 };
