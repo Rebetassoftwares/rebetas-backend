@@ -310,9 +310,12 @@ export default function Investments() {
                 Pay with Flutterwave
               </button>
 
+              {/* Paystack temporarily disabled until account setup is complete
+
               <button type="button" onClick={() => proceedPayment("paystack")}>
                 Pay with Paystack
               </button>
+              */}
             </div>
 
             <button
