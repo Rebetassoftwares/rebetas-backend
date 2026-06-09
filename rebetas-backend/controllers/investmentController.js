@@ -18,6 +18,8 @@ const {
   sendAutoPilotNotification,
 } = require("../services/notificationService");
 
+const { sendEmail } = require("../services/emailService");
+
 const BASE_CURRENCY = "USD";
 
 const getUserId = (req) => req.user?._id || req.user?.id;
@@ -48,6 +50,64 @@ function toUsd(amount, currency, exchangeRateSnapshot) {
   }
 
   return roundMoney(numericAmount / rate);
+}
+
+async function sendWithdrawalAdminAlert({
+  user,
+  withdrawalType,
+  amount,
+  currency,
+  payoutDetails,
+  withdrawalId,
+}) {
+  try {
+    const admins = await User.find({
+      role: "admin",
+      accountStatus: "active",
+      email: { $exists: true, $ne: "" },
+    }).select("email fullName");
+
+    const adminEmails = admins.map((admin) => admin.email).filter(Boolean);
+
+    if (!adminEmails.length) {
+      console.error("No active admin email found for withdrawal alert");
+      return;
+    }
+
+    await sendEmail({
+      to: adminEmails,
+      subject: `New ${withdrawalType} Request - Rebetas AutoPilot`,
+      html: `
+        <div style="font-family: Arial, sans-serif; background:#f4f6fb; padding:24px;">
+          <div style="max-width:620px; margin:auto; background:#ffffff; border-radius:12px; overflow:hidden;">
+            <div style="background:#4b0082; padding:20px; color:#ffffff;">
+              <h2 style="margin:0;">New ${withdrawalType} Request</h2>
+            </div>
+
+            <div style="padding:24px; color:#222;">
+              <p><strong>User Full Name:</strong> ${user?.fullName || "N/A"}</p>
+              <p><strong>User Email:</strong> ${user?.email || "N/A"}</p>
+              <p><strong>Withdrawal Type:</strong> ${withdrawalType}</p>
+              <p><strong>Amount:</strong> ${currency} ${Number(amount || 0).toLocaleString()}</p>
+              <p><strong>Currency:</strong> ${currency}</p>
+
+              <hr />
+
+              <p><strong>Bank Name:</strong> ${payoutDetails?.bankName || "N/A"}</p>
+              <p><strong>Account Name:</strong> ${payoutDetails?.accountName || "N/A"}</p>
+              <p><strong>Account Number:</strong> ${payoutDetails?.accountNumber || "N/A"}</p>
+
+              <hr />
+
+              <p><strong>Withdrawal ID:</strong> ${withdrawalId}</p>
+            </div>
+          </div>
+        </div>
+      `,
+    });
+  } catch (error) {
+    console.error("Admin withdrawal alert email error:", error);
+  }
 }
 
 exports.getPackages = async (req, res) => {
@@ -619,6 +679,15 @@ exports.withdrawProfit = async (req, res) => {
       },
     });
 
+    await sendWithdrawalAdminAlert({
+      user: req.user,
+      withdrawalType: "Profit Withdrawal",
+      amount,
+      currency,
+      payoutDetails,
+      withdrawalId: withdrawal[0]._id,
+    });
+
     return res.status(200).json({
       success: true,
       message: "Profit Withdrawal request submitted for review",
@@ -817,6 +886,15 @@ exports.withdrawReferral = async (req, res) => {
       },
     });
 
+    await sendWithdrawalAdminAlert({
+      user: req.user,
+      withdrawalType: "Referral Withdrawal",
+      amount,
+      currency,
+      payoutDetails,
+      withdrawalId: withdrawal[0]._id,
+    });
+
     return res.status(200).json({
       success: true,
       message: "Referral Withdrawal request submitted for review",
@@ -1002,6 +1080,15 @@ exports.withdrawCapital = async (req, res) => {
         withdrawalId: withdrawal[0]._id,
         transactionId: transaction[0]._id,
       },
+    });
+
+    await sendWithdrawalAdminAlert({
+      user: req.user,
+      withdrawalType: "Capital Withdrawal",
+      amount,
+      currency,
+      payoutDetails,
+      withdrawalId: withdrawal[0]._id,
     });
 
     return res.status(200).json({
