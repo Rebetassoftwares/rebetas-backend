@@ -11,6 +11,11 @@ const {
 } = require("../services/payments/flutterwaveService");
 
 const {
+  initializePaystackPayment,
+  verifyPaystackPayment,
+} = require("../services/payments/paystackService");
+
+const {
   getAdminExchangeRate,
 } = require("../services/currencyConversionService");
 
@@ -29,7 +34,15 @@ exports.initializeDeposit = async (req, res) => {
     const user = req.user;
     const userId = getUserId(req);
 
-    const { packageId } = req.body;
+    const { packageId, provider = "flutterwave" } = req.body;
+    const selectedProvider = String(provider).toLowerCase();
+
+    if (!["flutterwave", "paystack"].includes(selectedProvider)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid payment provider",
+      });
+    }
 
     if (!packageId) {
       return res.status(400).json({
@@ -80,9 +93,6 @@ exports.initializeDeposit = async (req, res) => {
       Date.now() - pendingExpiryMinutes * 60 * 1000,
     );
 
-    /*
-Expire old abandoned AutoPilot payment attempts
-*/
     await InvestmentDeposit.updateMany(
       {
         userId,
@@ -106,6 +116,7 @@ Expire old abandoned AutoPilot payment attempts
         message:
           "You already have a pending AutoPilot Package payment. Please complete it or wait a few minutes to start again.",
         data: {
+          provider: existingPendingDeposit.provider,
           reference: existingPendingDeposit.providerReference,
           paymentLink: existingPendingDeposit.paymentLink,
         },
@@ -142,37 +153,51 @@ Expire old abandoned AutoPilot payment attempts
       userDisplayCurrency: localCurrency,
       exchangeRateSnapshot,
 
-      provider: "flutterwave",
+      provider: selectedProvider,
       providerReference: reference,
       status: "pending",
     });
 
-    const paymentData = await initializeFlutterwavePayment({
-      email: user.email,
-      amount: localizedAmount,
-      currency: localCurrency,
-      reference,
-      redirectUrl: `${process.env.CLIENT_URL}/autopilot/payment/verify`,
-      title: "Rebetas AutoPilot",
-      description: `${selectedPackage.name} AutoPilot Package activation`,
-      customer: {
-        name: user.fullName,
-        phonenumber: user.phone,
-      },
-      meta: {
-        purpose: "autopilot_activation",
-        userId: String(userId),
-        packageId: String(selectedPackage._id),
+    let paymentData = null;
 
-        baseAmount: selectedPackage.amount,
-        baseCurrency,
+    if (selectedProvider === "flutterwave") {
+      paymentData = await initializeFlutterwavePayment({
+        email: user.email,
+        amount: localizedAmount,
+        currency: localCurrency,
+        reference,
+        redirectUrl: `${process.env.CLIENT_URL}/autopilot/payment/verify`,
+        title: "Rebetas AutoPilot",
+        description: `${selectedPackage.name} AutoPilot Package activation`,
+        customer: {
+          name: user.fullName,
+          phonenumber: user.phone,
+        },
+        meta: {
+          purpose: "autopilot_activation",
+          userId: String(userId),
+          packageId: String(selectedPackage._id),
 
-        localAmount: localizedAmount,
-        localCurrency,
+          baseAmount: selectedPackage.amount,
+          baseCurrency,
 
-        exchangeRateSnapshot,
-      },
-    });
+          localAmount: localizedAmount,
+          localCurrency,
+
+          exchangeRateSnapshot,
+        },
+      });
+    }
+
+    if (selectedProvider === "paystack") {
+      paymentData = await initializePaystackPayment({
+        email: user.email,
+        amount: localizedAmount,
+        currency: localCurrency,
+        reference,
+        callbackUrl: `${process.env.CLIENT_URL}/autopilot/payment/verify`,
+      });
+    }
 
     if (!paymentData) {
       deposit.status = "failed";
@@ -184,7 +209,8 @@ Expire old abandoned AutoPilot payment attempts
       });
     }
 
-    deposit.paymentLink = paymentData.link || null;
+    deposit.paymentLink =
+      paymentData.link || paymentData.authorization_url || null;
     deposit.rawProviderResponse = paymentData;
 
     await deposit.save();
@@ -197,6 +223,7 @@ Expire old abandoned AutoPilot payment attempts
         currency: localCurrency,
       },
       metadata: {
+        provider: selectedProvider,
         depositId: deposit._id,
         packageId: selectedPackage._id,
         packageName: selectedPackage.name,
@@ -208,6 +235,7 @@ Expire old abandoned AutoPilot payment attempts
       success: true,
       message: "AutoPilot Package payment initialized successfully",
       data: {
+        provider: selectedProvider,
         reference,
 
         amount: localizedAmount,
@@ -290,10 +318,24 @@ exports.verifyDeposit = async (req, res) => {
       });
     }
 
-    const verified = await verifyFlutterwavePayment(reference);
+    let verified = null;
+
+    if (deposit.provider === "flutterwave") {
+      verified = await verifyFlutterwavePayment(reference);
+    }
+
+    if (deposit.provider === "paystack") {
+      verified = await verifyPaystackPayment(reference);
+    }
+
     const verifiedStatus = String(verified?.status || "").toLowerCase();
 
-    if (!verified || verifiedStatus !== "successful") {
+    const isSuccessful =
+      deposit.provider === "flutterwave"
+        ? verifiedStatus === "successful"
+        : verifiedStatus === "success";
+
+    if (!verified || !isSuccessful) {
       deposit.status = "failed";
       deposit.rawProviderResponse = verified || {};
 
@@ -306,7 +348,12 @@ exports.verifyDeposit = async (req, res) => {
       });
     }
 
-    if (Number(verified.amount) < Number(deposit.amount)) {
+    const verifiedAmount =
+      deposit.provider === "paystack"
+        ? Number(verified.amount || 0) / 100
+        : Number(verified.amount || 0);
+
+    if (verifiedAmount < Number(deposit.amount)) {
       deposit.status = "failed";
       deposit.rawProviderResponse = verified;
 
@@ -421,11 +468,9 @@ exports.verifyDeposit = async (req, res) => {
           type: "package_activation",
           status: "successful",
 
-          // local user value
           amount: capitalAmount,
           currency: deposit.currency,
 
-          // admin USD value
           baseAmount,
           baseCurrency,
           exchangeRateSnapshot,
@@ -445,6 +490,7 @@ exports.verifyDeposit = async (req, res) => {
           description: `${selectedPackage.name} AutoPilot Package activated`,
 
           metadata: {
+            provider: deposit.provider,
             packageId: selectedPackage._id,
             packageNameSnapshot: selectedPackage.name,
 
@@ -474,6 +520,7 @@ exports.verifyDeposit = async (req, res) => {
         currency: deposit.currency,
       },
       metadata: {
+        provider: deposit.provider,
         depositId: deposit._id,
         transactionId: transaction[0]._id,
         reference,
@@ -489,6 +536,7 @@ exports.verifyDeposit = async (req, res) => {
         packageName: selectedPackage.name,
       },
       metadata: {
+        provider: deposit.provider,
         investmentAccountId: account[0]._id,
         packageId: selectedPackage._id,
       },
