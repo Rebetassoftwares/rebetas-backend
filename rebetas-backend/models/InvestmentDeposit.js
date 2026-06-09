@@ -75,7 +75,7 @@ const investmentDepositSchema = new mongoose.Schema(
 
     provider: {
       type: String,
-      enum: ["flutterwave"],
+      enum: ["flutterwave", "paystack"],
       required: true,
       default: "flutterwave",
     },

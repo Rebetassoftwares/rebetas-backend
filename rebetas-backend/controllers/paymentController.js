@@ -133,6 +133,7 @@ async function initializePayment(req, res) {
         amount,
         currency: pricing.currency,
         reference,
+        callbackUrl: `${process.env.CLIENT_URL}/payment/verify`,
       });
     }
 

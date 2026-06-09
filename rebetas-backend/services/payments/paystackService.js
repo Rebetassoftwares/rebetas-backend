@@ -12,15 +12,21 @@ async function initializePaystackPayment({
   amount,
   currency,
   reference,
+  callbackUrl,
 }) {
   try {
+    if (!PAYSTACK_SECRET) {
+      throw new Error("PAYSTACK_SECRET is not configured");
+    }
+
     const response = await axios.post(
       "https://api.paystack.co/transaction/initialize",
       {
         email,
-        amount: amount * 100,
+        amount: Math.round(Number(amount) * 100),
         currency,
         reference,
+        callback_url: callbackUrl,
       },
       {
         headers: {
@@ -46,6 +52,10 @@ VERIFY PAYMENT
 
 async function verifyPaystackPayment(reference) {
   try {
+    if (!PAYSTACK_SECRET) {
+      throw new Error("PAYSTACK_SECRET is not configured");
+    }
+
     const response = await axios.get(
       `https://api.paystack.co/transaction/verify/${reference}`,
       {
@@ -71,6 +81,8 @@ VERIFY WEBHOOK SIGNATURE
 
 function verifyPaystackWebhook(req) {
   try {
+    if (!PAYSTACK_SECRET) return false;
+
     const signature = req.headers["x-paystack-signature"];
 
     if (!signature) return false;
@@ -82,10 +94,7 @@ function verifyPaystackWebhook(req) {
 
     return hash === signature;
   } catch (error) {
-    console.error(
-      "Paystack webhook verification error:",
-      error.response?.data || error.message,
-    );
+    console.error("Paystack webhook verification error:", error.message);
     return false;
   }
 }
@@ -99,11 +108,11 @@ function extractPaystackWebhookData(body) {
     return null;
   }
 
-  const data = body.data;
+  const data = body.data || {};
 
   return {
     reference: data.reference,
-    amount: data.amount / 100,
+    amount: Number(data.amount || 0) / 100,
     currency: data.currency,
     status: data.status,
     providerTransactionId: data.id,
