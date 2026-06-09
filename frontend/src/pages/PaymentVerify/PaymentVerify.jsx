@@ -9,15 +9,22 @@ export default function PaymentVerify() {
     async function verify() {
       try {
         const params = new URLSearchParams(window.location.search);
-        const tx_ref = params.get("tx_ref");
 
-        if (!tx_ref) {
+        // Flutterwave returns tx_ref
+        // Paystack returns reference
+        const reference =
+          params.get("tx_ref") ||
+          params.get("reference") ||
+          params.get("trxref");
+
+        if (!reference) {
           alert("Invalid payment reference");
-          return navigate("/pricing");
+          navigate("/pricing");
+          return;
         }
 
         await api.post("/payments/verify", {
-          reference: tx_ref,
+          reference,
         });
 
         alert("Payment successful 🎉");

@@ -600,6 +600,118 @@
   background: linear-gradient(135deg, #a020f0, #c14dff);
 }
 
+.autopilot-payment-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 1, 15, 0.78);
+  backdrop-filter: blur(10px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.autopilot-payment-modal {
+  width: 100%;
+  max-width: 470px;
+  border-radius: 24px;
+  padding: 30px;
+  color: #ffffff;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.09),
+      rgba(255, 255, 255, 0.05)
+    ),
+    #12041f;
+  border: 1px solid rgba(193, 77, 255, 0.35);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+}
+
+.autopilot-payment-modal h3 {
+  margin: 18px 0 8px;
+  font-size: 28px;
+  font-weight: 900;
+}
+
+.autopilot-payment-subtitle {
+  color: #cfc3ef;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.autopilot-payment-preview {
+  padding: 18px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  margin-bottom: 20px;
+}
+
+.autopilot-payment-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.autopilot-payment-row span {
+  color: #bfb6e8;
+}
+
+.autopilot-payment-row strong {
+  color: #ffffff;
+  text-align: right;
+}
+
+.autopilot-payment-preview ul {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0 0;
+}
+
+.autopilot-payment-preview li {
+  color: #d3c8ef;
+  font-size: 13px;
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+
+.autopilot-payment-preview li::before {
+  content: "✓";
+  color: #22c55e;
+  font-weight: 900;
+  margin-right: 8px;
+}
+
+.autopilot-payment-buttons {
+  display: grid;
+  gap: 12px;
+}
+
+.autopilot-payment-buttons button {
+  border: none;
+  padding: 15px 18px;
+  border-radius: 14px;
+  color: #ffffff;
+  font-weight: 900;
+  cursor: pointer;
+  background: linear-gradient(135deg, #a020f0, #c14dff);
+  box-shadow: 0 12px 28px rgba(160, 32, 240, 0.32);
+}
+
+.autopilot-payment-cancel {
+  width: 100%;
+  margin-top: 14px;
+  border: none;
+  background: transparent;
+  color: #cfc3ef;
+  cursor: pointer;
+  font-weight: 800;
+}
+
 @media (max-width: 760px) {
   .autopilot-guide-preview {
     padding: 24px;

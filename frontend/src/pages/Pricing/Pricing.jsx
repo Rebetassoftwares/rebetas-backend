@@ -92,6 +92,7 @@ export default function Pricing() {
 
   const [subscribingPlan, setSubscribingPlan] = useState("");
   const [subscribeError, setSubscribeError] = useState("");
+  const [paymentModal, setPaymentModal] = useState(null);
 
   const [basePromo, setBasePromo] = useState(null);
   const [calculatedPromos, setCalculatedPromos] = useState({});
@@ -319,13 +320,23 @@ export default function Pricing() {
     }
   }
 
+  function getPlanTitle(plan) {
+    if (plan === "weekly") return "Weekly Plan";
+    if (plan === "monthly") return "Monthly Plan";
+    if (plan === "yearly") return "Yearly Plan";
+    return "Subscription Plan";
+  }
+
   function subscribe(planType, country) {
     if (!country) {
       alert("Please select a country");
       return;
     }
 
-    proceedPayment("flutterwave", planType, country);
+    setPaymentModal({
+      planType,
+      country,
+    });
   }
 
   async function proceedPayment(provider, planType, country) {
@@ -515,6 +526,70 @@ export default function Pricing() {
           </div>
         </div>
       </section>
+
+      {paymentModal && (
+        <div className="payment-modal-overlay">
+          <div className="payment-modal">
+            <h3>{getPlanTitle(paymentModal.planType)}</h3>
+
+            <div className="payment-plan-preview">
+              <p className="payment-plan-country">
+                Country: <strong>{paymentModal.country}</strong>
+              </p>
+
+              {renderPromoBox(paymentModal.planType, paymentModal.country)}
+
+              {renderPlanPrice(paymentModal.planType, paymentModal.country)}
+
+              <ul className="features modal-features">
+                {FEATURES.map((f, i) => (
+                  <li key={i}>✔ {f}</li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="payment-buttons">
+              <button
+                type="button"
+                className="btn-green"
+                onClick={() => {
+                  proceedPayment(
+                    "flutterwave",
+                    paymentModal.planType,
+                    paymentModal.country,
+                  );
+                  setPaymentModal(null);
+                }}
+              >
+                Pay with Flutterwave
+              </button>
+
+              <button
+                type="button"
+                className="btn-outline"
+                onClick={() => {
+                  proceedPayment(
+                    "paystack",
+                    paymentModal.planType,
+                    paymentModal.country,
+                  );
+                  setPaymentModal(null);
+                }}
+              >
+                Pay with Paystack
+              </button>
+            </div>
+
+            <button
+              type="button"
+              className="modal-close"
+              onClick={() => setPaymentModal(null)}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       <Footer />
     </div>

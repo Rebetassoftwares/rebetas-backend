@@ -10,6 +10,7 @@ export default function Investments() {
   const [loading, setLoading] = useState(true);
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState("");
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
 
   const formatMoney = (amount, currency) => {
     return `${currency || ""} ${Number(amount || 0).toLocaleString()}`;
@@ -38,7 +39,16 @@ export default function Investments() {
     loadPackages();
   }, []);
 
-  async function handleContinue() {
+  function handleContinue() {
+    if (!selectedPackage) {
+      alert("Please select an AutoPilot Package");
+      return;
+    }
+
+    setPaymentModalOpen(true);
+  }
+
+  async function proceedPayment(provider) {
     if (!selectedPackage) {
       alert("Please select an AutoPilot Package");
       return;
@@ -50,6 +60,7 @@ export default function Investments() {
 
       const res = await api.post("/investments/deposit/init", {
         packageId: selectedPackage._id,
+        provider,
       });
 
       const paymentLink = res?.data?.paymentLink;
@@ -61,10 +72,10 @@ export default function Investments() {
       window.location.href = paymentLink;
     } catch (err) {
       console.error("AutoPilot payment init error:", err);
-
       setError(err.message || "Failed to start AutoPilot payment.");
     } finally {
       setPaying(false);
+      setPaymentModalOpen(false);
     }
   }
 
@@ -163,7 +174,10 @@ export default function Investments() {
 
             <h3>Complete AutoPilot Setup</h3>
 
-            <p>Your payment will be processed securely through Flutterwave.</p>
+            <p>
+              Your payment will be processed securely through your selected
+              payment method.
+            </p>
           </div>
 
           <div className="selected-summary">
@@ -243,6 +257,74 @@ export default function Investments() {
           </a>
         </section>
       </main>
+
+      {paymentModalOpen && selectedPackage && (
+        <div className="autopilot-payment-modal-overlay">
+          <div className="autopilot-payment-modal">
+            <span className="investment-tag">Confirm AutoPilot Package</span>
+
+            <h3>{selectedPackage.name}</h3>
+
+            <p className="autopilot-payment-subtitle">
+              Review your selected package and choose your payment method.
+            </p>
+
+            <div className="autopilot-payment-preview">
+              <div className="autopilot-payment-row">
+                <span>Package Amount</span>
+                <strong>
+                  {formatMoney(
+                    selectedPackage.amount,
+                    selectedPackage.currency,
+                  )}
+                </strong>
+              </div>
+
+              <div className="autopilot-payment-row">
+                <span>Daily Profit Credit</span>
+                <strong>{selectedPackage.dailyReturnPercentage}%</strong>
+              </div>
+
+              <ul>
+                {Array.isArray(selectedPackage.benefits) &&
+                selectedPackage.benefits.length > 0 ? (
+                  selectedPackage.benefits.map((benefit, index) => (
+                    <li key={index}>{benefit}</li>
+                  ))
+                ) : (
+                  <>
+                    <li>Rebetas handles the daily activity for you</li>
+                    <li>Daily Profit Credit updates on your dashboard</li>
+                    <li>Withdraw Profit whenever you want</li>
+                    <li>Compound Profit to increase Capital Balance</li>
+                  </>
+                )}
+              </ul>
+            </div>
+
+            <div className="autopilot-payment-buttons">
+              <button
+                type="button"
+                onClick={() => proceedPayment("flutterwave")}
+              >
+                Pay with Flutterwave
+              </button>
+
+              <button type="button" onClick={() => proceedPayment("paystack")}>
+                Pay with Paystack
+              </button>
+            </div>
+
+            <button
+              type="button"
+              className="autopilot-payment-cancel"
+              onClick={() => setPaymentModalOpen(false)}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       <Footer />
     </div>

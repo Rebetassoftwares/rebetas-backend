@@ -532,6 +532,24 @@
   background: rgba(160, 32, 240, 0.22);
 }
 
+.payment-plan-preview {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.payment-plan-country {
+  margin: 0;
+  color: #f1edff;
+  font-size: 14px;
+}
+
+.modal-features {
+  margin-top: 0;
+}
+
 @media (max-width: 768px) {
   .pricing-dropdown-trigger {
     min-height: 48px;
