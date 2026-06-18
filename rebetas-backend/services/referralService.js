@@ -13,7 +13,7 @@ const { sendAutoPilotNotification } = require("./notificationService");
 const BASE_CURRENCY = "USD";
 
 const SUBSCRIPTION_REFERRAL_RATE = 0.1; // 10%
-const AUTOPILOT_PROFIT_CREDIT_REFERRAL_RATE = 0.2; // 20%
+const AUTOPILOT_PROFIT_CREDIT_REFERRAL_RATE = 0.1; // 20%
 
 function roundMoney(value) {
   return Number(Number(value || 0).toFixed(2));
