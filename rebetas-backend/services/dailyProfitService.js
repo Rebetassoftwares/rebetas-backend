@@ -199,11 +199,19 @@ async function creditDailyProfits({ adminId = null, force = false } = {}) {
           note: "AutoPilot Profit Credit referral bonus",
           session,
         });
-      } catch (referralError) {
+      } catch (error) {
+        if (session.inTransaction()) {
+          await session.abortTransaction();
+        }
+
         console.error(
-          "Daily Profit referral bonus error:",
-          referralError.message,
+          "========== AUTOPILOT DAILY PROFIT CREDIT ERROR ==========",
         );
+        console.error(error);
+        console.error("message:", error.message);
+        console.error("stack:", error.stack);
+
+        throw error;
       }
 
       creditedCount += 1;
