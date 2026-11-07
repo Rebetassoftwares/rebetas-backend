@@ -7,70 +7,74 @@ export default function FAQ() {
   const [active, setActive] = useState(null);
 
   const toggle = (index) => {
-    setActive(active === index ? null : index);
+    setActive((current) => (current === index ? null : index));
   };
 
   const faqs = [
     {
-      question: "What is Rebetas?",
+      question: "What is SunStreamers?",
       answer:
-        "Rebetas is an AI-powered virtual football prediction platform built to analyze virtual match patterns, identify opportunities, and provide structured prediction insights for supported betting platforms.",
+        "SunStreamers is a 24-hour smart virtual football prediction signal bot designed to provide users with organized prediction signals across supported virtual football platforms. It helps users make more informed decisions when following virtual football markets.",
     },
     {
-      question: "How does Rebetas work?",
+      question: "How does SunStreamers work?",
       answer:
-        "Rebetas studies virtual football patterns, prediction timing, and match behavior using intelligent models. The platform then presents users with organized prediction signals that are easier to follow and act on.",
+        "After registering and accessing your account, you can use your dashboard to access the available prediction signals. Follow the instructions provided in the signal and use the relevant supported betting platform to make your own decisions.",
     },
     {
       question: "Which betting platforms are supported?",
       answer:
-        "Rebetas supports major betting platforms that provide virtual football markets, including Bet9ja, SportyBet, BetKing, Betway, 1xBet, and BangBet.",
+        "SunStreamers supports virtual football users on Bet9ja, SportyBet, BetKing, Betway, 1xBet, and BangBet.",
     },
     {
-      question: "Do I need betting experience before using Rebetas?",
+      question: "Do I need previous betting experience?",
       answer:
-        "No. Rebetas is designed to be beginner friendly while still offering enough depth for experienced users. New users can start with the free option and gradually understand how the system works.",
+        "No. SunStreamers is designed to be straightforward to access and use. Our tutorials cover registration, login, dashboard navigation, and how to access and use the prediction signals.",
     },
     {
-      question: "Is there a free plan available?",
+      question: "How do I create a SunStreamers account?",
       answer:
-        "Yes. Rebetas includes a free option that allows users to get started and understand the platform before moving to premium or ultra plans.",
+        "Visit the registration page, provide the required account information, and complete the registration process. Once your account is created, you can log in to access your account.",
     },
     {
-      question:
-        "What is the difference between Free, Premium, and Ultra plans?",
+      question: "How do I access the prediction signals?",
       answer:
-        "The Free plan offers limited access. The Premium plan gives earlier and stronger access to prediction tools. The Ultra plan includes the most advanced access, including additional support for users who want deeper functionality and stronger workflow benefits.",
+        "Log in to your SunStreamers account and navigate to your dashboard. The dashboard is where you access the available signal information. You can also follow the tutorials on our Tutorials page for guidance.",
     },
     {
-      question: "Can I use Rebetas on mobile devices?",
+      question: "Is SunStreamers available 24 hours?",
       answer:
-        "Yes. Rebetas is designed to work across desktop, tablet, and mobile devices so users can access predictions wherever they are.",
+        "SunStreamers is positioned as a 24-hour virtual football prediction signal service. Actual signal availability is subject to the service's active signal schedule.",
     },
     {
-      question: "Does Rebetas guarantee winning every bet?",
+      question: "What is the reported winning rate?",
       answer:
-        "No. Rebetas is a prediction and decision-support platform, not a guarantee system. It helps improve structure and confidence in betting decisions, but users should always bet responsibly.",
+        "SunStreamers has a reported winning rate of 85% across 100 tracked predictions. This is a historical performance figure, not a promise of future results. Individual predictions can be wrong, and actual outcomes will vary.",
     },
     {
-      question: "How often are predictions updated?",
+      question: "Does SunStreamers guarantee winning every prediction?",
       answer:
-        "Predictions and supported plan data are updated based on the platform’s active logic, timing requirements, and virtual football behavior patterns.",
+        "No. No prediction service can guarantee that every prediction will win. SunStreamers provides prediction signals to support your decision-making, but virtual football outcomes remain uncertain. Never treat a prediction as guaranteed profit.",
     },
     {
-      question: "Can I change my plan later?",
+      question: "Is there a subscription plan?",
       answer:
-        "Yes. Users can start with one plan and move to another plan later depending on their needs, budget, and preferred level of access.",
+        "Yes. SunStreamers offers a monthly Premium subscription. Visit the Pricing page to view the current price applicable to your selected country and proceed with the available subscription option.",
     },
     {
-      question: "How is pricing determined?",
+      question: "Can I use SunStreamers on my mobile phone?",
       answer:
-        "Pricing can vary by country and billing cycle. Weekly and monthly amounts are displayed based on the selected country plan inside the pricing section.",
+        "Yes. SunStreamers is designed to work on mobile phones, tablets, and desktop devices, allowing you to access your account across different screen sizes.",
     },
     {
-      question: "Is Rebetas suitable for serious bettors?",
+      question: "How do I get help if I have a problem?",
       answer:
-        "Yes. While Rebetas is simple enough for beginners, it is also structured for users who want a more organized and professional virtual football prediction workflow.",
+        "For assistance with your account or the service, contact our support team at support@sunstreamers.com.",
+    },
+    {
+      question: "Should I stake money I cannot afford to lose?",
+      answer:
+        "No. Virtual football predictions involve risk, and losses are possible. Only use money you can afford to lose, avoid chasing losses, and make your own responsible betting decisions.",
     },
   ];
 
@@ -78,57 +82,71 @@ export default function FAQ() {
     <div className="faq-page">
       <Navbar />
 
-      {/* HERO */}
-
       <section className="faq-hero">
         <div className="container">
-          <span className="faq-tag">HELP CENTER</span>
+          <span className="faq-tag">SUNSTREAMERS HELP CENTER</span>
 
           <h1>Frequently Asked Questions</h1>
 
           <p>
-            Everything you need to know about Rebetas, pricing, supported
-            platforms, plans, and how the system works.
+            Find answers about SunStreamers, account registration, prediction
+            signals, supported platforms, subscriptions, and how to get started.
           </p>
         </div>
       </section>
 
-      {/* FAQ SECTION */}
-
       <section className="faq-section">
         <div className="container">
           <div className="faq-header">
-            <h2>Questions & Answers</h2>
+            <h2>How Can We Help You?</h2>
             <p>
-              Explore the most common questions users ask before getting started
-              with Rebetas.
+              Get familiar with the service and find the information you need to
+              use SunStreamers.
             </p>
           </div>
 
           <div className="faq-list">
-            {faqs.map((faq, index) => (
-              <div
-                key={index}
-                className={`faq-item ${active === index ? "active" : ""}`}
-              >
-                <button
-                  className="faq-question"
-                  onClick={() => toggle(index)}
-                  type="button"
-                >
-                  <span>{faq.question}</span>
-                  <span className="faq-icon">
-                    {active === index ? "−" : "+"}
-                  </span>
-                </button>
+            {faqs.map((faq, index) => {
+              const isActive = active === index;
+              const answerId = `faq-answer-${index}`;
 
+              return (
                 <div
-                  className={`faq-answer-wrap ${active === index ? "open" : ""}`}
+                  key={index}
+                  className={`faq-item ${isActive ? "active" : ""}`}
                 >
-                  <div className="faq-answer">{faq.answer}</div>
+                  <button
+                    className="faq-question"
+                    onClick={() => toggle(index)}
+                    type="button"
+                    aria-expanded={isActive}
+                    aria-controls={answerId}
+                  >
+                    <span>{faq.question}</span>
+                    <span className="faq-icon" aria-hidden="true">
+                      {isActive ? "−" : "+"}
+                    </span>
+                  </button>
+
+                  <div
+                    id={answerId}
+                    className={`faq-answer-wrap ${isActive ? "open" : ""}`}
+                    aria-hidden={!isActive}
+                  >
+                    <div className="faq-answer">{faq.answer}</div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
+          </div>
+
+          <div className="faq-contact">
+            <h2>Still Have Questions?</h2>
+            <p>
+              Our support team is available to assist you with questions about
+              SunStreamers and your account.
+            </p>
+            <a href="mailto:support@sunstreamers.com">Contact Support</a>
           </div>
         </div>
       </section>

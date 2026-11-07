@@ -53,6 +53,7 @@ exports.createManualPrediction = async (req, res) => {
     }).sort({ scheduledFor: -1 });
 
     let scheduledFor;
+
     if (!lastPrediction) {
       scheduledFor = new Date(league.firstPredictionTime);
     } else {
@@ -68,7 +69,7 @@ exports.createManualPrediction = async (req, res) => {
       return res.status(500).json({ message: "System state not initialized" });
     }
 
-    // ✅ base stake only at creation
+    // Base stake only at creation.
     const stake = calculateBaseStake(
       Number(systemState.initialCapital || systemState.capital || 0),
       systemState.baseStakePercent,
@@ -126,7 +127,11 @@ exports.updatePredictionResult = async (req, res) => {
       return res.status(400).json({ message: "status must be won or loss" });
     }
 
-    const prediction = await ManualPrediction.findById(id);
+    // Only MANUAL predictions can be settled through this endpoint.
+    const prediction = await ManualPrediction.findOne({
+      _id: id,
+      type: "MANUAL",
+    });
 
     if (!prediction) {
       return res.status(404).json({ message: "Prediction not found" });
@@ -152,12 +157,12 @@ exports.updatePredictionResult = async (req, res) => {
 
     await prediction.save();
 
-    // 🔥 IMPORTANT: recompute only this league (keep Option A system)
+    // Recompute only the MANUAL league.
     const { platform, leagueName } = prediction;
 
     await recomputeMartingale(platform, leagueName);
 
-    // 🔥 fetch updated league capital (source of truth)
+    // Fetch updated league capital.
     const league = await ManualLeague.findOne({
       platform: new RegExp(`^${platform}$`, "i"),
       leagueName: new RegExp(`^${leagueName}$`, "i"),
@@ -166,7 +171,7 @@ exports.updatePredictionResult = async (req, res) => {
     return res.json({
       message: "Prediction result updated successfully",
       prediction,
-      capitalAfter: league?.capital || 0, // ✅ correct now
+      capitalAfter: league?.capital || 0,
       resultAmount,
       profit,
     });
@@ -189,7 +194,11 @@ exports.updatePredictionResultsBatch = async (req, res) => {
     for (const u of updates) {
       if (!["won", "loss"].includes(u.status)) continue;
 
-      const prediction = await ManualPrediction.findById(u.id);
+      // Only MANUAL predictions can be updated through this endpoint.
+      const prediction = await ManualPrediction.findOne({
+        _id: u.id,
+        type: "MANUAL",
+      });
 
       if (!prediction) continue;
       if (prediction.status !== "pending") continue;
@@ -211,7 +220,7 @@ exports.updatePredictionResultsBatch = async (req, res) => {
       updatedPredictions.push(prediction);
     }
 
-    // 🔥 GROUP RECOMPUTE TARGETS
+    // Group recompute targets.
     const uniqueKeys = new Set();
 
     updatedPredictions.forEach((p) => {
@@ -219,7 +228,7 @@ exports.updatePredictionResultsBatch = async (req, res) => {
       uniqueKeys.add(key);
     });
 
-    // 🔥 RUN ALL RECOMPUTES IN PARALLEL (independent leagues)
+    // Run recomputes in parallel for independent leagues.
     await Promise.all(
       Array.from(uniqueKeys).map(async (key) => {
         const [platform, leagueName] = key.split("_");
@@ -227,7 +236,7 @@ exports.updatePredictionResultsBatch = async (req, res) => {
       }),
     );
 
-    // 🔥 RETURN PER-LEAGUE CAPITAL SNAPSHOT (SOURCE OF TRUTH)
+    // Return per-league capital snapshots.
     const leagueSnapshots = [];
 
     for (const key of uniqueKeys) {
@@ -250,7 +259,7 @@ exports.updatePredictionResultsBatch = async (req, res) => {
     res.json({
       message: "Batch update successful",
       updatedCount: updatedPredictions.length,
-      leagues: leagueSnapshots, // ✅ CLEAN + SCALABLE RESPONSE
+      leagues: leagueSnapshots,
     });
   } catch (err) {
     console.error("Batch update error:", err);
@@ -262,22 +271,22 @@ exports.getLiveManualPredictions = async (req, res) => {
   try {
     const now = new Date();
 
-    // 🔹 Get only active leagues (light query)
+    // Get only active leagues.
     const activeLeagues = await ManualLeague.find({ isActive: true }).select(
       "_id platform leagueName mode",
     );
 
     const activeLeagueIds = activeLeagues.map((league) => league._id);
 
-    // 🔥 Fetch ONLY live + pending predictions
+    // Fetch live, pending MANUAL and SEMI_AUTO predictions.
     const predictions = await ManualPrediction.find({
       leagueId: { $in: activeLeagueIds },
       scheduledFor: { $lte: now },
       type: { $in: ["MANUAL", "SEMI_AUTO"] },
-      status: "pending", // ✅ CRITICAL FIX
+      status: "pending",
     })
       .sort({ scheduledFor: -1, createdAt: -1 })
-      .lean(); // ✅ faster response (no mongoose overhead)
+      .lean();
 
     res.json(predictions);
   } catch (err) {
@@ -290,9 +299,14 @@ exports.autoResolvePendingPredictions = async (req, res) => {
   try {
     console.log("AUTO RESOLVE HIT");
 
-    const predictions = await ManualPrediction.find({ status: "pending" }).sort(
-      { scheduledFor: 1, createdAt: 1 },
-    );
+    // This existing auto-resolve mechanism is restricted to MANUAL.
+    const predictions = await ManualPrediction.find({
+      type: "MANUAL",
+      status: "pending",
+    }).sort({
+      scheduledFor: 1,
+      createdAt: 1,
+    });
 
     console.log("Pending count:", predictions.length);
 
@@ -323,7 +337,7 @@ exports.autoResolvePendingPredictions = async (req, res) => {
       updatedPredictions.push(p);
     }
 
-    // 🔥 recompute properly
+    // Recompute MANUAL leagues.
     const uniqueKeys = new Set();
 
     updatedPredictions.forEach((p) => {

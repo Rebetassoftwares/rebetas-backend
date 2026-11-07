@@ -23,12 +23,12 @@ function maintenanceEmailTemplate(fullName) {
     ">
 
       <div style="
-        background: linear-gradient(135deg, #6c2bd9, #a855f7);
+        background: linear-gradient(135deg, #16803c, #22a06b);
         padding: 30px;
         text-align: center;
         color: white;
       ">
-        <h1 style="margin: 0; font-size: 26px;">Rebetas</h1>
+        <h1 style="margin: 0; font-size: 26px;">SunStreamers</h1>
         <p style="margin: 8px 0 0; font-size: 14px;">
           AI-Powered Virtual Football Predictions
         </p>
@@ -44,49 +44,49 @@ function maintenanceEmailTemplate(fullName) {
         </p>
 
         <p style="font-size: 15px; color: #555; line-height: 1.7;">
-          We are carrying out an important Rebetas system update to improve
+          We are carrying out an important SunStreamers system update to improve
           performance, stability, and your overall experience.
         </p>
 
         <div style="
           margin: 25px 0;
           padding: 20px;
-          background: #f3e8ff;
-          border-left: 5px solid #6c2bd9;
+          background: #e8f5ec;
+          border-left: 5px solid #16803c;
           border-radius: 10px;
         ">
           <p style="margin: 0 0 8px; font-size: 15px;">
             <b>Service Downtime:</b>
           </p>
-          <p style="margin: 0; font-size: 15px; color: #6c2bd9;">
+          <p style="margin: 0; font-size: 15px; color: #16803c;">
             From <b>5:00 AM today 26th may </b> to <b>5:00 AM tomorrow 27th may 2026</b>
           </p>
         </div>
 
         <p style="font-size: 15px; color: #555; line-height: 1.7;">
-          During this period, Rebetas services may be temporarily unavailable.
+          During this period, SunStreamers services may be temporarily unavailable.
           We sincerely apologize for any inconvenience and appreciate your
           patience while we complete the update.
         </p>
 
         <p style="font-size: 15px; color: #555;">
-          Thank you for being part of Rebetas.
+          Thank you for being part of SunStreamers.
         </p>
 
         <p style="font-size: 15px; color: #333; margin-bottom: 0;">
           Best regards,<br />
-          <b>The Rebetas Team</b>
+          <b>The SunStreamers Team</b>
         </p>
       </div>
 
       <div style="
-        background: #fafafa;
+        background: #e8f5ec;
         padding: 18px;
         text-align: center;
         font-size: 12px;
-        color: #999;
+        color: #777;
       ">
-        © ${year} Rebetas. All rights reserved.
+        © ${year} SunStreamers. All rights reserved.
       </div>
 
     </div>
@@ -110,7 +110,7 @@ async function sendMaintenanceNotice() {
     for (const user of users) {
       await sendEmail({
         to: user.email,
-        subject: "⚙️ Scheduled Rebetas Maintenance Notice",
+        subject: "⚙️ Scheduled SunStreamers Maintenance Notice",
         html: maintenanceEmailTemplate(user.fullName),
       });
 

@@ -2,10 +2,10 @@
   background:
     radial-gradient(
       circle at 20% 10%,
-      rgba(160, 32, 240, 0.25),
+      rgba(34, 197, 94, 0.25),
       transparent 40%
     ),
-    linear-gradient(180deg, #0d0318, #12041f);
+    linear-gradient(180deg, #03180b, #041f10);
 
   color: #ffffff;
 
@@ -32,7 +32,7 @@
 /* TEXT */
 
 .footer p {
-  color: #e9e6ff;
+  color: #e6f5e9;
   line-height: 1.7;
 }
 
@@ -50,7 +50,7 @@
 /* LINKS */
 
 .footer a {
-  color: #e9e6ff;
+  color: #e6f5e9;
   text-decoration: none;
   transition: color 0.2s ease;
 }
@@ -64,7 +64,7 @@
 .footer-bottom {
   margin-top: 50px;
   text-align: center;
-  color: #cfc9ff;
+  color: #c9e8d1;
   font-size: 14px;
 
   border-top: 1px solid rgba(255, 255, 255, 0.08);
@@ -79,13 +79,13 @@
 }
 
 .footer-country-text {
-  color: #d8ccff;
+  color: #d0f0d9;
   font-size: 13px;
   margin-bottom: 10px;
 }
 
 .footer-country-list {
-  color: #e9ddff;
+  color: #e0f5e6;
   font-size: 13px;
   line-height: 1.6;
   max-width: 800px;
@@ -118,9 +118,9 @@
 }
 
 .country-tags span {
-  background: rgba(168, 85, 247, 0.15);
-  border: 1px solid rgba(216, 204, 255, 0.15);
-  color: #e9ddff;
+  background: rgba(34, 197, 94, 0.15);
+  border: 1px solid rgba(187, 247, 208, 0.15);
+  color: #e0f5e6;
   padding: 6px 10px;
   border-radius: 8px;
   font-size: 12px;

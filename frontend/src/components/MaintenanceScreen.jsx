@@ -10,7 +10,7 @@ export default function MaintenanceScreen() {
         alignItems: "center",
         justifyContent: "center",
         background:
-          "radial-gradient(circle at top, #1b1036 0%, #0f071f 55%, #090312 100%)",
+          "radial-gradient(circle at top, #103b27 0%, #071f15 55%, #030d09 100%)",
         padding: "25px",
         fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
         overflow: "hidden",
@@ -23,7 +23,7 @@ export default function MaintenanceScreen() {
           position: "absolute",
           width: "350px",
           height: "350px",
-          background: "#7c3aed",
+          background: "#16803c",
           filter: "blur(120px)",
           opacity: 0.25,
           top: "-100px",
@@ -37,7 +37,7 @@ export default function MaintenanceScreen() {
           position: "absolute",
           width: "300px",
           height: "300px",
-          background: "#a855f7",
+          background: "#22a06b",
           filter: "blur(120px)",
           opacity: 0.2,
           bottom: "-100px",
@@ -77,7 +77,7 @@ export default function MaintenanceScreen() {
               letterSpacing: "-1px",
             }}
           >
-            Rebetas
+            SunStreamers
           </h1>
 
           <p
@@ -97,13 +97,13 @@ export default function MaintenanceScreen() {
             display: "inline-flex",
             alignItems: "center",
             gap: "10px",
-            background: "rgba(168,85,247,0.15)",
-            border: "1px solid rgba(168,85,247,0.3)",
+            background: "rgba(34,160,107,0.15)",
+            border: "1px solid rgba(34,160,107,0.3)",
             padding: "10px 18px",
             borderRadius: "999px",
             marginBottom: "30px",
             fontSize: "14px",
-            color: "#d8b4fe",
+            color: "#86efac",
             fontWeight: "600",
           }}
         >
@@ -123,7 +123,7 @@ export default function MaintenanceScreen() {
           We’re Building Something
           <span
             style={{
-              background: "linear-gradient(135deg, #c084fc, #ffffff)",
+              background: "linear-gradient(135deg, #4ade80, #ffffff)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
             }}
@@ -146,7 +146,7 @@ export default function MaintenanceScreen() {
           You asked. We listened.
           <br />
           <br />
-          Rebetas is currently being upgraded with powerful new features
+          SunStreamers is currently being upgraded with powerful new features
           designed to help you earn more consistently, reduce unnecessary risk,
           and enjoy a smoother experience with less stress.
           <br />
@@ -183,7 +183,7 @@ export default function MaintenanceScreen() {
             style={{
               margin: 0,
               fontSize: "24px",
-              color: "#d8b4fe",
+              color: "#86efac",
               fontWeight: "800",
               lineHeight: "1.5",
             }}
@@ -219,7 +219,7 @@ export default function MaintenanceScreen() {
             color: "rgba(255,255,255,0.45)",
           }}
         >
-          © {new Date().getFullYear()} Rebetas. All rights reserved.
+          © {new Date().getFullYear()} SunStreamers. All rights reserved.
         </div>
       </div>
     </div>

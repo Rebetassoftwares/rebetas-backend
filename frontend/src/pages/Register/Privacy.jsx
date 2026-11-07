@@ -26,10 +26,11 @@ export default function Privacy() {
       <section className="legal-section">
         <div className="container legal-content">
           <p>
-            This Privacy Policy describes how Rebetas ("we", "us", or "our")
-            collects, uses, stores, and protects your personal information when
-            you access or use our platform. By using Rebetas, you consent to the
-            practices described in this Privacy Policy.
+            This Privacy Policy describes how SunStreamers ("we", "us", or
+            "our") collects, uses, stores, and protects your personal
+            information when you access or use our platform. By using
+            SunStreamers, you consent to the practices described in this Privacy
+            Policy.
           </p>
 
           <h3>1. Information We Collect</h3>
@@ -65,8 +66,8 @@ export default function Privacy() {
 
           <h3>5. Payment Information</h3>
           <p>
-            Payments on Rebetas are processed by third-party providers. We do
-            not store your card or banking details. Payment providers may
+            Payments on SunStreamers are processed by third-party providers. We
+            do not store your card or banking details. Payment providers may
             collect and process your data according to their own policies.
           </p>
 
@@ -116,8 +117,8 @@ export default function Privacy() {
 
           <h3>12. Children’s Privacy</h3>
           <p>
-            Rebetas is not intended for individuals under the age of 18. We do
-            not knowingly collect personal data from minors.
+            SunStreamers is not intended for individuals under the age of 18. We
+            do not knowingly collect personal data from minors.
           </p>
 
           <h3>13. International Data Transfers</h3>
@@ -139,9 +140,9 @@ export default function Privacy() {
             us at:
             <br />
             <br />
-            info@rebetas.com
+            info@sunstreamers.com
             <br />
-            support@rebetas.com
+            support@sunstreamers.com
           </p>
         </div>
       </section>

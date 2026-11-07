@@ -17,6 +17,7 @@ export default function Account() {
 
   const [hasPromo, setHasPromo] = useState(false);
   const [autoPilotAccount, setAutoPilotAccount] = useState(null);
+  // eslint-disable-next-line no-unused-vars
   const [loadingAutoPilot, setLoadingAutoPilot] = useState(true);
   const [referralData, setReferralData] = useState(null);
 
@@ -53,7 +54,7 @@ export default function Account() {
 
     loadData();
   }, []);
-
+  // eslint-disable-next-line no-unused-vars
   function copyToClipboard(value) {
     if (!value) return;
 
@@ -64,12 +65,14 @@ export default function Account() {
 
   const subscription = subscriptionData.subscription;
   const isActive = subscriptionData.active;
+  // eslint-disable-next-line no-unused-vars
   const hasAutoPilot = !!autoPilotAccount;
-
+  // eslint-disable-next-line no-unused-vars
   const referralCode = referralData?.referralCode || null;
+  // eslint-disable-next-line no-unused-vars
   const referralLink = referralData?.referralLink || null;
 
-  const supportEmail = "support@rebetas.com";
+  const supportEmail = "support@sunstreamers.com";
 
   const expiryDate = subscription?.endDate
     ? new Date(subscription.endDate)
@@ -174,6 +177,7 @@ export default function Account() {
           </div>
         </div>
 
+        {/*
         {referralCode && (
           <div className="account-card referral-card-pro">
             <div className="referral-card-header">
@@ -182,7 +186,7 @@ export default function Account() {
                 <h3>Invite friends and earn from AutoPilot</h3>
                 <p>
                   Share your referral link. Every user gets a referral link and
-                  referral code. When someone joins Rebetas through you and
+                  referral code. When someone joins SunStreamers through you and
                   activates AutoPilot, you earn 10% of every daily profit
                   credited to that user.
                 </p>
@@ -222,14 +226,16 @@ export default function Account() {
             </div>
           </div>
         )}
+        */}
 
+        {/*
         <div className="account-card">
-          <h3>Rebetas AutoPilot</h3>
+          <h3>SunStreamers AutoPilot</h3>
 
           <p>
-            Let Rebetas AutoPilot AI handle the daily virtual football betting
-            activities for you while you monitor your Capital Balance, Profit
-            Balance, withdrawals, and Compound Profit.
+            Let SunStreamers AutoPilot AI handle the daily virtual football
+            betting activities for you while you monitor your Capital Balance,
+            Profit Balance, withdrawals, and Compound Profit.
           </p>
 
           {loadingAutoPilot ? (
@@ -247,6 +253,7 @@ export default function Account() {
             </button>
           )}
         </div>
+        */}
 
         {hasPromo && (
           <div className="account-card">

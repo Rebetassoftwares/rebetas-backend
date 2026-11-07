@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import "./AutoPilotLaunchPopup.css";
 
-const logo = "/rebetas-icon.png";
+const logo = "/sunstreamers-icon.png";
 
 export default function AutoPilotLaunchPopup() {
   const [showPopup, setShowPopup] = useState(() => {
@@ -23,29 +23,29 @@ export default function AutoPilotLaunchPopup() {
           ×
         </button>
 
-        <img src={logo} alt="Rebetas" className="autopilot-popup-logo" />
+        <img src={logo} alt="SunStreamers" className="autopilot-popup-logo" />
 
         <span className="autopilot-popup-badge">
-          Celebrating 4 Years of Rebetas
+          Celebrating 4 Years of SunStreamers
         </span>
 
-        <h2>Rebetas AutoPilot is Finally Here</h2>
+        <h2>SunStreamers AutoPilot is Finally Here</h2>
 
         <p>
-          We are excited to officially launch Rebetas AutoPilot as part of our
-          4th anniversary celebration.
+          We are excited to officially launch SunStreamers AutoPilot as part of
+          our 4th anniversary celebration.
         </p>
 
         <p>
-          AutoPilot helps you earn more easily while Rebetas handles the daily
-          activity for you.
+          AutoPilot helps you earn more easily while SunStreamers handles the
+          daily activity for you.
         </p>
 
         <div className="autopilot-popup-benefits">
           <span>Daily Profit Updates</span>
           <span>Withdraw Anytime</span>
           <span>Compound Anytime</span>
-          <span>Rebetas Handles The Work</span>
+          <span>SunStreamers Handles The Work</span>
         </div>
 
         <Link

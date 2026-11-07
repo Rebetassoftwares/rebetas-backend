@@ -4,6 +4,7 @@ import Footer from "../../components/Footer/Footer";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
+import { trackEvent } from "../../services/tracking";
 import "./Pricing.css";
 
 function CountryDropdown({ value, onChange, options, disabled = false }) {
@@ -43,6 +44,7 @@ function CountryDropdown({ value, onChange, options, disabled = false }) {
         disabled={disabled}
       >
         <span>{value || "Select Country"}</span>
+
         <span className={`pricing-dropdown-arrow ${open ? "open" : ""}`}>
           ⌄
         </span>
@@ -78,14 +80,15 @@ function CountryDropdown({ value, onChange, options, disabled = false }) {
 
 export default function Pricing() {
   const navigate = useNavigate();
+
   const token = localStorage.getItem("rebetas_token");
   const isLoggedIn = !!token;
 
   const [pricing, setPricing] = useState([]);
 
-  const [weeklyPlan, setWeeklyPlan] = useState("");
+  //const [weeklyPlan, setWeeklyPlan] = useState("");
   const [monthlyPlan, setMonthlyPlan] = useState("");
-  const [yearlyPlan, setYearlyPlan] = useState("");
+  //const [yearlyPlan, setYearlyPlan] = useState("");
 
   const [loadingPricing, setLoadingPricing] = useState(true);
   const [pricingError, setPricingError] = useState("");
@@ -106,12 +109,22 @@ export default function Pricing() {
     user?.promoCodeUsed || user?.promoCode || user?.activePromoCode || "";
 
   const FEATURES = [
-    "Over 1.5 Goals Predictions",
-    "Live Virtual Match Signals",
+    "24-Hour Live Virtual Football Prediction Signals",
+    "85% Reported Win Rate",
+    "Over 2.5 Goals Predictions",
+    "Under 2.5 Goals Predictions",
     "All Supported Platforms Access",
     "Fast Prediction Delivery",
     "No Ads Experience",
   ];
+
+  // Track visits to the pricing page.
+  useEffect(() => {
+    trackEvent("ViewContent", {
+      content_name: "SunStreamers Pricing",
+      content_category: "Subscription Plans",
+    });
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -199,6 +212,7 @@ export default function Pricing() {
 
   function getPrice(country, type) {
     const data = getPricingByCountry(country);
+
     if (!data) return "";
 
     if (type === "weekly") return `${data.currency}${data.weeklyPrice}`;
@@ -324,6 +338,7 @@ export default function Pricing() {
     if (plan === "weekly") return "Weekly Plan";
     if (plan === "monthly") return "Monthly Plan";
     if (plan === "yearly") return "Yearly Plan";
+
     return "Subscription Plan";
   }
 
@@ -367,6 +382,15 @@ export default function Pricing() {
         throw new Error("Payment link not available");
       }
 
+      // Track checkout only after the backend successfully initializes it.
+      trackEvent("InitiateCheckout", {
+        content_name: `${planType} Subscription`,
+        content_category: "Subscription",
+        plan: planType,
+        country,
+        payment_provider: provider,
+      });
+
       window.location.href = paymentLink;
     } catch (error) {
       if (
@@ -389,9 +413,30 @@ export default function Pricing() {
 
       <section className="pricing-hero">
         <div className="container">
-          <h1>Pricing</h1>
+          <span className="pricing-eyebrow">SUNSTREAMERS PREMIUM ACCESS</span>
 
-          <p>Select your country and choose a plan.</p>
+          <h1>
+            Get Access to
+            <span> 24-Hour Virtual Football Signals</span>
+          </h1>
+
+          <p>
+            Access our smart, profit-oriented live virtual football prediction
+            signals with one straightforward monthly subscription.
+          </p>
+
+          <div className="pricing-performance">
+            <div className="performance-number">85%</div>
+
+            <div className="performance-copy">
+              <strong>Reported Winning Rate</strong>
+            </div>
+          </div>
+
+          <p className="pricing-disclaimer">
+            Historical performance does not guarantee future results. Virtual
+            football betting involves risk.
+          </p>
 
           {loadingPromo && promoCode && (
             <p className="promo-loading">Checking your promo code...</p>
@@ -417,6 +462,12 @@ export default function Pricing() {
           )}
 
           <div className="pricing-grid">
+            {/*
+              WEEKLY PLAN
+              Temporarily hidden. Preserved for future use.
+            */}
+
+            {/*
             <div className="pricing-card">
               <h3>Weekly Plan</h3>
 
@@ -450,13 +501,17 @@ export default function Pricing() {
                   : "Subscribe"}
               </button>
             </div>
+            */}
 
+            {/* MONTHLY PLAN - ACTIVE */}
             <div className="pricing-card highlight">
               <h3>Monthly Plan</h3>
+
               <div className="top-ribbon">BEST VALUE</div>
+
               <div className="best-badge">
                 <span className="badge-icon">🔥</span>
-                <span className="badge-text">MOST POPULAR</span>
+                <span className="badge-text">PREMIUM ACCESS</span>
               </div>
 
               {renderPromoBox("monthly", monthlyPlan)}
@@ -490,6 +545,12 @@ export default function Pricing() {
               </button>
             </div>
 
+            {/*
+              YEARLY PLAN
+              Temporarily hidden. Preserved for future use.
+            */}
+
+            {/*
             <div className="pricing-card">
               <h3>Yearly Plan</h3>
 
@@ -523,6 +584,7 @@ export default function Pricing() {
                   : "Subscribe"}
               </button>
             </div>
+            */}
           </div>
         </div>
       </section>
@@ -558,6 +620,7 @@ export default function Pricing() {
                     paymentModal.planType,
                     paymentModal.country,
                   );
+
                   setPaymentModal(null);
                 }}
               >
@@ -573,6 +636,7 @@ export default function Pricing() {
                     paymentModal.planType,
                     paymentModal.country,
                   );
+
                   setPaymentModal(null);
                 }}
               >

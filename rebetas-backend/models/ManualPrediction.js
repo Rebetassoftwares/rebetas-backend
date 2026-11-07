@@ -100,6 +100,24 @@ const manualPredictionSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    settlementRules: {
+      enabled: {
+        type: Boolean,
+        default: true,
+      },
+      winProbability: {
+        type: Number,
+        default: 85,
+        min: 0,
+        max: 100,
+      },
+      lossProbability: {
+        type: Number,
+        default: 15,
+        min: 0,
+        max: 100,
+      },
+    },
   },
   { timestamps: true },
 );

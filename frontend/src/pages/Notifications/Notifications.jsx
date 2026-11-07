@@ -106,7 +106,7 @@ export default function Notifications() {
       <main className="notifications-container">
         <section className="notifications-hero">
           <div>
-            <span>Rebetas Notifications</span>
+            <span>SunStreamers Notifications</span>
             <h1>Notifications</h1>
             <p>
               Track AutoPilot updates, payment alerts, Profit Credit activity,

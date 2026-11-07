@@ -1,312 +1,239 @@
-.account-page {
-  color: #ffffff;
+/* =========================================
+   SUNSTREAMERS — ACCOUNT PAGE
+========================================= */
 
+.account-page {
+  min-height: 100vh;
+  color: #f4f7f5;
   background:
     radial-gradient(
-      circle at 15% 20%,
-      rgba(160, 32, 240, 0.28),
-      transparent 35%
+      ellipse at 12% 5%,
+      rgba(16, 185, 129, 0.09),
+      transparent 34%
     ),
     radial-gradient(
-      circle at 85% 10%,
-      rgba(160, 32, 240, 0.18),
+      ellipse at 90% 30%,
+      rgba(16, 185, 129, 0.055),
       transparent 35%
     ),
-    linear-gradient(180deg, #12041f, #0d0318 45%, #12041f 100%);
-
-  min-height: 100vh;
+    #080d0b;
 }
 
 .account-container {
-  padding: 120px 0;
+  width: min(100% - 40px, 900px);
   max-width: 900px;
+  margin: 0 auto;
+  padding: 125px 0 100px;
 }
 
-/* TITLE */
+/* PAGE HEADER */
 
 .account-title {
-  font-size: 36px;
+  margin: 0 0 36px;
+  color: #f8faf9;
+  font-size: clamp(28px, 4vw, 38px);
   font-weight: 800;
+  letter-spacing: -1.2px;
   text-align: center;
-
-  margin-bottom: 50px;
-
-  letter-spacing: 1px;
-
-  color: #ffffff;
-
-  text-shadow: 0 0 30px rgba(160, 32, 240, 0.25);
 }
 
-/* CARD */
+/* SUBSCRIPTION ALERT */
+
+.plan-alert {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 17px 22px;
+  margin-bottom: 26px;
+  border: 1px solid rgba(234, 179, 8, 0.2);
+  border-radius: 12px;
+  background: rgba(234, 179, 8, 0.055);
+  color: #e8c66b;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.plan-alert strong {
+  color: #fff1bd;
+  font-weight: 800;
+}
+
+/* ACCOUNT CARDS */
 
 .account-card {
-  background: rgba(255, 255, 255, 0.06);
-
-  border: 1px solid rgba(255, 255, 255, 0.18);
-
+  position: relative;
+  padding: 30px;
+  margin-bottom: 22px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.075);
   border-radius: 16px;
-
-  padding: 36px;
-
-  margin-bottom: 30px;
-
-  backdrop-filter: blur(14px);
-
-  transition: all 0.3s ease;
+  background: linear-gradient(
+    145deg,
+    rgba(22, 31, 26, 0.96),
+    rgba(13, 20, 16, 0.98)
+  );
+  transition:
+    border-color 0.25s ease,
+    transform 0.25s ease,
+    background 0.25s ease;
 }
 
 .account-card:hover {
-  border-color: rgba(160, 32, 240, 0.5);
+  border-color: rgba(16, 185, 129, 0.25);
 }
-
-/* CARD HEADER */
 
 .account-card h3 {
-  font-size: 20px;
-  font-weight: 700;
-
-  margin-bottom: 24px;
-
-  color: #f1eaff;
-
-  letter-spacing: 0.5px;
+  position: relative;
+  margin: 0 0 24px;
+  padding-bottom: 17px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.075);
+  color: #f4f8f5;
+  font-size: 18px;
+  font-weight: 750;
+  letter-spacing: -0.3px;
 }
 
-/* INFO SECTION */
+.account-card p {
+  color: #9ca9a1;
+  font-size: 14px;
+  line-height: 1.75;
+}
+
+/* PROFILE AND SUBSCRIPTION INFORMATION */
 
 .account-info {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 0;
 }
 
 .info-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 20px;
+  min-height: 52px;
+  padding: 13px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.055);
+  font-size: 14px;
+}
 
-  font-size: 15px;
-
-  padding-bottom: 12px;
-
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+.info-row:last-child {
+  border-bottom: none;
 }
 
 .info-row span:first-child {
-  color: #bfb6e8;
+  flex-shrink: 0;
+  color: #8e9c93;
+  font-weight: 500;
 }
 
 .info-row span:last-child {
-  font-weight: 600;
-  color: #ffffff;
+  color: #e9efeb;
+  font-weight: 650;
+  text-align: right;
+  overflow-wrap: anywhere;
 }
 
-/* PLAN BADGE */
+/* SUBSCRIPTION BADGE */
 
 .plan-badge {
-  background: linear-gradient(135deg, #a020f0, #c14dff);
-
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 6px 12px;
-
-  border-radius: 8px;
-
-  font-size: 12px;
-
-  font-weight: 700;
-
-  letter-spacing: 0.5px;
-
-  box-shadow: 0 0 10px rgba(160, 32, 240, 0.35);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: 7px;
+  background: rgba(16, 185, 129, 0.11);
+  color: #6ee7b7 !important;
+  font-size: 11px;
+  font-weight: 800 !important;
+  letter-spacing: 0.7px;
 }
 
 /* ACTIVE STATUS */
 
 .active {
-  color: #22c55e;
-  font-weight: 700;
+  color: #34d399 !important;
+  font-weight: 750 !important;
 }
 
 /* BUTTONS */
 
-.upgrade-btn {
-  margin-top: 24px;
-
-  background: linear-gradient(135deg, #a020f0, #c14dff);
-
-  border: none;
-
-  padding: 14px 24px;
-
-  border-radius: 10px;
-
-  color: white;
-
-  font-weight: 700;
-
-  font-size: 14px;
-
-  letter-spacing: 0.5px;
-
+.subscribe-btn,
+.promo-btn {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 44px;
+  padding: 12px 21px;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 9px;
+  background: linear-gradient(135deg, #059669, #10b981);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 750;
   cursor: pointer;
-
-  transition: all 0.25s ease;
-
-  box-shadow: 0 8px 18px rgba(160, 32, 240, 0.35);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+  box-shadow: 0 5px 18px rgba(5, 150, 105, 0.15);
 }
 
-.upgrade-btn:hover {
+.subscribe-btn:hover,
+.promo-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 24px rgba(160, 32, 240, 0.45);
+  background: linear-gradient(135deg, #047857, #059669);
+  box-shadow: 0 8px 22px rgba(16, 185, 129, 0.22);
 }
 
-/* SECURITY BUTTON */
-
-.change-password {
-  background: transparent;
-
-  border: 1px solid rgba(255, 255, 255, 0.25);
-
-  padding: 14px 24px;
-
-  border-radius: 10px;
-
-  color: white;
-
-  font-weight: 600;
-
-  font-size: 14px;
-
-  cursor: pointer;
-
-  transition: all 0.25s ease;
-}
-
-.change-password:hover {
-  border-color: #a020f0;
-  color: #caa8ff;
-}
-
-/* SUPPORT BUTTONS */
+/* SUPPORT */
 
 .support-buttons {
   display: flex;
-  gap: 16px;
   flex-wrap: wrap;
-  margin-top: 10px;
+  gap: 12px;
+  margin-top: 5px;
 }
-
-/* WHATSAPP BUTTON */
-
-.whatsapp-btn {
-  background: #25d366;
-
-  color: white;
-
-  padding: 14px 22px;
-
-  border-radius: 10px;
-
-  text-decoration: none;
-
-  font-weight: 700;
-
-  font-size: 14px;
-
-  letter-spacing: 0.5px;
-
-  box-shadow: 0 8px 18px rgba(37, 211, 102, 0.35);
-
-  transition: all 0.25s ease;
-}
-
-.whatsapp-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 24px rgba(37, 211, 102, 0.45);
-}
-
-/* EMAIL BUTTON */
 
 .email-btn {
-  background: linear-gradient(135deg, #a020f0, #c14dff);
-
-  color: white;
-
-  padding: 14px 22px;
-
-  border-radius: 10px;
-
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 45px;
+  padding: 12px 21px;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: 9px;
+  background: rgba(16, 185, 129, 0.1);
+  color: #6ee7b7;
+  font-size: 13px;
+  font-weight: 750;
   text-decoration: none;
-
-  font-weight: 700;
-
-  font-size: 14px;
-
-  letter-spacing: 0.5px;
-
-  box-shadow: 0 8px 18px rgba(160, 32, 240, 0.35);
-
-  transition: all 0.25s ease;
+  transition: all 0.2s ease;
 }
 
 .email-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 24px rgba(160, 32, 240, 0.45);
+  border-color: rgba(16, 185, 129, 0.55);
+  background: rgba(16, 185, 129, 0.17);
+  color: #a7f3d0;
 }
 
-/* PLAN EXPIRY ALERT */
-
-.plan-alert {
-  background: rgba(255, 193, 7, 0.12);
-
-  border: 1px solid rgba(255, 193, 7, 0.35);
-
-  padding: 16px 20px;
-
-  border-radius: 12px;
-
-  margin-bottom: 30px;
-
-  text-align: center;
-
-  font-size: 15px;
-
-  color: #ffe082;
-
-  font-weight: 600;
-
-  backdrop-filter: blur(10px);
-
-  box-shadow: 0 0 15px rgba(255, 193, 7, 0.15);
-}
-
-.plan-alert strong {
-  color: #ffffff;
-}
-
-.promo-btn {
-  margin-top: 10px;
-  padding: 10px 15px;
-  background: #6c2bd9;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.promo-btn:hover {
-  opacity: 0.9;
-}
+/* REFERRAL CARD — PRESERVED FOR FUTURE USE */
 
 .referral-card-pro {
-  border: 1px solid rgba(168, 85, 247, 0.45);
+  border-color: rgba(16, 185, 129, 0.3);
   background:
     radial-gradient(
       circle at top right,
-      rgba(168, 85, 247, 0.2),
-      transparent 35%
+      rgba(16, 185, 129, 0.1),
+      transparent 40%
     ),
-    rgba(22, 10, 35, 0.92);
+    linear-gradient(145deg, #14221a, #0d1510);
 }
 
 .referral-card-header {
@@ -319,40 +246,42 @@
 .referral-kicker {
   display: inline-block;
   margin-bottom: 10px;
-  color: #c084fc;
-  font-size: 13px;
-  font-weight: 700;
+  color: #6ee7b7;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
 }
 
 .referral-card-pro h3 {
-  margin: 0 0 10px;
-  font-size: 24px;
+  margin: 0 0 12px;
+  padding: 0;
+  border: none;
   color: #ffffff;
+  font-size: 22px;
 }
 
 .referral-card-pro p {
   max-width: 720px;
   margin: 0;
-  color: #d8c8ea;
-  line-height: 1.7;
+  color: #aab9af;
+  line-height: 1.75;
 }
 
 .referral-grid {
   display: grid;
-  gap: 18px;
+  gap: 17px;
 }
 
 .referral-item {
   display: grid;
-  gap: 8px;
+  gap: 9px;
 }
 
 .referral-item > span {
-  color: #bda8d8;
-  font-size: 14px;
-  font-weight: 600;
+  color: #9eafa4;
+  font-size: 13px;
+  font-weight: 650;
 }
 
 .referral-value-box {
@@ -361,58 +290,141 @@
   justify-content: space-between;
   gap: 14px;
   padding: 14px 16px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.035);
 }
 
 .referral-value-box strong {
-  color: #ffffff;
-  font-size: 15px;
-  word-break: break-all;
+  color: #e9f5ed;
+  font-size: 14px;
+  overflow-wrap: anywhere;
 }
 
 .referral-value-box button {
   flex-shrink: 0;
+  padding: 9px 15px;
   border: none;
-  border-radius: 9px;
-  padding: 9px 14px;
-  background: linear-gradient(135deg, #7c3aed, #a855f7);
+  border-radius: 7px;
+  background: #059669;
   color: #ffffff;
-  font-weight: 700;
+  font-size: 12px;
+  font-weight: 750;
   cursor: pointer;
+  transition: background 0.2s ease;
 }
 
 .referral-value-box button:hover {
-  opacity: 0.9;
+  background: #047857;
 }
 
+/* FOCUS ACCESSIBILITY */
+
+.account-page button:focus-visible,
+.account-page a:focus-visible {
+  outline: 2px solid #34d399;
+  outline-offset: 3px;
+}
+
+/* TABLET */
+
 @media (max-width: 768px) {
+  .account-container {
+    padding-top: 110px;
+    padding-bottom: 75px;
+  }
+
+  .account-card {
+    padding: 25px;
+  }
+
+  .account-title {
+    margin-bottom: 30px;
+  }
+}
+
+/* MOBILE */
+
+@media (max-width: 520px) {
+  .account-container {
+    width: calc(100% - 30px);
+    padding-top: 100px;
+    padding-bottom: 60px;
+  }
+
+  .account-title {
+    margin-bottom: 25px;
+    font-size: 28px;
+  }
+
+  .plan-alert {
+    padding: 15px;
+    font-size: 13px;
+  }
+
+  .account-card {
+    padding: 21px 18px;
+    margin-bottom: 17px;
+    border-radius: 13px;
+  }
+
+  .account-card h3 {
+    margin-bottom: 17px;
+    font-size: 17px;
+  }
+
+  .info-row {
+    min-height: 48px;
+    gap: 12px;
+    font-size: 12px;
+  }
+
+  .info-row span:first-child {
+    font-size: 12px;
+  }
+
+  .info-row span:last-child {
+    max-width: 60%;
+    font-size: 12px;
+  }
+
+  .plan-badge {
+    padding: 5px 9px;
+    font-size: 10px;
+  }
+
+  .subscribe-btn,
+  .promo-btn,
+  .email-btn {
+    width: 100%;
+  }
+
+  .support-buttons {
+    flex-direction: column;
+  }
+
   .referral-value-box {
-    align-items: flex-start;
+    align-items: stretch;
     flex-direction: column;
   }
 
   .referral-value-box button {
     width: 100%;
   }
+
+  .referral-card-pro h3 {
+    font-size: 19px;
+  }
 }
-/* MOBILE */
 
-@media (max-width: 700px) {
-  .account-container {
-    padding: 100px 20px;
-  }
+/* REDUCED MOTION */
 
-  .account-title {
-    font-size: 28px;
-  }
-
-  .account-card {
-    padding: 28px;
-  }
-
-  .info-row {
-    font-size: 14px;
+@media (prefers-reduced-motion: reduce) {
+  .account-card,
+  .subscribe-btn,
+  .promo-btn,
+  .email-btn,
+  .referral-value-box button {
+    transition: none;
   }
 }

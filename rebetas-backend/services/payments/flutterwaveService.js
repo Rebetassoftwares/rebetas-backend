@@ -47,8 +47,8 @@ async function initializeFlutterwavePayment({
         },
 
         customizations: {
-          title: title || "Rebetas Subscription",
-          description: description || title || "Rebetas Payment",
+          title: title || "SunStreamers Subscription",
+          description: description || title || "SunStreamers Payment",
         },
 
         meta,

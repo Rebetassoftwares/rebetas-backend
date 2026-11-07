@@ -33,7 +33,6 @@ export default function Login() {
   const [forgotLoading, setForgotLoading] = useState(false);
   const [showForgotBox, setShowForgotBox] = useState(false);
 
-  // ⏱️ COUNTDOWN TIMER
   useEffect(() => {
     if (countdown <= 0) return;
 
@@ -53,7 +52,6 @@ export default function Login() {
     }));
   }
 
-  // 📧 MASK EMAIL
   function maskEmail(email) {
     if (!email) return "";
 
@@ -78,7 +76,6 @@ export default function Login() {
     return token;
   }
 
-  // 🔢 OTP INPUT HANDLER
   function handleOtpChange(value, index) {
     if (!/^[0-9]?$/.test(value)) return;
 
@@ -97,7 +94,6 @@ export default function Login() {
     }
   }
 
-  // 📋 PASTE SUPPORT
   function handlePaste(e) {
     const paste = e.clipboardData.getData("text").slice(0, 6);
     if (!/^\d+$/.test(paste)) return;
@@ -110,7 +106,6 @@ export default function Login() {
 
   const otp = otpArray.join("");
 
-  // 🚀 STEP 1 → LOGIN
   async function handleLogin(e) {
     e.preventDefault();
     setLoading(true);
@@ -125,7 +120,6 @@ export default function Login() {
         deviceToken,
       });
 
-      // ✅ SAME DEVICE → DIRECT LOGIN
       if (res.token && res.user) {
         saveAuth(res);
 
@@ -140,7 +134,6 @@ export default function Login() {
         return;
       }
 
-      // 🔐 NEW DEVICE → OTP FLOW
       setUserId(res.userId);
       setUserEmail(res.email);
       setStep("otp");
@@ -153,7 +146,6 @@ export default function Login() {
     }
   }
 
-  // 🔐 STEP 2 → VERIFY OTP
   async function handleVerifyOtp(e) {
     e.preventDefault();
 
@@ -198,7 +190,6 @@ export default function Login() {
     }
   }
 
-  // 🔁 RESEND OTP
   async function handleResendOtp() {
     if (countdown > 0) return;
 
@@ -244,38 +235,88 @@ export default function Login() {
       <section className="login-section">
         <div className="container login-layout">
           <div className="login-info">
-            <h1>Welcome Back</h1>
+            <span className="login-eyebrow">SUNSTREAMERS ACCESS</span>
+
+            <h1>
+              Welcome
+              <span> Back.</span>
+            </h1>
+
             <p>
-              Access AI-powered virtual football predictions designed to help
-              you make smarter betting decisions.
+              Your SunStreamers experience continues here. Sign in to access
+              your dashboard, explore available virtual football prediction
+              signals and manage your account.
             </p>
+
+            <div className="login-feature-list">
+              <div className="login-feature">
+                <span>✓</span>
+                <p>Access your personal dashboard</p>
+              </div>
+
+              <div className="login-feature">
+                <span>✓</span>
+                <p>View available prediction signals</p>
+              </div>
+
+              <div className="login-feature">
+                <span>✓</span>
+                <p>Manage your account and subscription</p>
+              </div>
+            </div>
+
+            <div className="login-performance">
+              <strong>85%</strong>
+              <div>
+                <span>Reported winning rate</span>
+              </div>
+            </div>
           </div>
 
           <div className="login-card">
-            {/* LOGIN STEP */}
             {step === "login" && (
               <>
-                <h2>Login to Rebetas</h2>
+                <div className="login-card-heading">
+                  <span className="login-card-kicker">MEMBER ACCESS</span>
+
+                  <h2>Login to SunStreamers</h2>
+
+                  <p>Enter your account details to continue.</p>
+                </div>
 
                 <form className="login-form" onSubmit={handleLogin}>
-                  <input
-                    type="text"
-                    name="username"
-                    placeholder="Username or Email"
-                    value={formData.username}
-                    onChange={handleChange}
-                  />
+                  <div className="login-field">
+                    <label htmlFor="login-username">Username or email</label>
 
-                  <div className="password-group">
                     <input
-                      type={showPassword ? "text" : "password"}
-                      name="password"
-                      placeholder="Password"
+                      id="login-username"
+                      type="text"
+                      name="username"
+                      placeholder="Enter username or email"
+                      value={formData.username}
                       onChange={handleChange}
+                      autoComplete="username"
                     />
-                    <span onClick={() => setShowPassword(!showPassword)}>
-                      {showPassword ? "🙈" : "👁️"}
-                    </span>
+                  </div>
+
+                  <div className="login-field">
+                    <label htmlFor="login-password">Password</label>
+
+                    <div className="password-group">
+                      <input
+                        id="login-password"
+                        type={showPassword ? "text" : "password"}
+                        name="password"
+                        placeholder="Enter your password"
+                        value={formData.password}
+                        onChange={handleChange}
+                        autoComplete="current-password"
+                      />
+
+                      <span onClick={() => setShowPassword(!showPassword)}>
+                        {showPassword ? "🙈" : "👁️"}
+                      </span>
+                    </div>
                   </div>
 
                   <div className="forgot-password-row">
@@ -293,11 +334,19 @@ export default function Login() {
 
                   {showForgotBox && (
                     <div className="forgot-password-box">
+                      <div>
+                        <strong>Reset your password</strong>
+                        <p>
+                          Enter the email address associated with your account.
+                        </p>
+                      </div>
+
                       <input
                         type="email"
                         placeholder="Enter your account email"
                         value={forgotEmail}
                         onChange={(e) => setForgotEmail(e.target.value)}
+                        autoComplete="email"
                       />
 
                       <button
@@ -311,45 +360,36 @@ export default function Login() {
                     </div>
                   )}
 
-                  {error && <p style={{ color: "#ff6b6b" }}>{error}</p>}
-                  {success && <p style={{ color: "#22c55e" }}>{success}</p>}
+                  {error && <p className="login-error">{error}</p>}
+                  {success && <p className="login-success">{success}</p>}
 
                   <button type="submit" disabled={loading}>
                     {loading ? "Sending code..." : "Continue"}
+                    {!loading && <span>→</span>}
                   </button>
                 </form>
               </>
             )}
 
-            {/* OTP STEP */}
             {step === "otp" && (
               <>
-                <h2>Enter Verification Code</h2>
+                <div className="login-card-heading">
+                  <span className="login-card-kicker">ACCOUNT SECURITY</span>
 
-                {/* 📧 EMAIL DISPLAY */}
-                <p
-                  style={{
-                    fontSize: "14px",
-                    color: "#888",
-                    marginBottom: "10px",
-                    textAlign: "center",
-                  }}
-                >
-                  Code sent to{" "}
-                  <span style={{ color: "#a855f7", fontWeight: "600" }}>
-                    {maskEmail(userEmail)}
-                  </span>
-                </p>
+                  <h2>Verify Your Login</h2>
 
-                {/* 🔁 CHANGE ACCOUNT */}
-                <p
-                  style={{
-                    fontSize: "13px",
-                    color: "#a855f7",
-                    cursor: "pointer",
-                    marginBottom: "15px",
-                    textAlign: "center",
-                  }}
+                  <p>
+                    Enter the six-digit verification code sent to your email.
+                  </p>
+                </div>
+
+                <div className="otp-email-display">
+                  Code sent to <strong>{maskEmail(userEmail)}</strong>
+                </div>
+
+                <button
+                  type="button"
+                  className="change-account"
                   onClick={() => {
                     setStep("login");
                     setOtpArray(["", "", "", "", "", ""]);
@@ -357,8 +397,8 @@ export default function Login() {
                     setSuccess("");
                   }}
                 >
-                  Change account
-                </p>
+                  ← Change account
+                </button>
 
                 <form className="login-form" onSubmit={handleVerifyOtp}>
                   <div className="otp-container" onPaste={handlePaste}>
@@ -367,40 +407,42 @@ export default function Login() {
                         key={index}
                         ref={(el) => (inputsRef.current[index] = el)}
                         type="text"
+                        inputMode="numeric"
                         maxLength="1"
                         value={digit}
                         onChange={(e) => handleOtpChange(e.target.value, index)}
                         onKeyDown={(e) => handleKeyDown(e, index)}
                         className="otp-input"
+                        aria-label={`Verification digit ${index + 1}`}
                       />
                     ))}
                   </div>
 
-                  {error && <p style={{ color: "#ff6b6b" }}>{error}</p>}
-                  {success && <p style={{ color: "#22c55e" }}>{success}</p>}
+                  {error && <p className="login-error">{error}</p>}
+                  {success && <p className="login-success">{success}</p>}
 
                   <button type="submit" disabled={loading}>
                     {loading ? "Verifying..." : "Verify & Login"}
+                    {!loading && <span>→</span>}
                   </button>
                 </form>
 
-                {/* ⏱️ RESEND */}
-                <p
-                  style={{
-                    marginTop: "10px",
-                    cursor: countdown > 0 ? "not-allowed" : "pointer",
-                    color: countdown > 0 ? "#999" : "#a855f7",
-                    textAlign: "center",
-                  }}
+                <button
+                  type="button"
+                  className={`resend-code ${countdown > 0 ? "disabled" : ""}`}
                   onClick={handleResendOtp}
+                  disabled={countdown > 0}
                 >
-                  {countdown > 0 ? `Resend in ${countdown}s` : "Resend Code"}
-                </p>
+                  {countdown > 0
+                    ? `Resend code in ${countdown}s`
+                    : "Resend verification code"}
+                </button>
               </>
             )}
 
             <p className="login-register">
-              Don't have an account? <Link to="/register">Register</Link>
+              Don't have an account?{" "}
+              <Link to="/register">Create an account</Link>
             </p>
           </div>
         </div>

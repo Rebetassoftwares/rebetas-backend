@@ -8,7 +8,7 @@ function cleanUsername(username = "") {
 }
 
 function generateReferralCode(username = "") {
-  const prefix = cleanUsername(username) || "REB";
+  const prefix = cleanUsername(username) || "SUN";
 
   const randomNumbers = crypto.randomInt(100, 1000);
 
@@ -17,7 +17,9 @@ function generateReferralCode(username = "") {
 
 function buildReferralLink(referralCode) {
   const frontendUrl =
-    process.env.CLIENT_URL || process.env.FRONTEND_URL || "https://rebetas.com";
+    process.env.CLIENT_URL ||
+    process.env.FRONTEND_URL ||
+    "https://sunstreamers.com";
 
   if (!referralCode) return null;
 

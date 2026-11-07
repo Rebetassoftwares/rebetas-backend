@@ -3,15 +3,15 @@
   background:
     radial-gradient(
       circle at 15% 20%,
-      rgba(160, 32, 240, 0.28),
+      rgba(34, 197, 94, 0.28),
       transparent 35%
     ),
     radial-gradient(
       circle at 85% 10%,
-      rgba(160, 32, 240, 0.18),
+      rgba(34, 197, 94, 0.18),
       transparent 35%
     ),
-    linear-gradient(180deg, #12041f, #0d0318 45%, #12041f 100%);
+    linear-gradient(180deg, #04140a, #06120a 45%, #04140a 100%);
   min-height: 100vh;
 }
 
@@ -42,7 +42,7 @@
   border-radius: 18px;
   padding: 28px 28px 22px;
   backdrop-filter: blur(14px);
-  box-shadow: 0 0 30px rgba(160, 32, 240, 0.12);
+  box-shadow: 0 0 30px rgba(34, 197, 94, 0.12);
 }
 
 /* PLATFORM BANNER (FULL WIDTH IMAGE) */
@@ -111,7 +111,7 @@
 .league-btn {
   background: rgba(255, 255, 255, 0.07);
   border: 1px solid rgba(255, 255, 255, 0.18);
-  color: #f3ebff;
+  color: #f0fdf4;
   padding: 12px 18px;
   border-radius: 10px;
   font-size: 14px;
@@ -121,15 +121,15 @@
 }
 
 .league-btn:hover {
-  border-color: rgba(160, 32, 240, 0.6);
+  border-color: rgba(34, 197, 94, 0.6);
   transform: translateY(-2px);
 }
 
 .league-btn.active {
-  background: linear-gradient(135deg, #8c1ee8, #c14dff);
+  background: linear-gradient(135deg, #15803d, #4ade80);
   border-color: rgba(255, 255, 255, 0.28);
   color: #ffffff;
-  box-shadow: 0 10px 24px rgba(160, 32, 240, 0.3);
+  box-shadow: 0 10px 24px rgba(34, 197, 94, 0.3);
 }
 
 .blurred {
@@ -144,7 +144,7 @@
   padding: 10px 18px;
   border-radius: 8px;
   border: none;
-  background: linear-gradient(135deg, #a020f0, #6a0dad);
+  background: linear-gradient(135deg, #22c55e, #15803d);
   color: white;
   font-weight: 600;
   cursor: pointer;
@@ -189,7 +189,7 @@
   text-align: center;
   margin-bottom: 80px;
   backdrop-filter: blur(14px);
-  box-shadow: 0 0 30px rgba(160, 32, 240, 0.12);
+  box-shadow: 0 0 30px rgba(34, 197, 94, 0.12);
 }
 
 .prediction-text {
@@ -202,9 +202,9 @@
 
   /* 🔥 premium glow */
   text-shadow:
-    0 0 10px rgba(160, 32, 240, 0.6),
-    0 0 20px rgba(160, 32, 240, 0.4),
-    0 0 30px rgba(160, 32, 240, 0.3);
+    0 0 10px rgba(34, 197, 94, 0.6),
+    0 0 20px rgba(34, 197, 94, 0.4),
+    0 0 30px rgba(34, 197, 94, 0.3);
 }
 
 .prediction-text.locked {
@@ -220,7 +220,7 @@
   font-size: 14px;
   letter-spacing: 2px;
   font-weight: 700;
-  color: #dfccff;
+  color: #dcfce7;
   margin-bottom: 6px;
   text-transform: uppercase;
 }
@@ -232,13 +232,13 @@
   color: #ffffff;
   margin-bottom: 10px;
   text-transform: uppercase;
-  text-shadow: 0 0 16px rgba(160, 32, 240, 0.28);
+  text-shadow: 0 0 16px rgba(34, 197, 94, 0.28);
 }
 
 .prediction-time {
   font-size: 15px;
   font-weight: 600;
-  color: #f2eaff;
+  color: #f0fdf4;
 }
 
 .modern-card {
@@ -307,11 +307,11 @@
   padding: 8px 16px;
   border-radius: 999px;
 
-  background: rgba(160, 32, 240, 0.15);
-  border: 1px solid rgba(160, 32, 240, 0.4);
+  background: rgba(34, 197, 94, 0.15);
+  border: 1px solid rgba(34, 197, 94, 0.4);
 
-  text-shadow: 0 0 10px rgba(160, 32, 240, 0.6);
-  box-shadow: 0 0 12px rgba(160, 32, 240, 0.25);
+  text-shadow: 0 0 10px rgba(34, 197, 94, 0.6);
+  box-shadow: 0 0 12px rgba(34, 197, 94, 0.25);
 
   letter-spacing: 0.5px;
 }
@@ -322,7 +322,7 @@
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 1.5px;
-  color: #caa6ff;
+  color: #86efac;
   margin-bottom: 4px;
 }
 
@@ -414,7 +414,7 @@
   padding: 10px 18px;
   border: none;
   border-radius: 6px;
-  background: #6a0dad;
+  background: #15803d;
   color: #fff;
   cursor: pointer;
   transition: transform 0.2s ease;
@@ -627,7 +627,7 @@
 .match-vs {
   font-size: 13px;
   letter-spacing: 2px;
-  color: #d8b6ff;
+  color: #bbf7d0;
 }
 
 .prediction-result {
@@ -636,20 +636,20 @@
   color: #ffffff;
   margin-top: 6px;
   margin-bottom: 14px;
-  text-shadow: 0 0 20px rgba(160, 32, 240, 0.22);
+  text-shadow: 0 0 20px rgba(34, 197, 94, 0.22);
 }
 
 .prediction-odds {
   font-size: 17px;
   font-weight: 700;
-  color: #ead8ff;
+  color: #dcfce7;
   margin-bottom: 10px;
 }
 
 .prediction-countdown {
   font-size: 15px;
   font-weight: 700;
-  color: #c14dff;
+  color: #4ade80;
 }
 
 /* JERSEYS */
@@ -681,8 +681,8 @@
   color: #ffffff;
   letter-spacing: 0.5px;
   text-shadow:
-    0 0 10px rgba(160, 32, 240, 0.45),
-    0 0 20px rgba(160, 32, 240, 0.25);
+    0 0 10px rgba(34, 197, 94, 0.45),
+    0 0 20px rgba(34, 197, 94, 0.25);
 }
 
 /* HEADERS */
@@ -698,7 +698,7 @@
 }
 
 .history-filter {
-  color: #dbc7ff;
+  color: #dcfce7;
   font-size: 14px;
   font-weight: 600;
 }
@@ -723,14 +723,14 @@
   position: sticky;
   top: 0;
   z-index: 2;
-  background: rgba(20, 5, 35, 0.96);
+  background: rgba(4, 20, 10, 0.96);
 }
 
 .past-table th {
   text-align: left;
   padding: 16px;
   font-size: 14px;
-  color: #efe4ff;
+  color: #f0fdf4;
   font-weight: 700;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -739,7 +739,7 @@
   padding: 16px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   font-size: 14px;
-  color: #f3ebff;
+  color: #f0fdf4;
 }
 
 /* FORCE FINANCIAL COLORS TO OVERRIDE TABLE COLOR */
@@ -757,7 +757,7 @@
 }
 
 .past-table tbody tr:hover {
-  background: rgba(160, 32, 240, 0.08);
+  background: rgba(34, 197, 94, 0.08);
 }
 
 /* FINANCIAL COLOR SYSTEM */
@@ -800,7 +800,7 @@
 .filter-group label {
   font-size: 14px;
   font-weight: 700;
-  color: #eee3ff;
+  color: #dcfce7;
 }
 
 .filter-group select,
@@ -816,7 +816,7 @@
 
 .filter-group select option {
   color: #ffffff;
-  background: #12041f;
+  background: #04140a;
 }
 
 /* SUMMARY TABLE */
@@ -847,14 +847,14 @@
 }
 
 .summary-table thead {
-  background: rgba(20, 5, 35, 0.95);
+  background: rgba(4, 20, 10, 0.95);
 }
 
 .summary-table th {
   padding: 14px 16px;
   text-align: left;
   font-size: 13px;
-  color: #e9dbff;
+  color: #dcfce7;
   font-weight: 700;
   border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 }
@@ -927,5 +927,1108 @@
 
   .prediction-result {
     font-size: 22px;
+  }
+}
+
+/* =========================================================
+   SUNSTREAMERS — PREDICTION HISTORY
+   Premium Financial Performance Interface
+========================================================= */
+
+.history-section {
+  position: relative;
+  width: 100%;
+  margin: 0 0 65px;
+  padding: 32px;
+  overflow: hidden;
+  border: 1px solid rgba(52, 211, 153, 0.14);
+  border-radius: 20px;
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(16, 185, 129, 0.07),
+      transparent 35%
+    ),
+    linear-gradient(145deg, #111b15, #0c1510 65%, #101a14);
+  box-shadow:
+    0 20px 55px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+/* SECTION HEADER */
+
+.history-section .history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin-bottom: 30px;
+  padding-bottom: 23px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.history-section .history-header h2 {
+  margin: 0;
+  color: #f4f7f4;
+  font-size: clamp(22px, 3vw, 29px);
+  font-weight: 800;
+  letter-spacing: -0.7px;
+  text-shadow: none;
+}
+
+.history-section .history-filter {
+  display: inline-flex;
+  align-items: center;
+  min-height: 35px;
+  padding: 7px 13px;
+  border: 1px solid rgba(52, 211, 153, 0.22);
+  border-radius: 7px;
+  background: rgba(16, 185, 129, 0.08);
+  color: #6ee7b7;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* FILTER PANEL */
+
+.history-section .filter-controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
+  gap: 18px;
+  margin-bottom: 28px;
+  padding: 23px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.history-section .filter-group {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.history-section .filter-group label {
+  color: #b9c8be;
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+}
+
+.history-section .filter-group select,
+.history-section .filter-group input {
+  width: 100%;
+  min-width: 0;
+  min-height: 45px;
+  padding: 11px 13px;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 8px;
+  outline: none;
+  background: #101c15;
+  color: #f4f7f4;
+  font-size: 13px;
+  font-weight: 550;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.history-section .filter-group select {
+  cursor: pointer;
+}
+
+.history-section .filter-group select option {
+  background: #101c15;
+  color: #f4f7f4;
+}
+
+.history-section .filter-group input:focus,
+.history-section .filter-group select:focus {
+  border-color: #10b981;
+  background: #14241a;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.history-section .filter-group input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: invert(0.8);
+}
+
+/* SUMMARY TABLE CONTAINER */
+
+.history-section .summary-table-wrapper {
+  width: 100%;
+  margin-bottom: 30px;
+  overflow-x: auto;
+  border: 1px solid rgba(52, 211, 153, 0.16);
+  border-radius: 13px;
+  background: rgba(5, 14, 9, 0.55);
+  scrollbar-width: thin;
+  scrollbar-color: #315441 #101a14;
+}
+
+/* SUMMARY TABLE */
+
+.history-section .summary-table {
+  width: 100%;
+  min-width: 780px;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.history-section .summary-table thead {
+  background: #14231a;
+}
+
+.history-section .summary-table th {
+  padding: 17px 16px;
+  border-bottom: 1px solid rgba(52, 211, 153, 0.15);
+  color: #aebdb4;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.65px;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.history-section .summary-table td {
+  padding: 21px 16px;
+  border-bottom: none;
+  color: #f4f7f4;
+  font-size: 15px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.history-section .summary-table td.result-neutral {
+  color: #dce8e0;
+}
+
+.history-section .summary-table td.result-win {
+  color: #34d399;
+}
+
+.history-section .summary-table td.result-loss {
+  color: #fb7777;
+}
+
+/* PREDICTION HISTORY TABLE CONTAINER */
+
+.history-section .table-scroll-box {
+  width: 100%;
+  max-height: 420px;
+  overflow: auto;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 13px;
+  background: rgba(5, 14, 9, 0.45);
+  scrollbar-width: thin;
+  scrollbar-color: #315441 #101a14;
+}
+
+/* HISTORY TABLE */
+
+.history-section .past-table {
+  width: 100%;
+  min-width: 850px;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.history-section .past-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: #14231a;
+}
+
+.history-section .past-table th {
+  padding: 16px 17px;
+  border-bottom: 1px solid rgba(52, 211, 153, 0.17);
+  background: #14231a;
+  color: #aebdb4;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.65px;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.history-section .past-table td {
+  padding: 16px 17px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.055);
+  color: #dce8e0;
+  font-size: 12px;
+  font-weight: 550;
+  white-space: nowrap;
+}
+
+.history-section .past-table tbody tr {
+  background: transparent;
+  transition: background 0.18s ease;
+}
+
+.history-section .past-table tbody tr:hover {
+  background: rgba(16, 185, 129, 0.055);
+}
+
+.history-section .past-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* FINANCIAL INDICATORS */
+
+.history-section .past-table td.result-win,
+.history-section .result-win {
+  color: #34d399;
+  font-weight: 800;
+}
+
+.history-section .past-table td.result-loss,
+.history-section .result-loss {
+  color: #fb7777;
+  font-weight: 800;
+}
+
+.history-section .past-table td.result-outgoing,
+.history-section .result-outgoing {
+  color: #d6b66d;
+  font-weight: 800;
+}
+
+/* EMPTY AND LOADING STATES */
+
+.history-section .empty-state {
+  padding: 45px 20px;
+  color: #91a197;
+  font-size: 13px;
+  font-weight: 550;
+  text-align: center;
+}
+
+/* SCROLLBARS */
+
+.history-section .table-scroll-box::-webkit-scrollbar,
+.history-section .summary-table-wrapper::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+.history-section .table-scroll-box::-webkit-scrollbar-track,
+.history-section .summary-table-wrapper::-webkit-scrollbar-track {
+  background: #101a14;
+}
+
+.history-section .table-scroll-box::-webkit-scrollbar-thumb,
+.history-section .summary-table-wrapper::-webkit-scrollbar-thumb {
+  border-radius: 20px;
+  background: #315441;
+}
+
+.history-section .table-scroll-box::-webkit-scrollbar-thumb:hover,
+.history-section .summary-table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #34d399;
+}
+
+/* TABLET */
+
+@media (max-width: 900px) {
+  .history-section {
+    padding: 25px;
+  }
+
+  .history-section .filter-controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    padding: 19px;
+  }
+}
+
+/* MOBILE */
+
+@media (max-width: 600px) {
+  .history-section {
+    margin-bottom: 45px;
+    padding: 19px 12px;
+    border-radius: 14px;
+  }
+
+  .history-section .history-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 11px;
+    margin-bottom: 21px;
+    padding-bottom: 17px;
+  }
+
+  .history-section .history-header h2 {
+    font-size: 22px;
+  }
+
+  .history-section .history-filter {
+    font-size: 11px;
+  }
+
+  .history-section .filter-controls {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+    padding: 16px 13px;
+  }
+
+  .history-section .filter-group label {
+    font-size: 10px;
+  }
+
+  .history-section .filter-group select,
+  .history-section .filter-group input {
+    min-height: 44px;
+    font-size: 13px;
+  }
+
+  .history-section .summary-table-wrapper {
+    margin-bottom: 22px;
+  }
+
+  .history-section .summary-table th,
+  .history-section .past-table th {
+    padding: 14px;
+    font-size: 10px;
+  }
+
+  .history-section .summary-table td,
+  .history-section .past-table td {
+    padding: 14px;
+    font-size: 12px;
+  }
+
+  .history-section .table-scroll-box {
+    max-height: 380px;
+  }
+}
+
+/* REDUCED MOTION */
+
+@media (prefers-reduced-motion: reduce) {
+  .history-section *,
+  .history-section *::before,
+  .history-section *::after {
+    transition: none !important;
+  }
+}
+
+/* =========================================================
+   SUNSTREAMERS — PREMIUM PREDICTION DISPLAY RESTYLE
+   CSS ONLY — NO LOGIC OR FUNCTIONALITY CHANGES
+========================================================= */
+
+.prediction-page {
+  color: #f4f7f5;
+  background:
+    radial-gradient(
+      circle at 12% 8%,
+      rgba(16, 185, 129, 0.09),
+      transparent 32%
+    ),
+    radial-gradient(
+      circle at 90% 30%,
+      rgba(16, 185, 129, 0.055),
+      transparent 30%
+    ),
+    linear-gradient(180deg, #080d0b 0%, #0b110e 55%, #080d0b 100%);
+}
+
+/* MAIN CONTENT SPACING */
+
+.prediction-page .prediction-container {
+  width: min(1180px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 115px 0 90px;
+}
+
+/* PLATFORM BANNER */
+
+.prediction-page .platform-banner {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: 190px;
+  margin-bottom: 34px;
+  padding: 0;
+  border: 1px solid rgba(52, 211, 153, 0.18);
+  border-radius: 22px;
+  background: #101a15;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.24);
+}
+
+.prediction-page .platform-banner::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    90deg,
+    rgba(7, 15, 11, 0.94),
+    rgba(7, 15, 11, 0.66),
+    rgba(7, 15, 11, 0.88)
+  );
+}
+
+.prediction-page .platform-banner-bg {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+}
+
+.prediction-page .platform-banner-bg img {
+  width: 100%;
+  height: 100%;
+  min-height: 190px;
+  object-fit: cover;
+  opacity: 0.5;
+}
+
+.prediction-page .platform-banner-content {
+  position: relative;
+  inset: auto;
+  min-height: 190px;
+  justify-content: center;
+  align-items: center;
+  padding: 28px;
+  text-align: center;
+}
+
+.prediction-page .platform-name {
+  color: #ffffff;
+  font-size: clamp(22px, 3vw, 32px);
+  font-weight: 850;
+  letter-spacing: -0.7px;
+}
+
+.prediction-page .platform-banner-logo {
+  margin-bottom: 12px;
+}
+
+.prediction-page .platform-banner-logo img {
+  max-height: 55px;
+  max-width: 210px;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+}
+
+/* LEAGUE SELECTOR */
+
+.prediction-page .league-bar {
+  justify-content: center;
+  gap: 10px;
+  margin: 0 0 35px;
+}
+
+.prediction-page .league-btn {
+  padding: 11px 19px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  background: #121b16;
+  color: #b7c4bc;
+  font-size: 13px;
+  font-weight: 700;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.prediction-page .league-btn:hover {
+  color: #ffffff;
+  border-color: rgba(52, 211, 153, 0.45);
+  background: #17251d;
+  transform: translateY(-2px);
+}
+
+.prediction-page .league-btn.active {
+  color: #06130c;
+  border-color: #34d399;
+  background: linear-gradient(135deg, #34d399, #a3e635);
+  box-shadow: 0 7px 22px rgba(16, 185, 129, 0.17);
+}
+
+/* MAIN PREDICTION CARD */
+
+.prediction-page .prediction-card {
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 55px;
+  padding: 38px;
+  border: 1px solid rgba(255, 255, 255, 0.085);
+  border-radius: 24px;
+  background:
+    radial-gradient(
+      circle at 50% 45%,
+      rgba(16, 185, 129, 0.065),
+      transparent 48%
+    ),
+    linear-gradient(145deg, #141e18, #0e1511 70%);
+  box-shadow:
+    0 25px 65px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.035);
+  backdrop-filter: blur(16px);
+}
+
+.prediction-page .prediction-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 12%;
+  right: 12%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(52, 211, 153, 0.65),
+    transparent
+  );
+}
+
+.prediction-page .modern-card {
+  padding: 38px;
+  text-align: center;
+}
+
+/* CARD HEADER */
+
+.prediction-page .prediction-card-top {
+  margin-bottom: 30px;
+}
+
+.prediction-page .round-title {
+  margin-bottom: 8px;
+  color: #6ee7b7;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2.5px;
+}
+
+.prediction-page .week-title {
+  margin-bottom: 9px;
+  color: #ffffff;
+  font-size: clamp(18px, 3vw, 25px);
+  font-weight: 850;
+  letter-spacing: 0.6px;
+  text-shadow: none;
+}
+
+.prediction-page .prediction-time {
+  color: #9caea3;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* BADGES */
+
+.prediction-page .badge-row {
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.prediction-page .badge {
+  min-width: 115px;
+  padding: 9px 15px;
+  border: 1px solid rgba(52, 211, 153, 0.18);
+  border-radius: 9px;
+  background: rgba(16, 185, 129, 0.1);
+  color: #a7f3d0;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.prediction-page .time-badge {
+  border-color: rgba(255, 255, 255, 0.09);
+  background: rgba(255, 255, 255, 0.045);
+  color: #c1cec6;
+}
+
+/* MATCH LAYOUT */
+
+.prediction-page .match-layout {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  width: 100%;
+  padding: 28px 12px;
+}
+
+.prediction-page .team-block {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 13px;
+}
+
+.prediction-page .jersey-img {
+  width: 78px;
+  max-height: 90px;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.25));
+}
+
+.prediction-page .team-name {
+  max-width: 100%;
+  padding: 10px 15px;
+  border: 1px solid rgba(52, 211, 153, 0.15);
+  border-radius: 12px;
+  background: rgba(52, 211, 153, 0.065);
+  color: #f3f8f5;
+  font-size: clamp(15px, 2vw, 22px);
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+  text-shadow: none;
+  box-shadow: none;
+  animation: none;
+}
+
+.prediction-page .team-name::before {
+  margin-bottom: 5px;
+  color: #6ee7b7;
+  font-size: 9px;
+  letter-spacing: 1.8px;
+}
+
+.prediction-page .team-name.blurred {
+  filter: blur(5px);
+  opacity: 0.5;
+}
+
+.prediction-page .team-name.blurred::before {
+  color: #a5b4ac;
+}
+
+/* CENTRE AREA */
+
+.prediction-page .center-block {
+  flex: 0 0 auto;
+  min-width: 130px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+}
+
+.prediction-page .center-logo {
+  width: 76px;
+  height: 76px;
+  padding: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.045);
+  object-fit: contain;
+}
+
+/* PREDICTION INDICATOR */
+
+.prediction-page .prediction-circle {
+  width: 112px;
+  height: 112px;
+  padding: 12px;
+  border: 1px solid rgba(52, 211, 153, 0.42);
+  border-radius: 50%;
+  background: linear-gradient(145deg, #145c40, #0c3829);
+  color: #d1fae5;
+  font-size: 13px;
+  font-weight: 850;
+  line-height: 1.25;
+  box-shadow:
+    0 0 0 7px rgba(52, 211, 153, 0.045),
+    0 0 35px rgba(16, 185, 129, 0.12);
+}
+
+.prediction-page .prediction-circle.locked {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: linear-gradient(145deg, #343d37, #202822);
+  color: #d1d5d2;
+  box-shadow: none;
+}
+
+/* PREDICTION TEXT AND ODDS */
+
+.prediction-page .prediction-text {
+  margin: 12px 0;
+  color: #6ee7b7;
+  font-size: clamp(27px, 4vw, 42px);
+  font-weight: 900;
+  letter-spacing: 0.2px;
+  line-height: 1.15;
+  text-shadow: 0 0 22px rgba(16, 185, 129, 0.15);
+}
+
+.prediction-page .prediction-text.locked {
+  color: #9ca3a0;
+  text-shadow: none;
+}
+
+.prediction-page .prediction-center {
+  text-align: center;
+}
+
+.prediction-page .teams-line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  margin-bottom: 18px;
+  color: #f3f7f4;
+  font-size: clamp(16px, 2.5vw, 23px);
+  font-weight: 850;
+}
+
+.prediction-page .match-vs {
+  color: #6ee7b7;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.prediction-page .prediction-result {
+  margin: 8px 0 14px;
+  color: #6ee7b7;
+  font-size: clamp(25px, 4vw, 36px);
+  font-weight: 900;
+  text-shadow: 0 0 20px rgba(16, 185, 129, 0.12);
+}
+
+.prediction-page .prediction-odds,
+.prediction-page .prediction-odds-row {
+  color: #c7d5cc;
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.prediction-page .prediction-countdown {
+  color: #a3e635;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+/* LIVE SIGNAL */
+
+.prediction-page .live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 12px;
+  border: 1px solid rgba(52, 211, 153, 0.16);
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.07);
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+
+.prediction-page .live-badge.active {
+  color: #a7f3d0;
+}
+
+.prediction-page .live-badge.active .live-dot {
+  background: #34d399;
+  box-shadow: 0 0 10px rgba(52, 211, 153, 0.65);
+}
+
+.prediction-page .live-badge.inactive {
+  border-color: rgba(248, 113, 113, 0.16);
+  background: rgba(239, 68, 68, 0.07);
+  color: #fca5a5;
+}
+
+.prediction-page .live-badge.inactive .live-dot {
+  background: #f87171;
+  box-shadow: 0 0 10px rgba(248, 113, 113, 0.5);
+}
+
+.prediction-page .live-time {
+  color: #cbd5ce;
+  font-size: 12px;
+}
+
+/* UNLOCK BUTTON */
+
+.prediction-page .unlock-btn {
+  margin-top: 24px;
+  padding: 13px 25px;
+  border: 1px solid rgba(167, 243, 208, 0.3);
+  border-radius: 10px;
+  background: linear-gradient(135deg, #34d399, #a3e635);
+  color: #07130c;
+  font-size: 13px;
+  font-weight: 850;
+  box-shadow: 0 9px 24px rgba(16, 185, 129, 0.15);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.prediction-page .unlock-btn:hover {
+  opacity: 1;
+  transform: translateY(-2px);
+  box-shadow: 0 13px 30px rgba(16, 185, 129, 0.23);
+}
+
+/* LOADING STATE */
+
+.prediction-page .prediction-loading {
+  padding: 55px 15px;
+  color: #a7b8ad;
+  text-align: center;
+}
+
+/* SEMI-AUTOMATIC VIEW */
+
+.prediction-page .semi-auto-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  text-align: center;
+}
+
+/* REMOVE OLD PURPLE JERSEY POSITIONING */
+
+.prediction-page .jersey-left,
+.prediction-page .jersey-right {
+  filter: drop-shadow(0 8px 15px rgba(0, 0, 0, 0.35));
+}
+
+/* TABLET */
+
+@media (max-width: 900px) {
+  .prediction-page .prediction-card,
+  .prediction-page .modern-card {
+    padding: 30px 22px;
+  }
+
+  .prediction-page .match-layout {
+    gap: 12px;
+    padding: 24px 0;
+  }
+
+  .prediction-page .center-block {
+    min-width: 105px;
+  }
+
+  .prediction-page .jersey-img {
+    width: 65px;
+  }
+
+  .prediction-page .prediction-circle {
+    width: 95px;
+    height: 95px;
+  }
+}
+
+/* MOBILE */
+
+@media (max-width: 600px) {
+  .prediction-page .prediction-container {
+    width: calc(100% - 24px);
+    padding: 95px 0 65px;
+  }
+
+  .prediction-page .platform-banner {
+    min-height: 155px;
+    border-radius: 17px;
+  }
+
+  .prediction-page .platform-banner-content {
+    min-height: 155px;
+    padding: 20px 12px;
+  }
+
+  .prediction-page .platform-banner-bg img {
+    min-height: 155px;
+  }
+
+  .prediction-page .platform-name {
+    font-size: 22px;
+  }
+
+  .prediction-page .platform-banner-logo img {
+    max-height: 43px;
+  }
+
+  .prediction-page .league-bar {
+    gap: 8px;
+    margin-bottom: 25px;
+  }
+
+  .prediction-page .league-btn {
+    padding: 9px 12px;
+    font-size: 11px;
+  }
+
+  .prediction-page .prediction-card {
+    margin-bottom: 38px;
+    padding: 24px 13px;
+    border-radius: 18px;
+  }
+
+  .prediction-page .modern-card {
+    padding: 20px 10px;
+  }
+
+  .prediction-page .prediction-card-top {
+    margin-bottom: 22px;
+  }
+
+  .prediction-page .badge-row {
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .prediction-page .badge {
+    min-width: 0;
+    padding: 8px 10px;
+    font-size: 10px;
+  }
+
+  .prediction-page .match-layout {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 5px;
+    padding: 18px 0;
+  }
+
+  .prediction-page .team-block {
+    flex: 1;
+    gap: 9px;
+  }
+
+  .prediction-page .jersey-img {
+    width: 48px;
+    max-height: 60px;
+  }
+
+  .prediction-page .team-name {
+    width: 100%;
+    padding: 8px 5px;
+    border-radius: 9px;
+    font-size: 12px;
+    overflow-wrap: anywhere;
+  }
+
+  .prediction-page .team-name::before {
+    font-size: 8px;
+  }
+
+  .prediction-page .center-block {
+    flex: 0 0 82px;
+    min-width: 82px;
+    gap: 10px;
+  }
+
+  .prediction-page .center-logo {
+    width: 53px;
+    height: 53px;
+    border-radius: 13px;
+  }
+
+  .prediction-page .prediction-circle {
+    width: 68px;
+    height: 68px;
+    padding: 7px;
+    font-size: 10px;
+  }
+
+  .prediction-page .prediction-text {
+    font-size: 27px;
+  }
+
+  .prediction-page .teams-line {
+    gap: 9px;
+    font-size: 14px;
+  }
+
+  .prediction-page .match-vs {
+    font-size: 9px;
+  }
+
+  .prediction-page .prediction-result {
+    font-size: 25px;
+  }
+
+  .prediction-page .prediction-odds,
+  .prediction-page .prediction-odds-row {
+    font-size: 12px;
+  }
+
+  .prediction-page .unlock-btn {
+    width: 100%;
+    max-width: 260px;
+    padding: 12px 15px;
+    font-size: 12px;
+  }
+
+  .prediction-page .jersey-left,
+  .prediction-page .jersey-right {
+    width: 42px;
+  }
+}
+
+/* VERY SMALL PHONES */
+
+@media (max-width: 360px) {
+  .prediction-page .prediction-card {
+    padding: 20px 9px;
+  }
+
+  .prediction-page .center-block {
+    flex-basis: 68px;
+    min-width: 68px;
+  }
+
+  .prediction-page .jersey-img {
+    width: 40px;
+  }
+
+  .prediction-page .team-name {
+    font-size: 10px;
+  }
+
+  .prediction-page .prediction-circle {
+    width: 60px;
+    height: 60px;
+    font-size: 9px;
+  }
+
+  .prediction-page .badge {
+    padding: 7px 8px;
+    font-size: 9px;
+  }
+}
+
+/* ACCESSIBILITY: RESPECT REDUCED MOTION */
+
+@media (prefers-reduced-motion: reduce) {
+  .prediction-page .team-name,
+  .prediction-page .live-badge .live-dot {
+    animation: none;
+  }
+
+  .prediction-page .league-btn,
+  .prediction-page .unlock-btn {
+    transition: none;
   }
 }

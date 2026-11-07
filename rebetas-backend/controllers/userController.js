@@ -19,6 +19,7 @@ function generateToken(size = 32) {
 function generateOtp() {
   return Math.floor(100000 + Math.random() * 900000).toString(); // 6 digits
 }
+
 /*
 REGISTER USER
 */
@@ -132,7 +133,7 @@ async function registerUser(req, res) {
         });
       }
 
-      // ✅ CHECK GLOBAL MAX USERS
+      // CHECK GLOBAL MAX USERS
       if (promo.maxUsers && promo.usageCount >= promo.maxUsers) {
         return res.status(400).json({
           message: "Promo code usage limit reached",
@@ -141,13 +142,13 @@ async function registerUser(req, res) {
 
       promoCodeUsed = promo.code;
 
-      // ✅ APPLY TRIAL (ONLY IF AVAILABLE)
+      // APPLY TRIAL (ONLY IF AVAILABLE)
       if (promo.trialDays && promo.trialDays > 0) {
         trialEndsAt = new Date();
         trialEndsAt.setDate(trialEndsAt.getDate() + promo.trialDays);
       }
 
-      // ✅ INCREMENT GLOBAL USAGE
+      // INCREMENT GLOBAL USAGE
       promo.usageCount += 1;
       await promo.save();
     }
@@ -183,7 +184,6 @@ async function registerUser(req, res) {
       trialEndsAt,
       hasUsedTrial: !!trialEndsAt,
 
-      // 🔥 ADD THIS
       termsAccepted: true,
       termsAcceptedAt: new Date(),
     });
@@ -204,7 +204,7 @@ async function registerUser(req, res) {
 
       await sendEmail({
         to: user.email,
-        subject: "🚀 Verify Your Rebetas Account",
+        subject: "🚀 Verify Your SunStreamers Account",
         html: `
   <div style="
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -223,12 +223,12 @@ async function registerUser(req, res) {
 
       <!-- HEADER -->
       <div style="
-        background: linear-gradient(135deg, #6c2bd9, #a855f7);
+        background: linear-gradient(135deg, #16803c, #22a06b);
         padding: 30px;
         text-align: center;
         color: white;
       ">
-        <h1 style="margin: 0; font-size: 26px;">Rebetas</h1>
+        <h1 style="margin: 0; font-size: 26px;">SunStreamers</h1>
         <p style="margin: 8px 0 0; font-size: 14px;">
           AI-Powered Virtual Football Predictions
         </p>
@@ -255,13 +255,13 @@ async function registerUser(req, res) {
           display: inline-block;
           margin-top: 25px;
           padding: 14px 28px;
-          background: linear-gradient(135deg, #6c2bd9, #a855f7);
+          background: linear-gradient(135deg, #16803c, #22a06b);
           color: #ffffff;
           text-decoration: none;
           font-weight: 600;
           border-radius: 8px;
           font-size: 15px;
-          box-shadow: 0 5px 15px rgba(108, 43, 217, 0.3);
+          box-shadow: 0 5px 15px rgba(22, 128, 60, 0.3);
         ">
           ✅ Verify My Account
         </a>
@@ -273,7 +273,7 @@ async function registerUser(req, res) {
         <p style="
           word-break: break-all;
           font-size: 12px;
-          color: #6c2bd9;
+          color: #16803c;
         ">
           ${verifyUrl}
         </p>
@@ -288,7 +288,7 @@ async function registerUser(req, res) {
         font-size: 12px;
         color: #999;
       ">
-        © ${new Date().getFullYear()} Rebetas. All rights reserved.
+        © ${new Date().getFullYear()} SunStreamers. All rights reserved.
       </div>
 
     </div>
@@ -393,8 +393,8 @@ async function loginUser(req, res) {
       });
     }
 
-    // ✅ PRESERVE ONE-DEVICE-ONE-ACCOUNT RULE
-    // ✅ DEVICE CHECK
+    // PRESERVE ONE-DEVICE-ONE-ACCOUNT RULE
+    // DEVICE CHECK
     const { deviceToken } = req.body;
 
     // SAME DEVICE → DIRECT LOGIN (NO OTP)
@@ -418,7 +418,7 @@ async function loginUser(req, res) {
 
     // NEW DEVICE → REQUIRE OTP (continue below)
 
-    // ✅ GENERATE OTP
+    // GENERATE OTP
     const otp = generateOtp();
     const expiry = new Date(Date.now() + 5 * 60 * 1000); // 5 mins
 
@@ -427,13 +427,13 @@ async function loginUser(req, res) {
 
     await user.save();
 
-    // ✅ SEND EMAIL
+    // SEND EMAIL
     try {
       console.log("📧 LOGIN EMAIL ATTEMPT TO:", user.email);
 
       await sendEmail({
         to: user.email,
-        subject: "🔐 Your Rebetas Login Code",
+        subject: "🔐 Your SunStreamers Login Code",
         html: `
   <div style="
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -451,12 +451,12 @@ async function loginUser(req, res) {
 
       <!-- HEADER -->
       <div style="
-        background: linear-gradient(135deg, #6c2bd9, #a855f7);
+        background: linear-gradient(135deg, #16803c, #22a06b);
         padding: 25px;
         text-align: center;
         color: white;
       ">
-        <h1 style="margin: 0; font-size: 24px;">Rebetas</h1>
+        <h1 style="margin: 0; font-size: 24px;">SunStreamers</h1>
         <p style="margin: 5px 0 0;">Secure Login Verification</p>
       </div>
 
@@ -466,7 +466,7 @@ async function loginUser(req, res) {
         <h2 style="margin-bottom: 10px;">Hello ${user.fullName}, 👋</h2>
 
         <p style="color: #666; font-size: 15px;">
-          We received a login request to your Rebetas account.
+          We received a login request to your SunStreamers account.
         </p>
 
         <p style="margin-top: 20px; font-size: 16px;">
@@ -477,7 +477,7 @@ async function loginUser(req, res) {
         <div style="
           margin: 30px auto;
           padding: 20px;
-          background: #f3e8ff;
+          background: #e8f5ec;
           border-radius: 10px;
           display: inline-block;
         ">
@@ -485,7 +485,7 @@ async function loginUser(req, res) {
             font-size: 34px;
             letter-spacing: 8px;
             font-weight: bold;
-            color: #6c2bd9;
+            color: #16803c;
           ">
             ${otp}
           </span>
@@ -509,7 +509,7 @@ async function loginUser(req, res) {
         font-size: 12px;
         color: #999;
       ">
-        © ${new Date().getFullYear()} Rebetas. All rights reserved.
+        © ${new Date().getFullYear()} SunStreamers. All rights reserved.
       </div>
 
     </div>
@@ -535,7 +535,6 @@ async function loginUser(req, res) {
     });
   }
 }
-
 async function verifyLoginOtp(req, res) {
   try {
     const { userId, otp, deviceToken } = req.body;
@@ -566,12 +565,12 @@ async function verifyLoginOtp(req, res) {
       });
     }
 
-    // ✅ CLEAR OTP
+    // CLEAR OTP
     user.loginOtp = null;
     user.loginOtpExpires = null;
 
-    // ✅ CREATE SESSION TOKEN
-    // 🔥 USE REAL DEVICE TOKEN FROM FRONTEND
+    // CREATE SESSION TOKEN
+    // USE REAL DEVICE TOKEN FROM FRONTEND
     user.activeDeviceToken = deviceToken;
 
     await user.save();
@@ -622,7 +621,7 @@ async function resendLoginOtp(req, res) {
 
     await sendEmail({
       to: user.email,
-      subject: "🔁 Your New Rebetas Login Code",
+      subject: "🔁 Your New SunStreamers Login Code",
       html: `
   <div style="
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -640,12 +639,12 @@ async function resendLoginOtp(req, res) {
 
       <!-- HEADER -->
       <div style="
-        background: linear-gradient(135deg, #6c2bd9, #a855f7);
+        background: linear-gradient(135deg, #16803c, #22a06b);
         padding: 25px;
         text-align: center;
         color: white;
       ">
-        <h1 style="margin: 0; font-size: 24px;">Rebetas</h1>
+        <h1 style="margin: 0; font-size: 24px;">SunStreamers</h1>
         <p style="margin: 5px 0 0;">New Login Code Requested</p>
       </div>
 
@@ -666,7 +665,7 @@ async function resendLoginOtp(req, res) {
         <div style="
           margin: 30px auto;
           padding: 20px;
-          background: #f3e8ff;
+          background: #e8f5ec;
           border-radius: 10px;
           display: inline-block;
         ">
@@ -674,7 +673,7 @@ async function resendLoginOtp(req, res) {
             font-size: 34px;
             letter-spacing: 8px;
             font-weight: bold;
-            color: #6c2bd9;
+            color: #16803c;
           ">
             ${otp}
           </span>
@@ -702,7 +701,7 @@ async function resendLoginOtp(req, res) {
         font-size: 12px;
         color: #999;
       ">
-        © ${new Date().getFullYear()} Rebetas. All rights reserved.
+        © ${new Date().getFullYear()} SunStreamers. All rights reserved.
       </div>
 
     </div>
@@ -721,7 +720,6 @@ async function resendLoginOtp(req, res) {
     });
   }
 }
-
 /*
 FORGOT PASSWORD
 */
@@ -743,7 +741,7 @@ async function forgotPassword(req, res) {
     if (!user) {
       return res.json({
         message:
-          "If this email exists on Rebetas, a password reset link has been sent.",
+          "If this email exists on SunStreamers, a password reset link has been sent.",
       });
     }
 
@@ -763,7 +761,7 @@ async function forgotPassword(req, res) {
     try {
       await sendEmail({
         to: user.email,
-        subject: "🔐 Reset Your Rebetas Password",
+        subject: "🔐 Reset Your SunStreamers Password",
         html: `
   <div style="
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -780,12 +778,12 @@ async function forgotPassword(req, res) {
     ">
 
       <div style="
-        background: linear-gradient(135deg, #6c2bd9, #a855f7);
+        background: linear-gradient(135deg, #16803c, #22a06b);
         padding: 30px;
         text-align: center;
         color: white;
       ">
-        <h1 style="margin: 0; font-size: 26px;">Rebetas</h1>
+        <h1 style="margin: 0; font-size: 26px;">SunStreamers</h1>
         <p style="margin: 8px 0 0; font-size: 14px;">
           Password Reset Request
         </p>
@@ -797,7 +795,7 @@ async function forgotPassword(req, res) {
         </h2>
 
         <p style="color: #666; font-size: 15px;">
-          We received a request to reset your Rebetas account password.
+          We received a request to reset your SunStreamers account password.
         </p>
 
         <p style="margin-top: 20px; font-size: 15px;">
@@ -808,13 +806,13 @@ async function forgotPassword(req, res) {
           display: inline-block;
           margin-top: 25px;
           padding: 14px 28px;
-          background: linear-gradient(135deg, #6c2bd9, #a855f7);
+          background: linear-gradient(135deg, #16803c, #22a06b);
           color: #ffffff;
           text-decoration: none;
           font-weight: 600;
           border-radius: 8px;
           font-size: 15px;
-          box-shadow: 0 5px 15px rgba(108, 43, 217, 0.3);
+          box-shadow: 0 5px 15px rgba(22, 128, 60, 0.3);
         ">
           Reset Password
         </a>
@@ -830,7 +828,7 @@ async function forgotPassword(req, res) {
         <p style="
           word-break: break-all;
           font-size: 12px;
-          color: #6c2bd9;
+          color: #16803c;
           margin-top: 20px;
         ">
           ${resetUrl}
@@ -844,7 +842,7 @@ async function forgotPassword(req, res) {
         font-size: 12px;
         color: #999;
       ">
-        © ${new Date().getFullYear()} Rebetas. All rights reserved.
+        © ${new Date().getFullYear()} SunStreamers. All rights reserved.
       </div>
     </div>
   </div>
@@ -856,7 +854,7 @@ async function forgotPassword(req, res) {
 
     return res.json({
       message:
-        "If this email exists on Rebetas, a password reset link has been sent.",
+        "If this email exists on SunStreamers, a password reset link has been sent.",
     });
   } catch (error) {
     console.error("Forgot password error:", error.message);

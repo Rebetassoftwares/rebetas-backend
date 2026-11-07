@@ -2,7 +2,7 @@
   position: fixed;
   inset: 0;
   z-index: 9999;
-  background: rgba(10, 5, 25, 0.78);
+  background: rgba(3, 15, 9, 0.82);
   backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
@@ -19,8 +19,8 @@
   overflow-y: auto;
 
   background:
-    radial-gradient(circle at top, rgba(124, 58, 237, 0.35), transparent 45%),
-    linear-gradient(145deg, #120826, #1a0f38 55%, #24104f);
+    radial-gradient(circle at top, rgba(22, 128, 60, 0.35), transparent 45%),
+    linear-gradient(145deg, #071f15, #103b27 55%, #14532d);
 
   color: #ffffff;
   border-radius: 22px;
@@ -98,10 +98,18 @@
   width: 100%;
   padding: 14px 16px;
   border-radius: 14px;
-  background: linear-gradient(135deg, #7c3aed, #a855f7);
+  background: linear-gradient(135deg, #16803c, #22a06b);
   color: #ffffff;
   text-decoration: none;
   font-weight: 800;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.autopilot-popup-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(22, 128, 60, 0.3);
 }
 
 @keyframes popupFadeIn {

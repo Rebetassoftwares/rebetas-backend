@@ -1,85 +1,366 @@
-/* =========================
-   PAGE BACKGROUND
-========================= */
+/* =========================================
+   SUNSTREAMERS PRICING PAGE
+========================================= */
+
 .pricing-page {
-  color: #ffffff;
+  --pricing-bg: #0b100e;
+  --pricing-surface: #101713;
+  --pricing-card: #152019;
+  --pricing-green: #12a568;
+  --pricing-green-light: #35d494;
+  --pricing-gold: #d6b66d;
+  --pricing-text: #f1f7f3;
+  --pricing-muted: #a1b3a8;
+  --pricing-border: rgba(91, 166, 119, 0.2);
+
+  min-height: 100vh;
   padding-top: 40px;
+  color: var(--pricing-text);
 
   background:
     radial-gradient(
-      circle at 15% 20%,
-      rgba(160, 32, 240, 0.28),
+      ellipse at 15% 15%,
+      rgba(18, 165, 104, 0.12),
       transparent 35%
     ),
     radial-gradient(
-      circle at 85% 10%,
-      rgba(160, 32, 240, 0.18),
+      ellipse at 85% 10%,
+      rgba(18, 165, 104, 0.08),
       transparent 35%
     ),
-    linear-gradient(180deg, #12041f, #0d0318 50%, #12041f);
+    var(--pricing-bg);
 }
 
-/* =========================
+.pricing-page .container {
+  width: min(1160px, calc(100% - 40px));
+  margin: 0 auto;
+}
+
+/* =========================================
    HERO
-========================= */
+========================================= */
+
 .pricing-hero {
+  position: relative;
   text-align: center;
-  padding: 120px 0 80px 0;
+  padding: 110px 20px 55px;
+}
+
+.pricing-eyebrow {
+  display: inline-block;
+  color: var(--pricing-green-light);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  margin-bottom: 22px;
+  text-transform: uppercase;
 }
 
 .pricing-hero h1 {
+  max-width: 850px;
+  margin: 0 auto 20px;
+  color: var(--pricing-text);
+  font-size: clamp(36px, 5vw, 58px);
+  font-weight: 850;
+  line-height: 1.15;
+  letter-spacing: -1.8px;
+  text-shadow: none;
+}
+
+.pricing-hero h1 span {
+  display: block;
+  color: var(--pricing-green-light);
+}
+
+.pricing-hero > .container > p {
+  max-width: 680px;
+  margin: 0 auto;
+  color: var(--pricing-muted);
+  font-size: 17px;
+  line-height: 1.85;
+}
+
+/* =========================================
+   PERFORMANCE DISPLAY
+========================================= */
+
+.pricing-performance {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  width: fit-content;
+  max-width: 100%;
+  margin: 35px auto 18px;
+  padding: 20px 32px;
+  border: 1px solid rgba(53, 212, 148, 0.28);
+  border-radius: 16px;
+
+  background: linear-gradient(
+    135deg,
+    rgba(18, 165, 104, 0.15),
+    rgba(18, 165, 104, 0.04)
+  );
+
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+}
+
+.performance-number {
+  color: var(--pricing-green-light);
   font-size: 48px;
-  margin-bottom: 16px;
-  color: #ffffff;
-  text-shadow: 0 0 30px rgba(160, 32, 240, 0.25);
+  font-weight: 900;
+  line-height: 1;
 }
 
-.pricing-hero p {
-  max-width: 650px;
-  margin: auto;
-  color: #f1edff;
-  font-size: 18px;
-  line-height: 1.8;
+.performance-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
 }
 
-/* =========================
+.performance-copy strong {
+  color: var(--pricing-text);
+  font-size: 15px;
+}
+
+.performance-copy span {
+  color: var(--pricing-muted);
+  font-size: 12px;
+}
+
+.pricing-hero > .container > .pricing-disclaimer {
+  max-width: 600px;
+  margin: 0 auto;
+  color: #82968a;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+/* =========================================
    PRICING SECTION
-========================= */
+========================================= */
+
 .pricing-section {
-  padding-bottom: 100px;
+  padding: 35px 0 110px;
 }
+
+.pricing-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 520px);
+  justify-content: center;
+  gap: 24px;
+  margin-top: 20px;
+}
+
+/* =========================================
+   MONTHLY PRICING CARD
+========================================= */
+
+.pricing-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+
+  padding: 42px 38px;
+  border: 1px solid rgba(53, 212, 148, 0.55);
+  border-radius: 22px;
+
+  background:
+    radial-gradient(
+      circle at 90% 0%,
+      rgba(53, 212, 148, 0.12),
+      transparent 40%
+    ),
+    linear-gradient(145deg, #17231b, #101713);
+
+  box-shadow:
+    0 20px 65px rgba(0, 0, 0, 0.3),
+    0 0 35px rgba(18, 165, 104, 0.12);
+
+  backdrop-filter: blur(12px);
+  transition:
+    transform 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.pricing-card.highlight {
+  transform: none;
+  z-index: 2;
+}
+
+.pricing-card h3 {
+  margin: 0;
+  color: var(--pricing-text);
+  font-size: 27px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+/* =========================================
+   BEST VALUE RIBBON
+========================================= */
+
+.top-ribbon {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+
+  padding: 7px 14px;
+  border-radius: 6px;
+
+  background: linear-gradient(135deg, var(--pricing-gold), #a88b46);
+
+  color: #111713;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+
+  transform: rotate(5deg);
+  box-shadow: 0 4px 12px rgba(214, 182, 109, 0.2);
+}
+
+/* =========================================
+   PREMIUM BADGE
+========================================= */
+
+.best-badge {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+
+  width: 100%;
+  margin: 8px 0 12px;
+  padding: 11px 16px;
+
+  border: 1px solid rgba(53, 212, 148, 0.3);
+  border-radius: 999px;
+
+  background: rgba(18, 165, 104, 0.14);
+  color: var(--pricing-green-light);
+
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  overflow: hidden;
+}
+
+.badge-icon {
+  font-size: 14px;
+}
+
+.badge-text {
+  font-weight: 900;
+  letter-spacing: 0.5px;
+}
+
+/* =========================================
+   PRICE
+========================================= */
+
+.price {
+  color: var(--pricing-green-light);
+  font-size: 34px;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.promo-price-main {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+}
+
+.old-price {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 21px;
+  font-weight: 800;
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+}
+
+.new-price {
+  color: var(--pricing-green-light);
+  font-size: 36px;
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+.main-save-text {
+  color: var(--pricing-green-light);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+/* =========================================
+   FEATURES
+========================================= */
+
+.pricing-card .features,
+.payment-modal .features {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pricing-card .features li,
+.payment-modal .features li {
+  padding: 11px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.055);
+
+  color: #c2d1c8;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.pricing-card .features li:last-child,
+.payment-modal .features li:last-child {
+  border-bottom: none;
+}
+
+/* =========================================
+   PROMO BOX
+========================================= */
 
 .promo-box {
   margin-top: 2px;
   padding: 14px 16px;
-  border-radius: 16px;
+  border: 1px solid rgba(53, 212, 148, 0.3);
+  border-radius: 14px;
+
   background: linear-gradient(
     135deg,
-    rgba(34, 197, 94, 0.16),
-    rgba(168, 85, 247, 0.12)
+    rgba(18, 165, 104, 0.14),
+    rgba(18, 165, 104, 0.05)
   );
-  border: 1px solid rgba(34, 197, 94, 0.38);
-  color: #ecfdf5;
+
+  color: #e5f5eb;
   font-size: 14px;
-  line-height: 1.55;
-  box-shadow: 0 10px 25px rgba(34, 197, 94, 0.08);
+  line-height: 1.6;
 }
 
 .promo-box-title {
+  margin-bottom: 6px;
+  color: #ffffff;
   font-size: 15px;
   font-weight: 900;
-  color: #ffffff;
-  margin-bottom: 6px;
 }
 
 .promo-code-line {
   margin-bottom: 6px;
-  color: #bbf7d0;
+  color: #b9d9c7;
   font-size: 13px;
 }
 
 .promo-box p {
   margin: 4px 0;
+  color: #c2d1c8;
 }
 
 .promo-box strong {
@@ -87,14 +368,10 @@
   font-weight: 900;
 }
 
-.promo-box s {
-  color: #fca5a5;
-}
-
 .promo-muted {
-  color: #d8b4fe;
-  font-size: 13px;
   margin-top: 6px !important;
+  color: var(--pricing-muted);
+  font-size: 13px;
 }
 
 .promo-price-breakdown {
@@ -104,354 +381,19 @@
 }
 
 .promo-save {
-  color: #86efac;
+  color: var(--pricing-green-light);
   font-weight: 800;
 }
 
 .promo-loading {
-  color: #d8b4fe;
-  font-size: 13px;
-  margin-top: 12px;
+  margin-top: 12px !important;
+  color: var(--pricing-green-light) !important;
+  font-size: 13px !important;
 }
 
-.best-badge {
-  display: flex;
-  justify-content: center; /* 🔥 CENTER IT */
-  align-items: center;
-  gap: 8px;
-
-  width: 100%;
-  margin: 14px 0 18px 0;
-  padding: 10px 16px;
-
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: 0.6px;
-
-  color: #ffffff;
-
-  background: linear-gradient(135deg, #a855f7, #9333ea);
-  box-shadow:
-    0 6px 18px rgba(168, 85, 247, 0.45),
-    inset 0 0 8px rgba(255, 255, 255, 0.15);
-
-  border-radius: 999px;
-
-  text-transform: uppercase;
-
-  position: relative;
-  overflow: hidden;
-}
-
-.best-badge::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -60%;
-
-  width: 50%;
-  height: 100%;
-
-  background: linear-gradient(
-    120deg,
-    transparent,
-    rgba(255, 255, 255, 0.5),
-    transparent
-  );
-
-  transform: skewX(-20deg);
-  animation: shine 2.5s infinite;
-}
-
-.promo-price-main {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
-}
-
-.old-price {
-  color: rgba(255, 255, 255, 0.55);
-  text-decoration: line-through;
-  text-decoration-thickness: 2px;
-  font-size: 22px;
-  font-weight: 900;
-}
-
-.new-price {
-  color: #22c55e;
-  font-size: 34px;
-  font-weight: 900;
-  line-height: 1.1;
-  text-shadow: 0 0 18px rgba(34, 197, 94, 0.28);
-}
-
-.main-save-text {
-  color: #86efac;
-  font-size: 14px;
-  font-weight: 900;
-}
-
-@keyframes shine {
-  0% {
-    left: -60%;
-  }
-  100% {
-    left: 120%;
-  }
-}
-
-.badge-text {
-  font-weight: 900;
-}
-
-.badge-icon {
-  font-size: 13px;
-}
-
-.badge-text {
-  letter-spacing: 0.3px;
-}
-
-/* =========================
-   GRID (NEW CORE)
-========================= */
-.pricing-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 24px;
-  margin-top: 40px;
-}
-
-/* =========================
-   CARD
-========================= */
-.pricing-card {
-  background: rgba(255, 255, 255, 0.06);
-  border-radius: 18px;
-  padding: 28px 24px;
-
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-
-  backdrop-filter: blur(12px);
-
-  border: 1px solid rgba(255, 255, 255, 0.08);
-
-  transition: all 0.25s ease;
-}
-
-.pricing-card.highlight {
-  border: 2px solid rgba(168, 85, 247, 0.8);
-
-  transform: scale(1.06);
-  z-index: 2;
-
-  box-shadow:
-    0 0 30px rgba(168, 85, 247, 0.4),
-    0 0 60px rgba(168, 85, 247, 0.2);
-
-  position: relative;
-}
-
-/* =========================
-   HIGHLIGHT (MONTHLY)
-========================= */
-.pricing-card.highlight {
-  border: 2px solid rgba(168, 85, 247, 0.8);
-
-  transform: scale(1.06);
-  z-index: 2;
-
-  box-shadow:
-    0 0 30px rgba(168, 85, 247, 0.4),
-    0 0 60px rgba(168, 85, 247, 0.2);
-
-  position: relative;
-}
-
-.top-ribbon {
-  position: absolute;
-  top: -10px;
-  right: -10px;
-
-  background: linear-gradient(135deg, #a855f7, #9333ea);
-  color: #fff;
-
-  padding: 5px 12px;
-  font-size: 11px;
-  font-weight: 700;
-
-  border-radius: 6px;
-  transform: rotate(8deg);
-
-  box-shadow: 0 4px 10px rgba(168, 85, 247, 0.4);
-}
-
-/* =========================
-   TITLE
-========================= */
-.pricing-card h3 {
-  font-size: 20px;
-  font-weight: 600;
-  color: #ffffff;
-}
-
-/* =========================
-   SELECT DROPDOWN
-========================= */
-.pricing-card select {
-  width: 100%;
-  padding: 14px;
-
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-
-  background: rgba(255, 255, 255, 0.08);
-  color: #ffffff;
-
-  font-size: 14px;
-  outline: none;
-
-  transition: 0.2s ease;
-}
-
-.pricing-card select:focus {
-  border-color: rgba(160, 32, 240, 0.6);
-}
-
-/* =========================
-   PRICE TEXT
-========================= */
-.price {
-  font-size: 24px;
-  font-weight: bold;
-  color: #ffffff;
-
-  text-shadow: 0 0 12px rgba(160, 32, 240, 0.3);
-}
-
-/* =========================
-   BUTTONS
-========================= */
-.btn-green {
-  padding: 14px;
-  border-radius: 12px;
-  border: none;
-
-  background: linear-gradient(135deg, #00c853, #00e676);
-  color: #000;
-
-  font-weight: 600;
-  cursor: pointer;
-
-  transition: all 0.25s ease;
-}
-
-.btn-green:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0, 230, 118, 0.4);
-}
-
-.btn-outline {
-  padding: 14px;
-  border-radius: 12px;
-
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  color: #ffffff;
-
-  font-weight: 500;
-  cursor: pointer;
-
-  transition: all 0.25s ease;
-}
-
-.btn-outline:hover {
-  background: rgba(255, 255, 255, 0.1);
-  transform: translateY(-2px);
-}
-
-/* =========================
-   STATES
-========================= */
-.info-text {
-  text-align: center;
-  margin-top: 30px;
-  opacity: 0.7;
-}
-
-.error-text {
-  text-align: center;
-  margin-top: 20px;
-  color: #ff8a8a;
-}
-
-/* =========================
-   PAYMENT MODAL (UNCHANGED)
-========================= */
-.payment-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(10, 5, 20, 0.75);
-  backdrop-filter: blur(8px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-}
-
-.payment-modal {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 16px;
-  padding: 35px 30px;
-  width: 90%;
-  max-width: 400px;
-  text-align: center;
-  backdrop-filter: blur(14px);
-  box-shadow: 0 0 30px rgba(160, 32, 240, 0.25);
-  animation: modalFadeIn 0.3s ease;
-}
-
-.payment-modal h3 {
-  margin-bottom: 25px;
-  font-size: 22px;
-  font-weight: 600;
-}
-
-.payment-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.payment-buttons button {
-  padding: 14px;
-  border-radius: 10px;
-  font-size: 15px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.25s ease;
-}
-
-.modal-close {
-  margin-top: 20px;
-  background: none;
-  border: none;
-  color: #bbb;
-  font-size: 14px;
-  cursor: pointer;
-  transition: color 0.2s ease;
-}
-
-.modal-close:hover {
-  color: #fff;
-}
+/* =========================================
+   COUNTRY DROPDOWN
+========================================= */
 
 .pricing-dropdown {
   position: relative;
@@ -459,41 +401,47 @@
 }
 
 .pricing-dropdown.disabled {
-  opacity: 0.7;
+  opacity: 0.65;
   pointer-events: none;
 }
 
 .pricing-dropdown-trigger {
-  width: 100%;
-  min-height: 50px;
-  padding: 14px 16px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.08);
-  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+
+  width: 100%;
+  min-height: 50px;
+  padding: 14px 16px;
+
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 12px;
+
+  background: #101a14;
+  color: #ffffff;
+
   font-size: 14px;
   text-align: left;
   cursor: pointer;
+
   transition:
     border-color 0.2s ease,
     background 0.2s ease;
 }
 
-.pricing-dropdown-trigger:focus,
-.pricing-dropdown-trigger:hover {
-  border-color: rgba(160, 32, 240, 0.55);
-  background: rgba(255, 255, 255, 0.1);
+.pricing-dropdown-trigger:hover,
+.pricing-dropdown-trigger:focus {
+  border-color: rgba(53, 212, 148, 0.6);
+  background: #15231a;
+  outline: none;
 }
 
 .pricing-dropdown-arrow {
-  font-size: 16px;
-  color: #e7dcff;
-  transition: transform 0.2s ease;
   flex-shrink: 0;
+  color: var(--pricing-green-light);
+  font-size: 17px;
+  transition: transform 0.2s ease;
 }
 
 .pricing-dropdown-arrow.open {
@@ -506,59 +454,251 @@
   left: 0;
   right: 0;
   z-index: 30;
-  border-radius: 14px;
-  border: 1px solid rgba(160, 32, 240, 0.28);
-  background: #21052f;
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
-  overflow: hidden;
+
   max-height: 260px;
   overflow-y: auto;
+
+  border: 1px solid rgba(53, 212, 148, 0.3);
+  border-radius: 14px;
+
+  background: #101a14;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
 }
 
 .pricing-dropdown-item {
   width: 100%;
   padding: 14px 16px;
-  background: transparent;
+
   border: none;
+  background: transparent;
   color: #ffffff;
-  text-align: left;
+
   font-size: 15px;
+  text-align: left;
   cursor: pointer;
+
   transition: background 0.2s ease;
 }
 
 .pricing-dropdown-item:hover,
 .pricing-dropdown-item.active {
-  background: rgba(160, 32, 240, 0.22);
+  background: rgba(18, 165, 104, 0.2);
+}
+
+/* =========================================
+   BUTTONS
+========================================= */
+
+.btn-green,
+.btn-outline {
+  width: 100%;
+  padding: 15px;
+
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 800;
+
+  cursor: pointer;
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    background 0.25s ease;
+}
+
+.btn-green {
+  border: none;
+  background: linear-gradient(135deg, #12a568, #087f50);
+  color: #ffffff;
+}
+
+.btn-green:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(18, 165, 104, 0.3);
+}
+
+.btn-outline {
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: transparent;
+  color: #ffffff;
+}
+
+.btn-outline:hover:not(:disabled) {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.btn-green:disabled,
+.btn-outline:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* =========================================
+   LOADING AND ERROR STATES
+========================================= */
+
+.info-text {
+  margin-top: 30px;
+  color: var(--pricing-muted);
+  text-align: center;
+}
+
+.error-text {
+  margin-top: 20px;
+  color: #ff8a8a;
+  text-align: center;
+}
+
+/* =========================================
+   PAYMENT MODAL
+========================================= */
+
+.payment-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  height: 100%;
+  padding: 20px;
+
+  background: rgba(4, 10, 7, 0.82);
+  backdrop-filter: blur(8px);
+}
+
+.payment-modal {
+  width: 90%;
+  max-width: 440px;
+  max-height: 90vh;
+  overflow-y: auto;
+
+  padding: 35px 30px;
+
+  border: 1px solid rgba(53, 212, 148, 0.25);
+  border-radius: 18px;
+
+  background: #121c16;
+  color: var(--pricing-text);
+
+  text-align: center;
+
+  box-shadow: 0 0 40px rgba(18, 165, 104, 0.16);
+  animation: modalFadeIn 0.3s ease;
+}
+
+.payment-modal h3 {
+  margin-bottom: 25px;
+  color: #ffffff;
+  font-size: 23px;
+  font-weight: 800;
 }
 
 .payment-plan-preview {
-  text-align: left;
   display: flex;
   flex-direction: column;
   gap: 16px;
+
   margin-bottom: 24px;
+  text-align: left;
 }
 
 .payment-plan-country {
   margin: 0;
-  color: #f1edff;
+  color: #c2d1c8;
   font-size: 14px;
+}
+
+.payment-plan-country strong {
+  color: #ffffff;
 }
 
 .modal-features {
   margin-top: 0;
 }
 
+.payment-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+
+.payment-buttons button {
+  padding: 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.modal-close {
+  margin-top: 20px;
+  padding: 8px 15px;
+
+  border: none;
+  background: transparent;
+  color: #a1b3a8;
+
+  font-size: 14px;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.modal-close:hover {
+  color: #ffffff;
+}
+
+/* =========================================
+   ANIMATIONS
+========================================= */
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* =========================================
+   TABLET
+========================================= */
+
 @media (max-width: 768px) {
+  .pricing-hero {
+    padding: 90px 15px 45px;
+  }
+
+  .pricing-hero h1 {
+    font-size: 40px;
+  }
+
+  .pricing-hero > .container > p {
+    font-size: 15px;
+  }
+
+  .pricing-section {
+    padding-bottom: 75px;
+  }
+
+  .pricing-card {
+    padding: 35px 28px;
+  }
+
   .pricing-dropdown-trigger {
     min-height: 48px;
     font-size: 15px;
   }
 
   .pricing-dropdown-item {
-    font-size: 16px;
     padding: 15px 16px;
+    font-size: 16px;
   }
 
   .pricing-dropdown-menu {
@@ -566,16 +706,80 @@
   }
 }
 
-/* =========================
-   ANIMATION
-========================= */
-@keyframes modalFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px) scale(0.95);
+/* =========================================
+   SMALL MOBILE
+========================================= */
+
+@media (max-width: 480px) {
+  .pricing-page .container {
+    width: calc(100% - 32px);
   }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
+
+  .pricing-hero {
+    padding: 75px 10px 35px;
+  }
+
+  .pricing-hero h1 {
+    font-size: 34px;
+    letter-spacing: -1px;
+  }
+
+  .pricing-eyebrow {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+  }
+
+  .pricing-performance {
+    gap: 13px;
+    padding: 17px 20px;
+  }
+
+  .performance-number {
+    font-size: 39px;
+  }
+
+  .performance-copy strong {
+    font-size: 13px;
+  }
+
+  .performance-copy span {
+    font-size: 11px;
+  }
+
+  .pricing-card {
+    padding: 32px 22px;
+    gap: 16px;
+  }
+
+  .pricing-card h3 {
+    font-size: 24px;
+  }
+
+  .price,
+  .new-price {
+    font-size: 30px;
+  }
+
+  .top-ribbon {
+    right: -5px;
+    font-size: 9px;
+  }
+
+  .payment-modal {
+    padding: 28px 20px;
+  }
+}
+
+/* =========================================
+   REDUCED MOTION
+========================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .pricing-page *,
+  .pricing-page *::before,
+  .pricing-page *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

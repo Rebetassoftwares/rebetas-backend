@@ -13,8 +13,8 @@ function baseEmailTemplate({ fullName, title, message, actionText }) {
   return `
   <div style="font-family: Arial, sans-serif; background:#f4f6fb; padding:30px 15px;">
     <div style="max-width:560px; margin:auto; background:#ffffff; border-radius:14px; overflow:hidden; box-shadow:0 8px 24px rgba(0,0,0,0.08);">
-      <div style="background:#4b0082; padding:24px; text-align:center;">
-        <h2 style="color:#ffffff; margin:0;">Rebetas AutoPilot</h2>
+      <div style="background:#16803c; padding:24px; text-align:center;">
+        <h2 style="color:#ffffff; margin:0;">SunStreamers AutoPilot</h2>
       </div>
 
       <div style="padding:28px;">
@@ -35,12 +35,12 @@ function baseEmailTemplate({ fullName, title, message, actionText }) {
         }
 
         <p style="font-size:14px; color:#666; margin-top:25px;">
-          Thank you for using Rebetas.
+          Thank you for using SunStreamers.
         </p>
       </div>
 
-      <div style="background:#f0edf7; padding:16px; text-align:center; color:#777; font-size:12px;">
-        © ${year} Rebetas. All rights reserved.
+      <div style="background:#e8f5ec; padding:16px; text-align:center; color:#777; font-size:12px;">
+        © ${year} SunStreamers. All rights reserved.
       </div>
     </div>
   </div>
@@ -268,15 +268,15 @@ const notificationTemplates = {
     title: data.title || "Service Update",
     message:
       data.message ||
-      "We are working to bring all Rebetas services back fully and better.",
+      "We are working to bring all SunStreamers services back fully and better.",
     email: true,
-    emailSubject: data.emailSubject || "Important Rebetas Service Update",
+    emailSubject: data.emailSubject || "Important SunStreamers Service Update",
     emailHtml: baseEmailTemplate({
       fullName: user.fullName,
       title: data.title || "Service Update",
       message:
         data.message ||
-        "We are working to bring all Rebetas services back fully and better.",
+        "We are working to bring all SunStreamers services back fully and better.",
     }),
   }),
 };

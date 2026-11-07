@@ -15,17 +15,19 @@ async function recomputeMartingale(platform, leagueName) {
     const normalizedPlatform = String(platform).toLowerCase();
     const normalizedLeague = String(leagueName).trim();
 
+    // This recomputation is strictly for MANUAL leagues.
     const league = await ManualLeague.findOne({
       platform: new RegExp(`^${normalizedPlatform}$`, "i"),
       leagueName: new RegExp(`^${normalizedLeague}$`, "i"),
+      mode: "MANUAL",
     });
 
     if (!league) {
-      console.error("Martingale recompute: league not found");
+      console.error("Martingale recompute: MANUAL league not found");
       return;
     }
 
-    // 🔥 SNAPSHOT CAPITAL (DO NOT MUTATE DB MID-RUN)
+    // Snapshot capital.
     let capital =
       Number(league.capital) > 0
         ? Number(league.capital)
@@ -36,16 +38,18 @@ async function recomputeMartingale(platform, leagueName) {
       systemState.baseStakePercent,
     );
 
+    // CRITICAL: Only retrieve MANUAL predictions.
     const predictions = await ManualPrediction.find({
       platform: new RegExp(`^${normalizedPlatform}$`, "i"),
       leagueName: new RegExp(`^${normalizedLeague}$`, "i"),
+      type: "MANUAL",
       status: { $in: ["won", "loss"] },
     }).sort({
       scheduledFor: 1,
       createdAt: 1,
     });
 
-    // 🔥 STORE CHANGES FIRST (NO PARTIAL SAVES)
+    // Store changes first.
     const updates = [];
 
     for (const p of predictions) {
@@ -89,10 +93,13 @@ async function recomputeMartingale(platform, leagueName) {
       });
     }
 
-    // 🔥 APPLY UPDATES IN BULK (CONSISTENCY FIX)
+    // Apply updates only to MANUAL predictions.
     for (const u of updates) {
       await ManualPrediction.updateOne(
-        { _id: u._id },
+        {
+          _id: u._id,
+          type: "MANUAL",
+        },
         {
           $set: {
             stake: u.stake,
@@ -105,7 +112,7 @@ async function recomputeMartingale(platform, leagueName) {
       );
     }
 
-    // 🔥 ONLY NOW SAVE LEAGUE CAPITAL
+    // Save MANUAL league capital.
     league.capital = capital;
     await league.save();
 

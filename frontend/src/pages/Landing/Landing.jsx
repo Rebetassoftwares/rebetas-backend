@@ -30,6 +30,7 @@ export default function Landing() {
   const formatCurrency = (value) => {
     return `$${Number(value || 0).toLocaleString()}`;
   };
+
   const { platforms, platformId, setPlatformId } = usePlatforms();
 
   const { leagueOptions, league, setLeague } = useLeagues(platformId);
@@ -65,24 +66,28 @@ export default function Landing() {
 
         <div className="hero-inner">
           <div className="hero-content">
-            <span className="hero-label">AI VIRTUAL FOOTBALL PREDICTIONS</span>
+            <span className="hero-label">INTRODUCING SUNSTREAMERS</span>
 
-            <h1>Win Virtual Football With Ease</h1>
+            <h1>
+              24HRS SMART AND HIGHLY PROFIT ORIENTED LIVE VIRTUAL FOOTBALL
+              PREDICTION SIGNAL BOT
+            </h1>
 
             <p>
-              Rebetas analyzes virtual match patterns and probability models to
-              generate high-confidence predictions for supported betting
-              platforms.
+              Take a more strategic approach to virtual football betting.
+              SunStreamers delivers live virtual football prediction signals
+              around the clock, helping you identify betting opportunities and
+              make more informed decisions across supported platforms.
             </p>
 
             <Link to="/register" className="hero-primary">
-              Get Started
+              Get Started Now
             </Link>
           </div>
 
           <div className="hero-platforms-area">
             <p className="platform-title">
-              Bet on your favorite virtual sports platform
+              Available Across Supported Virtual Football Platforms
             </p>
 
             <div className="hero-platforms">
@@ -105,6 +110,7 @@ export default function Landing() {
                 />
               ))}
             </div>
+
             <div className="league-bar">
               {leagueOptions.map((item) => (
                 <button
@@ -145,85 +151,78 @@ export default function Landing() {
         <div className="container">
           <div className="about-header">
             <div className="about-left">
-              <span className="section-tag">WHO WE ARE</span>
+              <span className="section-tag">THE SUNSTREAMERS ADVANTAGE</span>
 
-              <h2>About Rebetas Virtual Football Prediction Software</h2>
+              <h2>Your 24-Hour Virtual Football Prediction Signal Companion</h2>
             </div>
 
             <div className="about-right">
               <p>
-                Rebetas virtual football prediction software uses advanced AI
-                algorithms to analyze match patterns and generate reliable
-                virtual football predictions. Our system continuously improves
-                its models using updated virtual league data, helping you make
-                smarter betting decisions consistently.
+                SunStreamers is built for virtual football bettors who want
+                access to live prediction signals throughout the day. Our
+                profit-oriented signal platform is designed to help users
+                identify potential opportunities, follow supported virtual
+                football competitions, and approach their betting decisions with
+                greater structure. Whether you are following virtual football
+                during the day or at night, SunStreamers brings its signal
+                experience together in one platform.
               </p>
             </div>
           </div>
 
-          {/* INDICATOR CARDS */}
+          {/* PREMIUM INDICATOR */}
 
           <div className="indicator-grid">
             <div className="indicator-card">
-              <h3>Rebetas Free Virtual Football Indicator</h3>
+              <h3>SunStreamers Premium Indicator</h3>
 
               <p>
-                As a beginner you can start with our free virtual football
-                indicator. This allows you to observe prediction patterns and
-                learn how the system performs before upgrading.
+                Get access to the SunStreamers Premium virtual football
+                prediction signal experience. Receive live prediction signals
+                designed to help you identify potential betting opportunities
+                across supported virtual football platforms, with an
+                around-the-clock approach to signal access.
               </p>
 
-              <button className="indicator-btn">Use For Free</button>
-            </div>
-
-            <div className="indicator-card">
-              <h3>Rebetas Premium Virtual Football Indicator</h3>
-
-              <p>
-                Premium users receive predictions earlier before matches start,
-                giving more time to prepare bets and take advantage of
-                profitable opportunities.
-              </p>
-
-              <button className="indicator-btn">Subscribe To Use</button>
-            </div>
-
-            <div className="indicator-card">
-              <h3>Rebetas Ultra Virtual Football Indicator</h3>
-
-              <p>
-                Our ultra indicator integrates with automated betting strategies
-                and provides the most advanced prediction capabilities for
-                serious bettors.
-              </p>
-
-              <button className="indicator-btn">Subscribe To Use</button>
+              <Link to="/pricing" className="indicator-btn">
+                View Premium Plans
+              </Link>
             </div>
           </div>
         </div>
       </section>
 
-      {/* WHY REBETAS */}
+      {/* WHY SUNSTREAMERS */}
 
       <section className="why-section">
         <div className="why-container">
           <div className="why-content">
-            <span className="section-tag">WHY REBETAS?</span>
+            <span className="section-tag">WHY SUNSTREAMERS?</span>
 
-            <h2>Why you need the Rebetas Prediction software</h2>
+            <h2>
+              Stop Relying on Guesswork. Follow a More Structured Signal
+              Approach.
+            </h2>
 
             <p>
-              At the beginning of every virtual football match our AI analyzes
-              patterns, historical probabilities and match simulations to
-              identify the most profitable outcomes. Rebetas helps you place
-              smarter bets consistently without guessing.
+              Virtual football moves quickly, with matches taking place
+              throughout the day. Finding and assessing opportunities manually
+              can be time-consuming. SunStreamers is designed to make live
+              prediction signals available around the clock, giving you a
+              dedicated platform to follow virtual football signals and assess
+              potential betting opportunities.
             </p>
 
-            <button className="why-btn">Read More</button>
+            <Link to="/about" className="why-btn">
+              Learn More About Us
+            </Link>
           </div>
 
           <div className="why-image">
-            <img src={predictionScreen} alt="Rebetas Prediction Software" />
+            <img
+              src={predictionScreen}
+              alt="SunStreamers live virtual football prediction dashboard"
+            />
           </div>
         </div>
       </section>
@@ -232,9 +231,9 @@ export default function Landing() {
 
       <section className="features-section">
         <div className="container">
-          <span className="section-tag">FEATURES</span>
+          <span className="section-tag">BUILT FOR VIRTUAL FOOTBALL</span>
 
-          <h2>Best Features From Rebetas</h2>
+          <h2>Everything You Need for a More Organised Signal Experience</h2>
 
           <Swiper
             modules={[Autoplay, Pagination]}
@@ -269,12 +268,15 @@ export default function Landing() {
           >
             <SwiperSlide>
               <div className="feature-card">
-                <img src={videoTutorial} alt="Video Tutorial" />
+                <img src={videoTutorial} alt="SunStreamers video tutorials" />
+
                 <div className="feature-card-content">
                   <p>
-                    We have lots of easy to understand video tutorials to help
-                    you learn the most effective virtual football betting
-                    strategies.
+                    <strong>Easy-to-Follow Tutorials</strong>
+                    <br />
+                    Get familiar with the platform through practical video
+                    tutorials designed to help you understand its features and
+                    how to use the available signals.
                   </p>
                 </div>
               </div>
@@ -282,11 +284,15 @@ export default function Landing() {
 
             <SwiperSlide>
               <div className="feature-card">
-                <img src={timeMoney} alt="Save Time and Money" />
+                <img src={timeMoney} alt="Around-the-clock signal access" />
+
                 <div className="feature-card-content">
                   <p>
-                    Rebetas software gives you the best predictions and saves
-                    you time.
+                    <strong>24-Hour Signal Experience</strong>
+                    <br />
+                    Stay connected to the virtual football signal experience
+                    throughout the day, with a platform designed around the
+                    continuous nature of virtual football.
                   </p>
                 </div>
               </div>
@@ -294,11 +300,14 @@ export default function Landing() {
 
             <SwiperSlide>
               <div className="feature-card">
-                <img src={autoUpdateIcon} alt="Auto Update" />
+                <img src={autoUpdateIcon} alt="SunStreamers signal updates" />
+
                 <div className="feature-card-content">
                   <p>
-                    Our system continuously updates prediction models using the
-                    latest virtual football data.
+                    <strong>Live Signal Updates</strong>
+                    <br />
+                    Follow available prediction signals and updates as they
+                    become available through the SunStreamers platform.
                   </p>
                 </div>
               </div>
@@ -306,11 +315,16 @@ export default function Landing() {
 
             <SwiperSlide>
               <div className="feature-card">
-                <img src={atmImage} alt="ATM Betting" />
+                <img src={atmImage} alt="Profit-oriented betting approach" />
+
                 <div className="feature-card-content">
                   <p>
-                    Turn your betting account into an ATM. Our predictions help
-                    you make consistent profits.
+                    <strong>Profit-Oriented Approach</strong>
+                    <br />
+                    SunStreamers is designed to help you identify potential
+                    betting opportunities and approach virtual football betting
+                    with a more deliberate strategy. Results are never
+                    guaranteed, and betting involves risk.
                   </p>
                 </div>
               </div>
@@ -323,62 +337,65 @@ export default function Landing() {
 
       <section className="how-works">
         <div className="container">
-          <span className="section-tag">HOW IT WORKS</span>
+          <span className="section-tag">GET STARTED IN THREE STEPS</span>
 
-          <h2>How Rebetas Works</h2>
+          <h2>How SunStreamers Works</h2>
 
           <p className="how-sub">
-            Our AI-powered system analyzes virtual football patterns and
-            generates high-confidence predictions to help you make smarter
-            betting decisions.
+            Getting started is straightforward. Choose your preferred supported
+            platform, access the available signals, and decide how you want to
+            use the information.
           </p>
 
           <div className="steps">
             <div className="step-card">
               <div className="step-number">01</div>
 
-              <h3>Select Betting Platform</h3>
+              <h3>Choose Your Platform</h3>
 
               <p>
-                Choose your preferred virtual football betting platform
-                supported by Rebetas.
+                Select your preferred virtual football betting platform from the
+                supported platforms available on SunStreamers.
               </p>
             </div>
 
             <div className="step-card">
               <div className="step-number">02</div>
 
-              <h3>View AI Predictions</h3>
+              <h3>Access Live Signals</h3>
 
               <p>
-                Our intelligent algorithm analyzes match patterns and generates
-                high-probability predictions.
+                Explore the available virtual football prediction signals for
+                your selected platform and competition.
               </p>
             </div>
 
             <div className="step-card">
               <div className="step-number">03</div>
 
-              <h3>Place Your Bets</h3>
+              <h3>Make Your Betting Decision</h3>
 
               <p>
-                Use the predictions to place smarter bets and increase your
-                winning potential.
+                Assess the available signals, consider your risk, and make your
+                own informed betting decisions.
               </p>
             </div>
           </div>
         </div>
       </section>
 
+      {/* SUPPORTED PLATFORMS */}
+
       <section className="platforms">
         <div className="container">
-          <span className="section-tag">SUPPORTED PLATFORMS</span>
+          <span className="section-tag">OUR PLATFORM NETWORK</span>
 
-          <h2>Betting Platforms Supported by Rebetas</h2>
+          <h2>One Signal Platform. Multiple Betting Platforms.</h2>
 
           <p className="platforms-sub">
-            Rebetas works seamlessly with the most popular virtual football
-            betting platforms.
+            SunStreamers is designed to serve virtual football bettors across
+            multiple supported betting platforms. Select your preferred platform
+            and explore the available competitions.
           </p>
 
           <div className="platform-logos">
@@ -400,18 +417,20 @@ export default function Landing() {
 
       <section className="cta">
         <div className="container cta-inner">
-          <h2>Start Winning With Rebetas Today</h2>
+          <h2>Ready to Experience 24-Hour Virtual Football Signals?</h2>
 
           <p>
-            Create your free account and start accessing AI-powered virtual
-            football predictions instantly.
+            Get started with SunStreamers and explore a profit-oriented virtual
+            football prediction signal platform designed to keep you connected
+            to live signals throughout the day.
           </p>
 
           <Link to="/register" className="cta-button">
-            Create Free Account
+            Create Your Account
           </Link>
         </div>
       </section>
+
       {/* FOOTER */}
 
       <Footer />

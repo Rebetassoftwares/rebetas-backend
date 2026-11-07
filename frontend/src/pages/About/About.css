@@ -1,169 +1,413 @@
-.about-page {
-  background: #0b0b12;
-  color: #ffffff;
+/* =========================================
+   SUNSTREAMERS ABOUT PAGE
+========================================= */
 
-  padding-top: 120px; /* prevents navbar collision */
+.about-page {
+  --about-bg: #0b100e;
+  --about-surface: #101713;
+  --about-card: #141e18;
+  --about-border: rgba(91, 166, 119, 0.16);
+  --about-green: #12a568;
+  --about-green-light: #35d494;
+  --about-gold: #d6b66d;
+  --about-text: #f1f7f3;
+  --about-muted: #a1b3a8;
+
+  background: var(--about-bg);
+  color: var(--about-text);
+  padding-top: 90px;
+  overflow: hidden;
+}
+
+.about-page .container {
+  width: min(1160px, calc(100% - 48px));
+  margin: 0 auto;
 }
 
 .about-page h1,
 .about-page h2,
 .about-page h3 {
-  color: #ffffff;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  color: var(--about-text);
+  font-weight: 750;
+  letter-spacing: -0.035em;
 }
 
 .about-page h2 {
-  font-size: 34px;
-  margin-bottom: 18px;
+  font-size: clamp(30px, 4vw, 43px);
+  line-height: 1.2;
+  margin-bottom: 22px;
 }
 
 .about-page h3 {
-  font-size: 20px;
+  font-size: 21px;
+  line-height: 1.35;
+  margin-bottom: 13px;
 }
 
 .about-page p {
-  color: #bfc3ff;
-  line-height: 1.7;
-  font-size: 16px;
+  color: var(--about-muted);
+  font-size: 15.5px;
+  line-height: 1.85;
 }
 
-/* HERO */
+.about-eyebrow {
+  display: inline-block;
+  color: var(--about-green-light);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2.2px;
+  margin-bottom: 20px;
+  text-transform: uppercase;
+}
+
+/* =========================================
+   HERO
+========================================= */
 
 .about-hero {
+  position: relative;
   text-align: center;
-  padding: 100px 0 70px;
+  padding: 110px 20px 105px;
+  background:
+    radial-gradient(
+      ellipse at 50% 0%,
+      rgba(18, 165, 104, 0.14),
+      transparent 55%
+    ),
+    linear-gradient(180deg, #0d1510 0%, #0b100e 100%);
+}
+
+.about-hero::before,
+.about-hero::after {
+  content: "";
+  position: absolute;
+  width: 250px;
+  height: 250px;
+  border-radius: 50%;
+  filter: blur(100px);
+  opacity: 0.12;
+  pointer-events: none;
+}
+
+.about-hero::before {
+  background: #12a568;
+  top: 10%;
+  left: -130px;
+}
+
+.about-hero::after {
+  background: #d6b66d;
+  bottom: -100px;
+  right: -130px;
+}
+
+.about-hero .container {
+  position: relative;
+  z-index: 1;
 }
 
 .about-hero h1 {
-  font-size: 52px;
-  font-weight: 800;
-  margin-bottom: 20px;
-  text-shadow: 0 0 30px rgba(138, 92, 255, 0.12);
+  max-width: 850px;
+  margin: 0 auto 24px;
+  font-size: clamp(38px, 6vw, 66px);
+  line-height: 1.12;
+  font-weight: 850;
+}
+
+.about-hero h1 span {
+  display: block;
+  color: var(--about-green-light);
 }
 
 .about-hero p {
-  max-width: 720px;
-  margin: auto;
-  color: #d8dcff;
-  line-height: 1.8;
-  font-size: 18px;
+  max-width: 760px;
+  margin: 0 auto;
+  font-size: 17px;
+  line-height: 1.9;
 }
 
-/* STORY */
+/* =========================================
+   STORY
+========================================= */
 
 .about-story {
-  background: #11111b;
-  padding: 90px 0;
+  position: relative;
+  padding: 105px 0;
+  background: var(--about-surface);
+  border-top: 1px solid rgba(255, 255, 255, 0.035);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.035);
 }
 
 .story-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 60px;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 85px;
   align-items: center;
 }
 
-.story-highlight {
-  background: #1a1a28;
-  border: 1px solid #2b2b40;
-  padding: 70px;
-  border-radius: 14px;
-  font-size: 22px;
-  font-weight: 700;
-  color: #ffffff;
-  text-align: center;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+.story-content h2 {
+  max-width: 550px;
 }
 
-/* MISSION */
+.story-content p {
+  margin-bottom: 17px;
+}
+
+.story-highlight {
+  position: relative;
+  overflow: hidden;
+  padding: 60px 45px;
+  min-height: 340px;
+  border: 1px solid rgba(53, 212, 148, 0.3);
+  border-radius: 20px;
+  background:
+    radial-gradient(
+      circle at 85% 10%,
+      rgba(53, 212, 148, 0.17),
+      transparent 42%
+    ),
+    linear-gradient(145deg, #19271f, #111a15);
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.story-highlight::after {
+  content: "";
+  position: absolute;
+  width: 220px;
+  height: 220px;
+  right: -100px;
+  bottom: -120px;
+  border: 1px solid rgba(53, 212, 148, 0.16);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 25px rgba(53, 212, 148, 0.025),
+    0 0 0 50px rgba(53, 212, 148, 0.02);
+}
+
+.highlight-label {
+  color: var(--about-gold);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  margin-bottom: 25px;
+}
+
+.highlight-number {
+  color: var(--about-green-light);
+  font-size: clamp(65px, 8vw, 95px);
+  font-weight: 900;
+  letter-spacing: -6px;
+  line-height: 1;
+  margin-bottom: 22px;
+}
+
+.story-highlight h3 {
+  font-size: 24px;
+}
+
+.story-highlight p {
+  max-width: 380px;
+  margin: 0;
+}
+
+/* =========================================
+   SECTION HEADING
+========================================= */
+
+.section-heading {
+  max-width: 700px;
+  margin: 0 auto 55px;
+  text-align: center;
+}
+
+.section-heading h2 {
+  margin-bottom: 15px;
+}
+
+.section-heading p {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* =========================================
+   MISSION
+========================================= */
 
 .about-mission {
-  padding: 90px 0;
+  padding: 105px 0;
 }
 
 .mission-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 35px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 28px;
 }
 
 .mission-card {
-  background: #1a1a28;
-  border: 1px solid #2b2b40;
+  position: relative;
   padding: 42px;
-  border-radius: 12px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
-  transition: all 0.25s ease;
+  background: linear-gradient(145deg, #152019, #101713);
+  border: 1px solid var(--about-border);
+  border-radius: 16px;
+  transition:
+    transform 0.3s ease,
+    border-color 0.3s ease,
+    background 0.3s ease;
 }
 
 .mission-card:hover {
-  transform: translateY(-4px);
-  border-color: #3b3b5a;
+  transform: translateY(-5px);
+  border-color: rgba(53, 212, 148, 0.42);
+  background: #17241c;
+}
+
+.mission-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  margin-bottom: 25px;
+  border-radius: 12px;
+  background: rgba(18, 165, 104, 0.12);
+  color: var(--about-green-light);
+  font-size: 13px;
+  font-weight: 800;
 }
 
 .mission-card h3 {
-  margin-bottom: 12px;
-  font-weight: 700;
+  margin-bottom: 14px;
 }
 
 .mission-card p {
-  color: #c7cbff;
+  margin: 0;
 }
 
-/* TECHNOLOGY */
+/* =========================================
+   TECHNOLOGY / PRODUCT
+========================================= */
 
 .about-tech {
-  background: #11111b;
-  padding: 90px 0;
+  padding: 105px 0;
+  background: var(--about-surface);
+  border-top: 1px solid rgba(255, 255, 255, 0.035);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.035);
 }
 
 .tech-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 60px;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: 85px;
   align-items: center;
 }
 
 .tech-box {
-  background: #1a1a28;
-  border: 1px solid #2b2b40;
-  padding: 70px;
-  border-radius: 14px;
+  min-height: 390px;
+  padding: 50px 30px;
+  border: 1px solid rgba(53, 212, 148, 0.24);
+  border-radius: 20px;
+  background:
+    radial-gradient(
+      circle at 50% 42%,
+      rgba(18, 165, 104, 0.15),
+      transparent 48%
+    ),
+    linear-gradient(145deg, #17231b, #101713);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   text-align: center;
-  font-size: 22px;
-  font-weight: 700;
-  color: #ffffff;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
 }
 
-/* WHY */
+.tech-orbit {
+  width: 170px;
+  height: 170px;
+  border: 1px solid rgba(53, 212, 148, 0.35);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0 0 0 18px rgba(18, 165, 104, 0.045),
+    0 0 0 36px rgba(18, 165, 104, 0.025);
+  margin-bottom: 40px;
+}
+
+.tech-core {
+  width: 105px;
+  height: 105px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #12a568, #086b43);
+  color: #ffffff;
+  font-size: 34px;
+  font-weight: 900;
+  box-shadow: 0 10px 40px rgba(18, 165, 104, 0.25);
+}
+
+.tech-caption {
+  color: var(--about-gold);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 3px;
+  margin-bottom: 12px;
+}
+
+.tech-box h3 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.tech-content h2 {
+  max-width: 540px;
+}
+
+.tech-content p {
+  margin-bottom: 17px;
+}
+
+/* =========================================
+   WHY SUNSTREAMERS
+========================================= */
 
 .about-why {
-  padding: 90px 0;
-  text-align: center;
+  padding: 105px 0;
 }
 
 .why-grid {
-  margin-top: 55px;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 32px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 22px;
 }
 
 .why-card {
-  background: #1a1a28;
-  border: 1px solid #2b2b40;
-  padding: 42px;
-  border-radius: 12px;
-  transition: all 0.25s ease;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+  padding: 35px;
+  border-radius: 15px;
+  border: 1px solid var(--about-border);
+  background: linear-gradient(145deg, #152019, #101713);
+  transition:
+    transform 0.3s ease,
+    border-color 0.3s ease;
 }
 
 .why-card:hover {
-  transform: translateY(-6px);
-  background: #222238;
-  border-color: #3b3b5a;
+  transform: translateY(-5px);
+  border-color: rgba(53, 212, 148, 0.4);
+}
+
+.why-number {
+  display: block;
+  color: var(--about-green-light);
+  font-size: 12px;
+  font-weight: 850;
+  letter-spacing: 1.5px;
+  margin-bottom: 25px;
 }
 
 .why-card h3 {
@@ -171,57 +415,163 @@
 }
 
 .why-card p {
-  color: #c7cbff;
+  margin: 0;
 }
 
-/* MOBILE */
+/* =========================================
+   RESPONSIBLE USE
+========================================= */
 
-@media (max-width: 768px) {
-  .about-hero {
-    padding: 70px 20px 40px;
-  }
+.about-responsibility {
+  padding: 75px 0;
+  background:
+    linear-gradient(
+      110deg,
+      rgba(18, 165, 104, 0.1),
+      rgba(214, 182, 109, 0.035)
+    ),
+    #101713;
+  border-top: 1px solid var(--about-border);
+}
 
-  .about-hero h1 {
-    font-size: 36px;
-  }
+.responsibility-content {
+  max-width: 850px;
+  text-align: center;
+}
 
-  .about-hero p {
-    font-size: 16px;
-  }
+.responsibility-content h2 {
+  margin-bottom: 20px;
+}
 
-  /* STORY */
+.responsibility-content p {
+  max-width: 760px;
+  margin: 0 auto 13px;
+}
 
-  .story-grid {
-    grid-template-columns: 1fr;
-    gap: 40px;
+/* =========================================
+   TABLET
+========================================= */
+
+@media (max-width: 900px) {
+  .story-grid,
+  .tech-grid {
+    gap: 45px;
   }
 
   .story-highlight {
-    padding: 45px;
-    font-size: 20px;
-  }
-
-  /* MISSION */
-
-  .mission-grid {
-    grid-template-columns: 1fr;
-  }
-
-  /* TECHNOLOGY */
-
-  .tech-grid {
-    grid-template-columns: 1fr;
-    gap: 40px;
+    padding: 45px 35px;
   }
 
   .tech-box {
-    padding: 45px;
-    font-size: 20px;
+    min-height: 350px;
+  }
+}
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 768px) {
+  .about-page {
+    padding-top: 75px;
   }
 
-  /* WHY */
+  .about-page .container {
+    width: min(100% - 36px, 600px);
+  }
 
+  .about-hero {
+    padding: 80px 18px 75px;
+  }
+
+  .about-hero h1 {
+    font-size: clamp(35px, 9vw, 48px);
+  }
+
+  .about-hero p {
+    font-size: 15px;
+  }
+
+  .about-story,
+  .about-mission,
+  .about-tech,
+  .about-why {
+    padding: 75px 0;
+  }
+
+  .story-grid,
+  .tech-grid {
+    grid-template-columns: 1fr;
+    gap: 45px;
+  }
+
+  .story-highlight {
+    min-height: 290px;
+    padding: 40px 30px;
+  }
+
+  .highlight-number {
+    font-size: 75px;
+  }
+
+  .mission-grid,
   .why-grid {
     grid-template-columns: 1fr;
+    gap: 17px;
+  }
+
+  .mission-card,
+  .why-card {
+    padding: 30px;
+  }
+
+  .section-heading {
+    margin-bottom: 38px;
+  }
+
+  .tech-box {
+    min-height: 320px;
+  }
+
+  .about-responsibility {
+    padding: 65px 0;
+  }
+}
+
+/* =========================================
+   SMALL MOBILE
+========================================= */
+
+@media (max-width: 420px) {
+  .about-page h2 {
+    font-size: 29px;
+  }
+
+  .about-hero h1 {
+    font-size: 34px;
+  }
+
+  .about-eyebrow {
+    font-size: 10px;
+    letter-spacing: 1.6px;
+  }
+
+  .story-highlight {
+    padding: 35px 25px;
+  }
+
+  .highlight-number {
+    font-size: 65px;
+  }
+
+  .tech-orbit {
+    width: 145px;
+    height: 145px;
+  }
+
+  .tech-core {
+    width: 90px;
+    height: 90px;
+    font-size: 29px;
   }
 }

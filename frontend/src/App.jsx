@@ -1,7 +1,9 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import RouteTracker from "./components/tracking/RouteTracker";
+import TrackingConsent from "./components/tracking/TrackingConsent";
 import { isLoggedIn, getStoredUser } from "./utils/auth";
 //import MaintenanceScreen from "./components/MaintenanceScreen";
-import AutoPilotLaunchPopup from "./components/AutoPilotLaunchPopup/AutoPilotLaunchPopup.jsx";
+//import AutoPilotLaunchPopup from "./components/AutoPilotLaunchPopup/AutoPilotLaunchPopup.jsx";
 
 /* PUBLIC */
 import Landing from "./pages/Landing/Landing";
@@ -93,7 +95,9 @@ function App() {
 
   return (
     <BrowserRouter>
-      <AutoPilotLaunchPopup />
+      <RouteTracker />
+      <TrackingConsent />
+
       <Routes>
         {/* -------- PUBLIC -------- */}
         <Route path="/" element={<Landing />} />

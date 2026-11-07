@@ -1,28 +1,29 @@
 import Navbar from "../../components/Navbar/Navbar";
 import Footer from "../../components/Footer/Footer";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import ReactCountryFlag from "react-country-flag";
 import { COUNTRIES } from "../../data/countries";
 import "./Register.css";
 import api from "../../services/api";
+import { trackEvent } from "../../services/tracking";
 
 export default function Register() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const referralFromLink = searchParams.get("ref");
 
+  const registrationStarted = useRef(false);
+
   const [formData, setFormData] = useState({
     username: "",
     fullName: "",
     email: "",
     phone: "",
-
     country: "",
     countryIsoCode: "",
     countryDialCode: "+44",
     currency: "",
-
     referralCode: referralFromLink || "",
     promoCode: "",
     password: "",
@@ -31,7 +32,6 @@ export default function Register() {
 
   const [search, setSearch] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
-
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -45,6 +45,16 @@ export default function Register() {
   const filteredCountries = COUNTRIES.filter((c) =>
     c.name.toLowerCase().includes(search.toLowerCase()),
   );
+
+  function handleRegistrationStart() {
+    if (registrationStarted.current) return;
+
+    registrationStarted.current = true;
+
+    trackEvent("Lead", {
+      content_name: "SunStreamers Registration",
+    });
+  }
 
   function handleChange(e) {
     const { name, value } = e.target;
@@ -121,6 +131,10 @@ export default function Register() {
 
       setSuccess(response.message || "Registration successful");
 
+      trackEvent("CompleteRegistration", {
+        content_name: "SunStreamers Account Registration",
+      });
+
       setTimeout(() => navigate("/login"), 1500);
     } catch (err) {
       setError(err.message || "Registration failed");
@@ -136,167 +150,261 @@ export default function Register() {
       <section className="register-section">
         <div className="container register-layout">
           <div className="register-info">
-            <h1>Create Your Account</h1>
+            <span className="register-eyebrow">JOIN SUNSTREAMERS</span>
+
+            <h1>
+              Your Next Move
+              <span> Starts Here.</span>
+            </h1>
+
             <p>
-              Join Rebetas and access powerful AI-driven virtual football
-              predictions.
+              Create your SunStreamers account and get access to our 24-hour
+              virtual football prediction signal experience. Explore available
+              signals, access your account dashboard and take control of your
+              betting decisions.
             </p>
+
+            <div className="register-benefits">
+              <div className="register-benefit">
+                <span className="register-benefit-icon">✓</span>
+                <span>Access your personal dashboard</span>
+              </div>
+
+              <div className="register-benefit">
+                <span className="register-benefit-icon">✓</span>
+                <span>Explore available virtual football signals</span>
+              </div>
+
+              <div className="register-benefit">
+                <span className="register-benefit-icon">✓</span>
+                <span>Manage your account and subscription</span>
+              </div>
+            </div>
+
+            <div className="register-performance">
+              <strong>85%</strong>
+              <div>
+                <span>Reported winning rate</span>
+              </div>
+            </div>
           </div>
 
           <div className="register-card">
-            <h2>Register</h2>
+            <div className="register-card-heading">
+              <span className="register-card-kicker">CREATE YOUR ACCOUNT</span>
+              <h2>Get Started</h2>
+              <p>Enter your details to create your SunStreamers account.</p>
+            </div>
 
-            <form className="register-form" onSubmit={handleSubmit}>
-              <input
-                name="username"
-                placeholder="Username"
-                value={formData.username}
-                onChange={handleChange}
-              />
+            <form
+              className="register-form"
+              onSubmit={handleSubmit}
+              onFocusCapture={handleRegistrationStart}
+            >
+              <div className="register-field">
+                <label htmlFor="register-username">Username</label>
+                <input
+                  id="register-username"
+                  name="username"
+                  placeholder="Choose a username"
+                  value={formData.username}
+                  onChange={handleChange}
+                  autoComplete="username"
+                />
+              </div>
 
-              <input
-                name="fullName"
-                placeholder="Full Name"
-                value={formData.fullName}
-                onChange={handleChange}
-              />
+              <div className="register-field">
+                <label htmlFor="register-fullname">Full name</label>
+                <input
+                  id="register-fullname"
+                  name="fullName"
+                  placeholder="Enter your full name"
+                  value={formData.fullName}
+                  onChange={handleChange}
+                  autoComplete="name"
+                />
+              </div>
 
-              <input
-                name="email"
-                placeholder="Email Address"
-                value={formData.email}
-                onChange={handleChange}
-              />
+              <div className="register-field">
+                <label htmlFor="register-email">Email address</label>
+                <input
+                  id="register-email"
+                  type="email"
+                  name="email"
+                  placeholder="Enter your email address"
+                  value={formData.email}
+                  onChange={handleChange}
+                  autoComplete="email"
+                />
+              </div>
 
-              <div className="phone-group">
-                <div
-                  className="country-selector"
-                  onClick={() => setShowDropdown(!showDropdown)}
-                >
-                  {formData.countryIsoCode && (
-                    <ReactCountryFlag
-                      countryCode={formData.countryIsoCode}
-                      svg
-                      style={{ width: "20px", height: "20px" }}
-                    />
+              <div className="register-field">
+                <label htmlFor="register-phone">Phone number</label>
+                <div className="phone-group">
+                  <div
+                    className="country-selector"
+                    onClick={() => setShowDropdown(!showDropdown)}
+                  >
+                    {formData.countryIsoCode && (
+                      <ReactCountryFlag
+                        countryCode={formData.countryIsoCode}
+                        svg
+                        style={{ width: "20px", height: "20px" }}
+                      />
+                    )}
+
+                    <span>{formData.countryDialCode}</span>
+                    <span className="country-selector-arrow">⌄</span>
+                  </div>
+
+                  <input
+                    id="register-phone"
+                    type="text"
+                    name="phone"
+                    placeholder="Phone number"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    autoComplete="tel-national"
+                  />
+
+                  {showDropdown && (
+                    <div className="country-dropdown">
+                      <input
+                        placeholder="Search country..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                      />
+
+                      <div className="country-list">
+                        {filteredCountries.map((c) => (
+                          <div
+                            key={c.code}
+                            className="country-item"
+                            onClick={() => selectCountry(c)}
+                          >
+                            <ReactCountryFlag
+                              countryCode={c.code}
+                              svg
+                              style={{ width: "20px", height: "20px" }}
+                            />
+
+                            <span>{c.name}</span>
+                            <span>{c.dial}</span>
+                            <span>{c.currency}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   )}
+                </div>
+              </div>
 
-                  <span>{formData.countryDialCode}</span>
+              <div className="register-two-column">
+                <div className="register-field">
+                  <label htmlFor="register-country">Country</label>
+                  <input
+                    id="register-country"
+                    name="country"
+                    placeholder="Select country above"
+                    value={formData.country}
+                    readOnly
+                  />
                 </div>
 
-                <input
-                  type="text"
-                  name="phone"
-                  placeholder="Phone Number"
-                  value={formData.phone}
-                  onChange={handleChange}
-                />
-
-                {showDropdown && (
-                  <div className="country-dropdown">
-                    <input
-                      placeholder="Search country..."
-                      value={search}
-                      onChange={(e) => setSearch(e.target.value)}
-                    />
-
-                    <div className="country-list">
-                      {filteredCountries.map((c) => (
-                        <div
-                          key={c.code}
-                          className="country-item"
-                          onClick={() => selectCountry(c)}
-                        >
-                          <ReactCountryFlag
-                            countryCode={c.code}
-                            svg
-                            style={{ width: "20px", height: "20px" }}
-                          />
-
-                          <span>{c.name}</span>
-                          <span>{c.dial}</span>
-                          <span>{c.currency}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                <div className="register-field">
+                  <label htmlFor="register-currency">Currency</label>
+                  <input
+                    id="register-currency"
+                    name="currency"
+                    placeholder="Currency"
+                    value={formData.currency}
+                    readOnly
+                  />
+                </div>
               </div>
 
-              <input
-                name="country"
-                placeholder="Country"
-                value={formData.country}
-                readOnly
-              />
+              <div className="register-field">
+                <label htmlFor="register-password">Password</label>
+                <div className="password-group">
+                  <input
+                    id="register-password"
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    placeholder="Create a password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    autoComplete="new-password"
+                  />
 
-              <input
-                name="currency"
-                placeholder="Currency"
-                value={formData.currency}
-                readOnly
-              />
-
-              <div className="password-group">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  placeholder="Password"
-                  value={formData.password}
-                  onChange={handleChange}
-                />
-
-                <span onClick={() => setShowPassword(!showPassword)}>
-                  {showPassword ? "🙈" : "👁️"}
-                </span>
+                  <span onClick={() => setShowPassword(!showPassword)}>
+                    {showPassword ? "🙈" : "👁️"}
+                  </span>
+                </div>
               </div>
 
-              <div className="password-group">
-                <input
-                  type={showConfirmPassword ? "text" : "password"}
-                  name="confirmPassword"
-                  placeholder="Confirm Password"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                />
+              <div className="register-field">
+                <label htmlFor="register-confirm-password">
+                  Confirm password
+                </label>
+                <div className="password-group">
+                  <input
+                    id="register-confirm-password"
+                    type={showConfirmPassword ? "text" : "password"}
+                    name="confirmPassword"
+                    placeholder="Enter your password again"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    autoComplete="new-password"
+                  />
 
-                <span
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                >
-                  {showConfirmPassword ? "🙈" : "👁️"}
-                </span>
+                  <span
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                    {showConfirmPassword ? "🙈" : "👁️"}
+                  </span>
+                </div>
               </div>
 
-              <input
-                name="referralCode"
-                placeholder="Referral Code"
-                value={formData.referralCode}
-                readOnly={!!referralFromLink}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    referralCode: e.target.value.toUpperCase(),
-                  }))
-                }
-              />
+              <div className="register-two-column">
+                <div className="register-field">
+                  <label htmlFor="register-referral">Referral code</label>
+                  <input
+                    id="register-referral"
+                    name="referralCode"
+                    placeholder="Referral code"
+                    value={formData.referralCode}
+                    readOnly={!!referralFromLink}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        referralCode: e.target.value.toUpperCase(),
+                      }))
+                    }
+                  />
+                </div>
 
-              <input
-                name="promoCode"
-                placeholder="Promo Code"
-                value={formData.promoCode}
-                onChange={(e) => {
-                  handleChange(e);
-                  handlePromoPreview(e.target.value);
-                }}
-              />
+                <div className="register-field">
+                  <label htmlFor="register-promo">Promo code</label>
+                  <input
+                    id="register-promo"
+                    name="promoCode"
+                    placeholder="Promo code"
+                    value={formData.promoCode}
+                    onChange={(e) => {
+                      handleChange(e);
+                      handlePromoPreview(e.target.value);
+                    }}
+                  />
+                </div>
+              </div>
 
               {checkingPromo && (
-                <p style={{ color: "#a855f7" }}>Checking promo...</p>
+                <p className="promo-feedback">Checking promo code...</p>
               )}
 
               {promoPreview && promoPreview.valid && (
                 <div className="promo-preview success">
-                  <div className="promo-title">🎉 Promo code applied!</div>
+                  <div className="promo-title">Promo code applied</div>
 
                   {promoPreview.discountPercent > 0 && (
                     <div className="promo-line">
@@ -327,7 +435,7 @@ export default function Register() {
                 </div>
               )}
 
-              {promoError && <p style={{ color: "#ff6b6b" }}>{promoError}</p>}
+              {promoError && <p className="register-error">{promoError}</p>}
 
               <label className="terms-checkbox">
                 <input
@@ -342,16 +450,17 @@ export default function Register() {
                 </span>
               </label>
 
-              {error && <p style={{ color: "#ff6b6b" }}>{error}</p>}
-              {success && <p style={{ color: "#22c55e" }}>{success}</p>}
+              {error && <p className="register-error">{error}</p>}
+              {success && <p className="register-success">{success}</p>}
 
               <button type="submit" disabled={loading}>
-                {loading ? "Creating Account..." : "Create Account"}
+                {loading ? "Creating Account..." : "Create My Account"}
+                {!loading && <span>→</span>}
               </button>
             </form>
 
             <p className="register-login">
-              Already have an account? <Link to="/login">Login</Link>
+              Already have an account? <Link to="/login">Log in</Link>
             </p>
           </div>
         </div>

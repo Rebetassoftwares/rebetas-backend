@@ -14,8 +14,6 @@ export default function SupportedPlatforms() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  /* ---------------- LOAD DATA ---------------- */
-
   useEffect(() => {
     async function loadLeagues() {
       try {
@@ -30,11 +28,7 @@ export default function SupportedPlatforms() {
             ? res
             : [];
 
-        // ✅ DO NOT FILTER (info page)
         const validLeagues = safeData;
-
-        /* ---------------- GROUP BY PLATFORM ---------------- */
-
         const grouped = {};
 
         validLeagues.forEach((league) => {
@@ -42,7 +36,6 @@ export default function SupportedPlatforms() {
 
           if (!platform) return;
 
-          // 🔥 handle populated vs string
           if (typeof platform === "string") {
             platform = {
               _id: platform,
@@ -63,7 +56,6 @@ export default function SupportedPlatforms() {
           grouped[platform._id].leagues.push(league);
         });
 
-        // ✅ keep only platforms that actually have leagues
         const cleaned = Object.fromEntries(
           Object.entries(grouped).filter(
             ([, platform]) => platform.leagues.length > 0,
@@ -73,7 +65,9 @@ export default function SupportedPlatforms() {
         setGroupedPlatforms(cleaned);
       } catch (err) {
         console.error("League fetch error:", err);
-        setError("Failed to load supported platforms and leagues");
+        setError(
+          "We couldn't retrieve the platform information. Please try again.",
+        );
       } finally {
         setLoading(false);
       }
@@ -82,101 +76,167 @@ export default function SupportedPlatforms() {
     loadLeagues();
   }, []);
 
+  const platforms = Object.values(groupedPlatforms);
+  const totalLeagues = platforms.reduce(
+    (total, platform) => total + platform.leagues.length,
+    0,
+  );
+
   return (
     <div className="platforms-page">
       {isLoggedIn ? <DashboardNavbar /> : <Navbar />}
 
-      {/* HERO */}
       <section className="platforms-hero">
         <div className="container">
-          <h1>Supported Platforms & Virtual Leagues</h1>
+          <span className="platforms-eyebrow">SUNSTREAMERS COMPATIBILITY</span>
+
+          <h1>
+            One Signal Service.
+            <span> Supported Virtual Football Platforms.</span>
+          </h1>
 
           <p>
-            Rebetas works with the most popular virtual football betting
-            platforms and leagues to deliver accurate AI-powered predictions.
+            Explore the betting platforms and virtual football leagues currently
+            supported by SunStreamers. Find the platforms available for
+            following our prediction signals.
           </p>
+
+          <div className="platforms-hero-stats">
+            <div className="platforms-stat">
+              <strong>{loading ? "—" : platforms.length}</strong>
+              <span>Supported platforms</span>
+            </div>
+
+            <div className="platforms-stat-divider" />
+
+            <div className="platforms-stat">
+              <strong>{loading ? "—" : totalLeagues}</strong>
+              <span>Available leagues</span>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* LOADING */}
       {loading && (
-        <div className="container">
-          <p className="info-text">Loading platforms...</p>
+        <div className="platforms-feedback container" role="status">
+          <span className="platforms-loader" />
+          <p>Retrieving supported platforms and leagues...</p>
         </div>
       )}
 
-      {/* ERROR */}
-      {error && (
-        <div className="container">
-          <p className="error-text">{error}</p>
+      {!loading && error && (
+        <div className="platforms-feedback container" role="alert">
+          <p className="platforms-error">{error}</p>
         </div>
       )}
 
-      {/* EMPTY */}
-      {!loading && !error && Object.keys(groupedPlatforms).length === 0 && (
-        <div className="container">
-          <p className="info-text">No platforms available yet.</p>
+      {!loading && !error && platforms.length === 0 && (
+        <div className="platforms-feedback container">
+          <p>No supported platforms or leagues are currently available.</p>
         </div>
       )}
 
-      {/* PLATFORMS */}
-      {!loading && !error && (
-        <section className="platform-section">
-          <div className="container">
-            <h2>Supported Betting Platforms</h2>
+      {!loading && !error && platforms.length > 0 && (
+        <>
+          <section className="platform-section">
+            <div className="container">
+              <div className="platform-section-heading">
+                <div>
+                  <span className="platforms-section-label">
+                    PLATFORM COMPATIBILITY
+                  </span>
+                  <h2>Supported Betting Platforms</h2>
+                  <p>
+                    These are the platforms represented in the current
+                    SunStreamers supported-league database.
+                  </p>
+                </div>
+              </div>
 
-            <div className="platform-grid">
-              {Object.values(groupedPlatforms).map((platform) => (
-                <div key={platform._id} className="platform-card">
-                  {platform.logo ? (
-                    <img
-                      src={getImageUrl(platform.logo)}
-                      alt={platform.name}
-                      onError={(e) => {
-                        e.currentTarget.style.display = "none";
-                      }}
-                    />
-                  ) : (
-                    <div className="platform-placeholder">{platform.name}</div>
-                  )}
+              <div className="platform-grid">
+                {platforms.map((platform) => (
+                  <div key={platform._id} className="platform-card">
+                    <div className="platform-logo-wrap">
+                      {platform.logo ? (
+                        <img
+                          src={getImageUrl(platform.logo)}
+                          alt={`${platform.name} logo`}
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                          }}
+                        />
+                      ) : (
+                        <span className="platform-initial">
+                          {platform.name?.charAt(0)?.toUpperCase()}
+                        </span>
+                      )}
+                    </div>
+
+                    <span className="platform-name">{platform.name}</span>
+
+                    <span className="platform-league-count">
+                      {platform.leagues.length}{" "}
+                      {platform.leagues.length === 1 ? "league" : "leagues"}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          <section className="league-section">
+            <div className="container">
+              <div className="platform-section-heading">
+                <div>
+                  <span className="platforms-section-label">
+                    VIRTUAL FOOTBALL COVERAGE
+                  </span>
+                  <h2>Available Virtual Football Leagues</h2>
+                  <p>
+                    Browse the virtual football leagues associated with each
+                    supported platform.
+                  </p>
+                </div>
+              </div>
+
+              {platforms.map((platform) => (
+                <div className="league-platform-group" key={platform._id}>
+                  <div className="league-platform-heading">
+                    <h3>{platform.name}</h3>
+                    <span>
+                      {platform.leagues.length}{" "}
+                      {platform.leagues.length === 1 ? "league" : "leagues"}
+                    </span>
+                  </div>
+
+                  <div className="league-grid">
+                    {platform.leagues.map((league) => (
+                      <div key={league._id} className="league-card">
+                        <div className="league-logo-wrap">
+                          {league.logo ? (
+                            <img
+                              src={getImageUrl(league.logo)}
+                              alt={`${league.leagueName} logo`}
+                              onError={(e) => {
+                                e.currentTarget.style.display = "none";
+                              }}
+                            />
+                          ) : (
+                            <span className="league-initial">
+                              {league.leagueName?.charAt(0)?.toUpperCase()}
+                            </span>
+                          )}
+                        </div>
+
+                        <span className="league-name">{league.leagueName}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ))}
             </div>
-          </div>
-        </section>
-      )}
-
-      {/* LEAGUES */}
-      {!loading && !error && (
-        <section className="league-section">
-          <div className="container">
-            <h2>Virtual Football Leagues</h2>
-
-            <div className="league-grid">
-              {Object.values(groupedPlatforms).map((platform) =>
-                platform.leagues.map((league) => (
-                  <div key={league._id} className="league-card">
-                    {league.logo ? (
-                      <img
-                        src={getImageUrl(league.logo)}
-                        alt={league.leagueName}
-                        onError={(e) => {
-                          e.currentTarget.style.display = "none";
-                        }}
-                      />
-                    ) : (
-                      <div className="league-placeholder">
-                        {league.leagueName?.charAt(0)}
-                      </div>
-                    )}
-
-                    <span>{league.leagueName}</span>
-                  </div>
-                )),
-              )}
-            </div>
-          </div>
-        </section>
+          </section>
+        </>
       )}
 
       <Footer />
