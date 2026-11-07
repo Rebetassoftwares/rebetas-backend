@@ -60,28 +60,56 @@ const adminCurrencyRoutes = require("./routes/adminCurrencyRoutes");
 
 const app = express();
 
+/*
+CORS CONFIGURATION
+*/
+const allowedOrigins = [
+  "http://localhost:5173",
+
+  // SunStreamers production domains
+  "https://sunstreamers.com",
+  "https://www.sunstreamers.com",
+
+  // Legacy Rebetas domains - retain during migration
+  "https://rebetas.com",
+  "https://www.rebetas.com",
+
+  // Railway environment configuration
+  process.env.CLIENT_URL,
+].filter(Boolean);
+
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173", // development
-      "https://rebetas.com", // production
-      "https://www.rebetas.com",
-    ],
+    origin: (origin, callback) => {
+      // Allow requests without an Origin header
+      // (e.g. server-to-server requests)
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error(`CORS blocked this origin: ${origin}`));
+    },
     credentials: true,
   }),
 );
 
+/*
+FLUTTERWAVE WEBHOOK
+RAW BODY REQUIRED
+*/
 app.use("/api/flutterwave/webhook", express.raw({ type: "application/json" }));
 app.use("/api/flutterwave/webhook", flutterwaveUnifiedWebhookRoutes);
 
 /*
-PAYMENT WEBHOOK ROUTE (RAW BODY REQUIRED)
+PAYMENT WEBHOOK ROUTE
+RAW BODY REQUIRED
 */
 app.use("/api/payments/webhook", express.raw({ type: "application/json" }));
 app.use("/api/payments/webhook", paymentWebhookRoutes);
 
 /*
-🔥 NEW: FLUTTERWAVE TRANSFER WEBHOOK (RAW BODY REQUIRED)
+FLUTTERWAVE TRANSFER WEBHOOK
+RAW BODY REQUIRED
 */
 app.use("/api/webhooks/flutterwave", express.raw({ type: "application/json" }));
 app.use("/api/webhooks/flutterwave", webhookRoutes);
@@ -125,17 +153,21 @@ app.use("/api/manual-leagues", manualLeagueRoutes);
 app.use("/api/manual-predictions", manualPredictionRoutes);
 app.use("/api/public/predictions", publicPredictionRoutes);
 app.use("/api/settings", settingsRoutes);
+
 app.use("/api/admin/investment-packages", adminInvestmentPackageRoutes);
 app.use("/api/investments", investmentRoutes);
 app.use("/api/investments", investmentPaymentRoutes);
+
 app.use("/api/admin/autopilot-withdrawals", adminInvestmentWithdrawalRoutes);
 app.use("/api/autopilot-webhooks", autoPilotFlutterwaveWebhookRoutes);
 app.use("/api/admin/autopilot-dashboard", adminInvestmentDashboardRoutes);
 app.use("/api/admin/autopilot-transactions", adminInvestmentTransactionRoutes);
 app.use("/api/admin/autopilot-manual-profit", adminManualProfitRoutes);
 app.use("/api/admin/autopilot-analytics", adminInvestmentAnalyticsRoutes);
+
 app.use("/api/notifications", userNotificationRoutes);
 app.use("/api/admin/notifications", adminNotificationRoutes);
+
 app.use("/api/admin/autopilot-daily-profit", adminDailyProfitRoutes);
 app.use("/api/admin/autopilot-accounts", adminInvestmentAccountRoutes);
 app.use("/api/admin/currency-rates", adminCurrencyRoutes);
@@ -145,7 +177,8 @@ HEALTH CHECK
 */
 app.get("/", (req, res) => {
   res.json({
-    message: "Rebetas backend is running",
+    success: true,
+    message: "SunStreamers backend is running",
   });
 });
 
@@ -174,6 +207,7 @@ app.get("/server-ip", async (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 const seedDefaultPricing = require("./config/seedPricing");
+
 /*
 ENSURE SYSTEM STATE EXISTS
 */
@@ -207,10 +241,10 @@ async function startServer() {
   });
 
   app.listen(PORT, () => {
-    console.log(`Rebetas server running on port ${PORT}`);
+    console.log(`SunStreamers server running on port ${PORT}`);
 
-    //startRoundScheduler();
-    //console.log("Round scheduler started");
+    // startRoundScheduler();
+    // console.log("Round scheduler started");
 
     // Run every minute
     setInterval(() => {
