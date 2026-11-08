@@ -1,8 +1,13 @@
 const ManualLeague = require("../models/ManualLeague");
 const ManualPrediction = require("../models/ManualPrediction");
 const SystemState = require("../models/SystemState");
+
 const { getStake } = require("./martingaleService");
 const { calculateCycles } = require("../utils/cycleCalculator");
+
+const {
+  settlePreviousSemiAutoPredictions,
+} = require("./semiAutoSettlementService");
 
 function pickRandomOdd(min, max) {
   const value = Math.random() * (max - min) + min;
@@ -25,6 +30,7 @@ async function runSemiAuto() {
     const now = new Date();
 
     const systemState = await SystemState.findOne({ key: "main" });
+
     if (!systemState) {
       console.error("Semi-auto error: System state not initialized");
       return;
@@ -50,6 +56,7 @@ async function runSemiAuto() {
         }
 
         const firstTime = new Date(league.firstPredictionTime);
+
         if (Number.isNaN(firstTime.getTime())) {
           continue;
         }
@@ -67,6 +74,7 @@ async function runSemiAuto() {
           continue;
         }
 
+        // Calculate only the current prediction slot.
         const elapsed = now.getTime() - firstTime.getTime();
         const slotIndex = Math.floor(elapsed / intervalMs);
 
@@ -74,6 +82,7 @@ async function runSemiAuto() {
           firstTime.getTime() + slotIndex * intervalMs,
         );
 
+        // Prevent duplicate predictions for the current slot.
         const existing = await ManualPrediction.findOne({
           leagueId: league._id,
           type: "SEMI_AUTO",
@@ -84,19 +93,37 @@ async function runSemiAuto() {
           continue;
         }
 
-        const team = pickRandomTeam(league.teams);
+        // Settle older predictions before calculating the next stake.
+        try {
+          await settlePreviousSemiAutoPredictions(league, scheduledFor);
+        } catch (settlementError) {
+          console.error(
+            `Semi-auto settlement error (${league.platform} - ${league.leagueName}):`,
+            settlementError,
+          );
+        }
+
+        // Reload the league to use its latest capital after settlement.
+        const currentLeague = await ManualLeague.findById(league._id);
+
+        if (!currentLeague || !currentLeague.isActive) {
+          continue;
+        }
+
+        const team = pickRandomTeam(currentLeague.teams);
 
         const odd = pickRandomOdd(
-          Number(league.oddRange.min),
-          Number(league.oddRange.max),
+          Number(currentLeague.oddRange.min),
+          Number(currentLeague.oddRange.max),
         );
 
-        const capital = Number(league.capital);
+        // Flat staking: percentage of this league's current capital.
+        const capital = Number(currentLeague.capital);
         const basePercent = Number(systemState.baseStakePercent);
 
         if (!Number.isFinite(capital) || !Number.isFinite(basePercent)) {
           console.error(
-            `Invalid stake inputs (${league.platform} - ${league.leagueName})`,
+            `Invalid stake inputs (${currentLeague.platform} - ${currentLeague.leagueName})`,
             { capital, basePercent },
           );
           continue;
@@ -105,7 +132,7 @@ async function runSemiAuto() {
         const stake = getStake(capital, basePercent);
 
         const lastPrediction = await ManualPrediction.findOne({
-          leagueId: league._id,
+          leagueId: currentLeague._id,
           type: "SEMI_AUTO",
         }).sort({ scheduledFor: -1 });
 
@@ -113,22 +140,22 @@ async function runSemiAuto() {
 
         const shouldReset =
           !lastPrediction ||
-          (league.lastUpdatedAt &&
-            new Date(league.lastUpdatedAt) >
+          (currentLeague.lastUpdatedAt &&
+            new Date(currentLeague.lastUpdatedAt) >
               new Date(lastPrediction.createdAt));
 
         let cycles;
 
         if (shouldReset) {
-          cycles = calculateCycles(league, null);
+          cycles = calculateCycles(currentLeague, null);
         } else {
-          cycles = calculateCycles(league, lastPrediction.cycles);
+          cycles = calculateCycles(currentLeague, lastPrediction.cycles);
         }
 
         await ManualPrediction.create({
-          leagueId: league._id,
-          platform: league.platform,
-          leagueName: league.leagueName,
+          leagueId: currentLeague._id,
+          platform: currentLeague.platform,
+          leagueName: currentLeague.leagueName,
           type: "SEMI_AUTO",
           team: team.name,
           odd,
@@ -141,7 +168,7 @@ async function runSemiAuto() {
       } catch (err) {
         console.error(
           `Semi-auto league error (${league.platform} - ${league.leagueName}):`,
-          err.message,
+          err,
         );
       }
     }
