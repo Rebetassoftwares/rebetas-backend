@@ -1,6 +1,10 @@
 const SystemState = require("../models/SystemState");
 const ManualLeague = require("../models/ManualLeague");
 
+const {
+  recomputeSemiAutoHistory,
+} = require("../services/semiAutoRecomputeService");
+
 /* ------------------------------
 GET SYSTEM SETTINGS
 ------------------------------*/
@@ -31,7 +35,6 @@ async function updateSettings(req, res) {
 
     const updates = {};
 
-    // GLOBAL CAPITAL STILL VALID (seed capital / reset reference)
     if (capital !== undefined) {
       if (typeof capital !== "number" || capital < 0) {
         return res.status(400).json({
@@ -150,6 +153,11 @@ async function getAllLeagueCapitals(req, res) {
 
 /* ------------------------------
 RESET ALL LEAGUE CAPITALS
+
+SEMI_AUTO:
+- Reset starting capital.
+- Recalculate all existing predictions.
+- Save final recalculated capital.
 ------------------------------*/
 async function resetAllLeagueCapitals(req, res) {
   try {
@@ -163,6 +171,7 @@ async function resetAllLeagueCapitals(req, res) {
 
     const resetAt = new Date();
 
+    // Reset all league capitals and record reset information.
     await ManualLeague.updateMany(
       {},
       {
@@ -174,13 +183,37 @@ async function resetAllLeagueCapitals(req, res) {
       },
     );
 
+    // Only SEMI_AUTO leagues are recalculated here.
+    const semiAutoLeagues = await ManualLeague.find({
+      mode: "SEMI_AUTO",
+    }).select("_id platform leagueName");
+
+    const recalculationResults = [];
+
+    for (const league of semiAutoLeagues) {
+      const result = await recomputeSemiAutoHistory(league._id, capital);
+
+      recalculationResults.push({
+        platform: league.platform,
+        leagueName: league.leagueName,
+        predictionsRecalculated: result.predictionsRecalculated,
+        finalCapital: result.finalCapital,
+      });
+    }
+
     res.json({
       message: "All league capitals reset successfully",
       capital,
+      semiAutoRecalculated: recalculationResults.length,
+      recalculationResults,
     });
   } catch (error) {
-    console.error("Reset all league capitals error:", error.message);
-    res.status(500).json({ message: "Server error" });
+    console.error("Reset all league capitals error:", error);
+
+    res.status(500).json({
+      message: "Capital reset or SEMI_AUTO recalculation failed",
+      error: error.message,
+    });
   }
 }
 
