@@ -55,14 +55,24 @@ const manualLeagueSchema = new mongoose.Schema(
       default: 0,
     },
 
+    // Records the latest administrator capital reset.
+    capitalResetAmount: {
+      type: Number,
+      default: null,
+    },
+
+    capitalResetAt: {
+      type: Date,
+      default: null,
+    },
+
     intervalMinutes: {
       type: Number,
       required: true,
-      min: 0, // ✅ allow 0 now
+      min: 0,
       default: 0,
     },
 
-    // 🔥 NEW FIELD
     intervalSeconds: {
       type: Number,
       default: 0,
@@ -105,7 +115,6 @@ const manualLeagueSchema = new mongoose.Schema(
           required: true,
         },
 
-        // 🔥 NEW FIELD (CRITICAL)
         current: {
           type: Number,
         },

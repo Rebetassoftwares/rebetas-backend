@@ -1,11 +1,14 @@
 const Prediction = require("../models/Prediction");
 const ManualPrediction = require("../models/ManualPrediction");
+const ManualLeague = require("../models/ManualLeague");
 
 /*
 GET HISTORY (NEW ENGINE)
+
 - Uses ManualPrediction (REAL SOURCE)
-- Keeps frontend format intact
+- Preserves existing prediction record format
 - Supports stored platform values in original case or lowercase
+- Also returns league capital reset information
 */
 async function getHistory(req, res) {
   try {
@@ -22,6 +25,11 @@ async function getHistory(req, res) {
       .sort({ scheduledFor: -1, createdAt: -1 })
       .lean();
 
+    const leagueData = await ManualLeague.findOne({
+      platform: { $regex: new RegExp(`^${rawPlatform}$`, "i") },
+      leagueName: { $regex: new RegExp(`^${normalizedLeague}$`, "i") },
+    }).lean();
+
     const history = predictions.map((p) => {
       const match =
         p.homeTeam && p.awayTeam
@@ -32,12 +40,17 @@ async function getHistory(req, res) {
 
       function getISOWeek(dateInput) {
         const d = new Date(dateInput);
+
         const utc = new Date(
           Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()),
         );
+
         const dayNum = utc.getUTCDay() || 7;
+
         utc.setUTCDate(utc.getUTCDate() + 4 - dayNum);
+
         const yearStart = new Date(Date.UTC(utc.getUTCFullYear(), 0, 1));
+
         return String(Math.ceil(((utc - yearStart) / 86400000 + 1) / 7));
       }
 
@@ -53,22 +66,23 @@ async function getHistory(req, res) {
         capitalAfter: p.capitalAfter,
         resultStatus: p.status === "won" ? "WIN" : "LOSS",
 
-        // ✅ FIXED: FULL TIMESTAMP (NOT JUST DATE)
+        // FULL TIMESTAMP
         date: safeDate,
 
         month: safeDate.toLocaleString("default", {
           month: "long",
         }),
 
-        // ❌ REMOVE THIS LINE
-        // week: getISOWeek(safeDate),
-
-        // ✅ ADD THIS (CRITICAL)
         cycles: Array.isArray(p.cycles) ? p.cycles : [],
       };
     });
 
-    res.json(history);
+    res.json({
+      predictions: history,
+      capitalResetAmount: leagueData?.capitalResetAmount ?? null,
+      capitalResetAt: leagueData?.capitalResetAt ?? null,
+      currentCapital: leagueData?.capital ?? null,
+    });
   } catch (error) {
     console.error("History error:", error.message);
 
@@ -80,6 +94,7 @@ async function getHistory(req, res) {
 
 /*
 STORE PREDICTION INTO HISTORY
+
 - Ensures consistency for:
   - platform + league (martingale key)
   - time fields (real-world timing)
@@ -92,7 +107,7 @@ async function storePrediction(record) {
 
     const now = new Date();
 
-    // 🔥 Use provided date or fallback to now
+    // Use provided date or fallback to now
     const baseDate = record.date ? new Date(record.date) : now;
 
     const safeDate = !Number.isNaN(baseDate.getTime()) ? baseDate : now;
@@ -112,6 +127,7 @@ async function storePrediction(record) {
       const utc = new Date(
         Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()),
       );
+
       const dayNum = utc.getUTCDay() || 7;
 
       utc.setUTCDate(utc.getUTCDate() + 4 - dayNum);
@@ -124,11 +140,11 @@ async function storePrediction(record) {
     return await Prediction.create({
       ...record,
 
-      // 🔥 Enforce martingale alignment
+      // Enforce martingale alignment
       platform: String(record.platform).toLowerCase(),
       league: String(record.league).trim(),
 
-      // 🔥 Ensure time consistency (real-world)
+      // Ensure time consistency
       date: record.date || formattedDate,
       month: record.month || formattedMonth,
       week: record.week || getISOWeek(safeDate),

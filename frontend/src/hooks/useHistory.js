@@ -14,7 +14,12 @@ export default function useHistory({
   const [timeEnd, setTimeEnd] = useState("");
   const [singleDate, setSingleDate] = useState(null);
 
-  // 🔥 FETCH HISTORY
+  // CAPITAL RESET INFORMATION
+  const [capitalResetAmount, setCapitalResetAmount] = useState(null);
+  const [capitalResetAt, setCapitalResetAt] = useState(null);
+  const [currentCapital, setCurrentCapital] = useState(null);
+
+  // FETCH HISTORY
   useEffect(() => {
     if (!platformKey || !leagueKey) return;
 
@@ -27,13 +32,24 @@ export default function useHistory({
         const res = await api.get(`/history/${platformKey}/${leagueKey}`);
 
         if (isMounted) {
-          setHistory(Array.isArray(res) ? res : []);
+          setHistory(Array.isArray(res?.predictions) ? res.predictions : []);
+
+          setCapitalResetAmount(res?.capitalResetAmount ?? null);
+
+          setCapitalResetAt(res?.capitalResetAt ?? null);
+
+          setCurrentCapital(res?.currentCapital ?? null);
         }
       } catch (err) {
         console.error("History load error:", err);
-        if (isMounted) setHistory([]);
+
+        if (isMounted) {
+          setHistory([]);
+        }
       } finally {
-        if (isMounted) setLoadingHistory(false);
+        if (isMounted) {
+          setLoadingHistory(false);
+        }
       }
     }
 
@@ -44,28 +60,41 @@ export default function useHistory({
     };
   }, [platformKey, leagueKey]);
 
-  // 🔥 AUTO REFRESH
+  // AUTO REFRESH
   useEffect(() => {
     if (!platformKey || !leagueKey) return;
+
+    let isMounted = true;
 
     const interval = setInterval(async () => {
       try {
         const res = await api.get(`/history/${platformKey}/${leagueKey}`);
-        setHistory(Array.isArray(res) ? res : []);
+
+        if (isMounted) {
+          setHistory(Array.isArray(res?.predictions) ? res.predictions : []);
+
+          setCapitalResetAmount(res?.capitalResetAmount ?? null);
+
+          setCapitalResetAt(res?.capitalResetAt ?? null);
+
+          setCurrentCapital(res?.currentCapital ?? null);
+        }
       } catch (err) {
         console.error("History auto refresh error:", err);
       }
     }, 5000);
 
-    return () => clearInterval(interval);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, [platformKey, leagueKey]);
 
-  // 🔥 FILTERING + SORTING (FIXED)
+  // FILTERING + SORTING
   const filteredPredictions = useMemo(() => {
-    let data = [...history].sort((a, b) => new Date(b.date) - new Date(a.date)); // ✅ CRITICAL FIX
+    let data = [...history].sort((a, b) => new Date(b.date) - new Date(a.date));
 
-    // 🟣 SINGLE DATE FILTER (EXACT MATCH)
-    // 🟣 SINGLE DATE FILTER (HIGHEST PRIORITY)
+    // SINGLE DATE FILTER
     if (singleDate) {
       const targetDate = new Date(singleDate).toDateString();
 
@@ -76,6 +105,7 @@ export default function useHistory({
 
     if (timeframe === "today") {
       const today = new Date().toDateString();
+
       data = data.filter(
         (item) => new Date(item.date).toDateString() === today,
       );
@@ -101,6 +131,7 @@ export default function useHistory({
     if (timeframe === "custom" && customStartDate && customEndDate) {
       data = data.filter((item) => {
         const itemDate = new Date(item.date);
+
         return (
           itemDate >= new Date(customStartDate) &&
           itemDate <= new Date(customEndDate)
@@ -108,27 +139,29 @@ export default function useHistory({
       });
     }
 
-    // 🔥 TIME RANGE FILTER (ONLY FOR today, yesterday, custom)
+    // TIME RANGE FILTER
     const shouldApplyTimeRange =
       timeframe === "today" || timeframe === "yesterday" || Boolean(singleDate);
 
     if (shouldApplyTimeRange && timeStart && timeEnd) {
       data = data.filter((item) => {
         const itemDate = new Date(item.date);
+
         const itemMinutes = itemDate.getHours() * 60 + itemDate.getMinutes();
 
         const [startH, startM] = timeStart.split(":").map(Number);
+
         const [endH, endM] = timeEnd.split(":").map(Number);
 
         const startMinutes = startH * 60 + startM;
         const endMinutes = endH * 60 + endM;
 
-        // ✅ NORMAL RANGE (e.g. 08:00 → 18:00)
+        // NORMAL RANGE
         if (startMinutes <= endMinutes) {
           return itemMinutes >= startMinutes && itemMinutes <= endMinutes;
         }
 
-        // 🔥 OVERNIGHT RANGE (e.g. 22:00 → 04:00)
+        // OVERNIGHT RANGE
         return itemMinutes >= startMinutes || itemMinutes <= endMinutes;
       });
     }
@@ -144,7 +177,7 @@ export default function useHistory({
     singleDate,
   ]);
 
-  // 🔥 SUMMARY (USING BACKEND CAPITAL CORRECTLY)
+  // SUMMARY
   const summary = useMemo(() => {
     const totalBets = filteredPredictions.length;
 
@@ -161,18 +194,44 @@ export default function useHistory({
     let openingBalance = 0;
     let closingBalance = 0;
 
+    const hasReset = capitalResetAmount !== null;
+    const resetDate = capitalResetAt ? new Date(capitalResetAt) : null;
+
     if (filteredPredictions.length > 0) {
       const oldest = filteredPredictions[filteredPredictions.length - 1];
+
       const latest = filteredPredictions[0];
 
-      // ✅ SAFE CAPITAL USAGE
-      openingBalance =
+      const oldestDate = new Date(oldest.date);
+
+      const balanceBeforeOldest =
         Number(oldest.capitalAfter || 0) - Number(oldest.profit || 0);
 
+      // ALL TIME: the latest capital reset starts
+      // the new performance accounting period.
+      if (timeframe === "all" && hasReset) {
+        openingBalance = Number(capitalResetAmount);
+      } else if (hasReset && resetDate && oldestDate < resetDate) {
+        // The selected history begins before the latest reset.
+        openingBalance = Number(capitalResetAmount);
+      } else {
+        // Preserve the existing period-opening calculation.
+        openingBalance = balanceBeforeOldest;
+      }
+
       closingBalance = Number(latest.capitalAfter || 0);
+    } else if (hasReset) {
+      // No predictions in the selected period.
+      openingBalance = Number(capitalResetAmount);
+
+      closingBalance =
+        currentCapital !== null
+          ? Number(currentCapital)
+          : Number(capitalResetAmount);
     }
 
     let roi = 0;
+
     if (openingBalance > 0) {
       roi = (totalProfit / openingBalance) * 100;
     }
@@ -185,9 +244,15 @@ export default function useHistory({
       totalProfit,
       roi,
     };
-  }, [filteredPredictions]);
+  }, [
+    filteredPredictions,
+    capitalResetAmount,
+    capitalResetAt,
+    currentCapital,
+    timeframe,
+  ]);
 
-  // 🔥 AVAILABLE FILTER OPTIONS
+  // AVAILABLE FILTER OPTIONS
   const availableWeeks = [
     ...new Set(history.map((item) => item.week).filter(Boolean)),
   ].sort((a, b) => Number(a) - Number(b));
