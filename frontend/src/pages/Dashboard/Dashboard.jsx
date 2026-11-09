@@ -1,4 +1,5 @@
 import DashboardNavbar from "../../components/DashboardNavbar/DashboardNavbar";
+import ActivityCounter from "../../components/ActivityCounter";
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import "./Dashboard.css";
@@ -18,6 +19,7 @@ export default function Dashboard() {
   });
 
   const [platforms, setPlatforms] = useState([]);
+  const [activitySnapshot, setActivitySnapshot] = useState(null);
 
   /* ---------------- LOAD SUBSCRIPTION ---------------- */
 
@@ -53,7 +55,6 @@ export default function Dashboard() {
             ? res
             : [];
 
-        // ✅ show all platforms (dashboard is interactive page → optional filter later)
         setPlatforms(data);
       } catch (err) {
         console.error("Failed to load platforms:", err);
@@ -61,6 +62,35 @@ export default function Dashboard() {
     }
 
     loadPlatforms();
+  }, []);
+
+  /* ---------------- LOAD ACTIVITY SNAPSHOT ---------------- */
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadActivity() {
+      try {
+        const res = await api.get("/activity");
+
+        const snapshot = res?.data ?? res;
+
+        if (isMounted && snapshot && Array.isArray(snapshot.platforms)) {
+          setActivitySnapshot(snapshot);
+        }
+      } catch (error) {
+        console.error("Platform activity load error:", error);
+      }
+    }
+
+    loadActivity();
+
+    const intervalId = setInterval(loadActivity, 5000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(intervalId);
+    };
   }, []);
 
   /* ---------------- SUBSCRIPTION LOGIC ---------------- */
@@ -78,6 +108,16 @@ export default function Dashboard() {
   const daysRemaining = expiryDate
     ? Math.max(0, Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24)))
     : 0;
+
+  /* ---------------- PLATFORM ACTIVITY LOOKUP ---------------- */
+
+  const getPlatformActivityCount = (platformId) => {
+    const activityPlatform = activitySnapshot?.platforms?.find(
+      (item) => String(item.platformId) === String(platformId),
+    );
+
+    return activityPlatform?.count ?? null;
+  };
 
   /* ---------------- UI ---------------- */
 
@@ -168,36 +208,59 @@ export default function Dashboard() {
           <h2>Select Betting Platform</h2>
 
           <div className="platform-grid">
-            {platforms.map((platform) => (
-              <div
-                key={platform._id}
-                className="platform-card"
-                onClick={() => navigate(`/prediction/${platform._id}`)}
-              >
-                {platform.logo ? (
-                  <>
-                    <img
-                      src={getImageUrl(platform.logo)}
-                      alt={platform.name}
-                      onError={(e) => {
-                        e.currentTarget.style.display = "none";
-                      }}
-                    />
+            {platforms.map((platform) => {
+              const activityCount = getPlatformActivityCount(platform._id);
 
-                    <div className="platform-overlay">
-                      <span>{platform.name}</span>
+              return (
+                <div
+                  key={platform._id}
+                  className="platform-card"
+                  onClick={() => navigate(`/prediction/${platform._id}`)}
+                >
+                  {platform.logo ? (
+                    <>
+                      <img
+                        src={getImageUrl(platform.logo)}
+                        alt={platform.name}
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                        }}
+                      />
+
+                      <div className="platform-overlay">
+                        <span>{platform.name}</span>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="platform-placeholder">{platform.name}</div>
+                  )}
+
+                  {activityCount !== null && (
+                    <div
+                      className="platform-activity-badge"
+                      aria-label={`${activityCount.toLocaleString()} people using ${platform.name}`}
+                    >
+                      <span
+                        className="platform-activity-icon"
+                        aria-hidden="true"
+                      >
+                        👤
+                      </span>
+
+                      <span>{activityCount.toLocaleString()}</span>
                     </div>
-                  </>
-                ) : (
-                  <div className="platform-placeholder">{platform.name}</div>
-                )}
-              </div>
-            ))}
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
 
         <Footer />
       </div>
+
+      {/* WEBSITE-WIDE COUNTER: DASHBOARD PAGE ONLY */}
+      <ActivityCounter />
     </div>
   );
 }

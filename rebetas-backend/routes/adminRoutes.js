@@ -9,17 +9,25 @@ const {
   resetAllLeagueCapitals,
 } = require("../controllers/adminController");
 
+const {
+  getActivitySettings,
+  updateActivitySettings,
+} = require("../controllers/activityController");
+
 /* ---------------- SYSTEM SETTINGS ---------------- */
+
 router.get("/settings", getSettings);
 router.put("/settings", updateSettings);
 router.put("/reset-capital", resetCapital);
 
+/* ---------------- ACTIVITY COUNTER SETTINGS ---------------- */
+
+router.get("/activity-settings", getActivitySettings);
+router.put("/activity-settings", updateActivitySettings);
+
 /* ---------------- LEAGUE CAPITALS ---------------- */
 
-// 🔥 fetch all league capitals
 router.get("/league-capitals", getAllLeagueCapitals);
-
-// 🔥 reset all league capitals
 router.put("/league-capitals/reset", resetAllLeagueCapitals);
 
 module.exports = router;

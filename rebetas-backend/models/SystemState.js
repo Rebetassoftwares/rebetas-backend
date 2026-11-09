@@ -8,7 +8,6 @@ const systemStateSchema = new mongoose.Schema(
       unique: true,
     },
 
-    // 🔥 NEW (CRITICAL)
     initialCapital: {
       type: Number,
       default: 500000,
@@ -32,6 +31,30 @@ const systemStateSchema = new mongoose.Schema(
     multiplier: {
       type: Number,
       default: 7,
+    },
+
+    // PROGRAMMED ACTIVITY COUNTERS
+    activityMin: {
+      type: Number,
+      default: 100,
+      min: 0,
+    },
+
+    activityMax: {
+      type: Number,
+      default: 250,
+      min: 0,
+    },
+
+    // Internal generated snapshot; not manually configured.
+    activitySnapshot: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null,
+    },
+
+    activitySnapshotUpdatedAt: {
+      type: Date,
+      default: null,
     },
   },
   {

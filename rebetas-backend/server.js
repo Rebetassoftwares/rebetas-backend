@@ -58,6 +58,9 @@ const adminDailyProfitRoutes = require("./routes/adminDailyProfitRoutes");
 const adminInvestmentAccountRoutes = require("./routes/adminInvestmentAccountRoutes");
 const adminCurrencyRoutes = require("./routes/adminCurrencyRoutes");
 
+const activityRoutes = require("./routes/activityRoutes");
+const { startActivityCounter } = require("./services/activityCounterService");
+
 const app = express();
 
 /*
@@ -172,6 +175,8 @@ app.use("/api/admin/autopilot-daily-profit", adminDailyProfitRoutes);
 app.use("/api/admin/autopilot-accounts", adminInvestmentAccountRoutes);
 app.use("/api/admin/currency-rates", adminCurrencyRoutes);
 
+app.use("/api/activity", activityRoutes);
+
 /*
 HEALTH CHECK
 */
@@ -234,6 +239,8 @@ async function startServer() {
   await connectDB();
   await ensureSystemState();
   await seedDefaultPricing();
+
+  startActivityCounter();
 
   console.log("ENV CHECK:", {
     mongo: !!process.env.MONGO_URI,
