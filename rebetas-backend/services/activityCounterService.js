@@ -2,7 +2,7 @@ const SystemState = require("../models/SystemState");
 const Platform = require("../models/Platform");
 const ManualLeague = require("../models/ManualLeague");
 
-const UPDATE_INTERVAL = 20 * 1000;
+const UPDATE_INTERVAL = 5 * 1000;
 
 let activityTimer = null;
 
@@ -17,8 +17,14 @@ function clamp(value, min, max) {
 /*
   Distributes an integer total across entities.
 
-  Previous values are used as weights so the figures
-  do not change dramatically on every refresh.
+  Entities with an explicit weight use that weight.
+  Otherwise, previous values are used to preserve
+  gradual distribution changes.
+
+  Platform weights:
+  Peripessa = 1
+  1xbet = 2
+  Other platforms = 3
 */
 function distribute(total, entities, previousValues = {}) {
   const result = {};
@@ -36,6 +42,12 @@ function distribute(total, entities, previousValues = {}) {
   }
 
   const weights = entities.map((entity) => {
+    // Explicit weights take priority over historical values.
+    if (Number.isFinite(entity.weight) && entity.weight > 0) {
+      return entity.weight;
+    }
+
+    // Preserve previous distribution behaviour for leagues.
     const previous = previousValues[entity.id];
 
     if (Number.isFinite(previous)) {
@@ -74,6 +86,9 @@ function distribute(total, entities, previousValues = {}) {
   return result;
 }
 
+/*
+  Generates the next website-wide activity total.
+*/
 function getNextTotal(previousTotal, min, max) {
   if (min === max) {
     return min;
@@ -99,6 +114,32 @@ function getNextTotal(previousTotal, min, max) {
   return clamp(next, min, max);
 }
 
+/*
+  PLATFORM PRIORITY WEIGHTS
+
+  Peripessa: lowest allocation.
+  1xbet: second-lowest allocation.
+  Other platforms: higher allocation.
+*/
+function getPlatformWeight(platformName) {
+  const normalizedName = String(platformName || "")
+    .trim()
+    .toLowerCase();
+
+  if (normalizedName === "peripessa") {
+    return 1;
+  }
+
+  if (normalizedName === "1xbet") {
+    return 2;
+  }
+
+  return 3;
+}
+
+/*
+  GENERATE ACTIVITY SNAPSHOT
+*/
 async function generateActivitySnapshot() {
   const state = await SystemState.findOne({ key: "main" });
 
@@ -164,6 +205,7 @@ async function generateActivitySnapshot() {
   }
 
   const previousSnapshot = state.activitySnapshot || {};
+
   const previousPlatformValues = {};
 
   (previousSnapshot.platforms || []).forEach((platform) => {
@@ -174,8 +216,16 @@ async function generateActivitySnapshot() {
 
   const total = clamp(getNextTotal(previousTotal, min, max), min, max);
 
+  /*
+    PLATFORM ALLOCATION
+
+    The explicit platform weights override previous counts.
+    This prevents a previously dominant platform from
+    continuing to receive an unfairly large allocation.
+  */
   const platformEntities = eligiblePlatforms.map((platform) => ({
     id: String(platform._id),
+    weight: getPlatformWeight(platform.name),
   }));
 
   const platformAllocations = distribute(
@@ -184,8 +234,15 @@ async function generateActivitySnapshot() {
     previousPlatformValues,
   );
 
+  /*
+    LEAGUE ALLOCATION
+
+    Each platform's allocation is distributed among its
+    active leagues using the existing historical weighting.
+  */
   const platformResults = eligiblePlatforms.map((platform) => {
     const platformId = String(platform._id);
+
     const platformCount = platformAllocations[platformId] || 0;
 
     const platformLeagues = leaguesByPlatform[platformId] || [];
@@ -214,6 +271,7 @@ async function generateActivitySnapshot() {
       platformId,
       platformName: platform.name,
       count: platformCount,
+
       leagues: platformLeagues.map((league) => ({
         leagueId: String(league._id),
         leagueName: league.leagueName,
@@ -241,6 +299,9 @@ async function generateActivitySnapshot() {
   return snapshot;
 }
 
+/*
+  GET CURRENT ACTIVITY SNAPSHOT
+*/
 async function getActivitySnapshot() {
   const state = await SystemState.findOne({ key: "main" }).lean();
 
@@ -251,6 +312,9 @@ async function getActivitySnapshot() {
   return generateActivitySnapshot();
 }
 
+/*
+  START AUTOMATIC SNAPSHOT GENERATION
+*/
 function startActivityCounter() {
   if (activityTimer) {
     return;
