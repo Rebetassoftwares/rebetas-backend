@@ -178,6 +178,14 @@ export const updatePredictionResultsBatch = (updates) =>
 export const autoResolvePredictions = () =>
   api.post("/manual-predictions/auto-resolve", {}, authConfig());
 
+/* ---------------- ACTIVITY COUNTER SETTINGS ---------------- */
+
+export const getActivitySettings = () =>
+  api.get("/admin/activity-settings", authConfig());
+
+export const updateActivitySettings = (data) =>
+  api.put("/admin/activity-settings", data, authConfig());
+
 /* ================================
    🚀 AUTOPILOT DASHBOARD
 ================================ */

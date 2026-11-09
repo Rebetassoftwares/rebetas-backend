@@ -1,112 +1,483 @@
-/* PAGE */
+/* =========================================
+   SYSTEM SETTINGS PAGE
+========================================= */
 
 .system-page {
+  width: 100%;
   color: #ffffff;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
+  padding-bottom: 30px;
+  box-sizing: border-box;
 }
 
-/* FORCE ALL TEXT WHITE */
+/* =========================================
+   PAGE HEADER
+========================================= */
 
-.system-page h1,
-.system-page h2,
-.system-page h3,
-.system-page p,
-.system-page span,
-.system-page label {
-  color: #ffffff !important;
+.system-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
-/* FORM */
+.system-page-header h2 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 25px;
+  font-weight: 800;
+}
+
+.system-page-header p {
+  margin: 7px 0 0;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 13px;
+}
+
+.withdrawal-settings-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 16px;
+  border: 1px solid rgba(52, 211, 153, 0.35);
+  border-radius: 9px;
+  background: linear-gradient(135deg, #059669, #047857);
+  color: #ffffff;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.withdrawal-settings-btn:hover {
+  background: linear-gradient(135deg, #10b981, #059669);
+  transform: translateY(-1px);
+}
+
+/* =========================================
+   SETTINGS SECTIONS
+========================================= */
+
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 22px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+}
+
+.settings-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.settings-section-header h3 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.settings-section-header p {
+  margin: 7px 0 0;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.settings-loading {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+}
+
+/* =========================================
+   GENERAL SETTINGS FORM
+========================================= */
 
 .system-form {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 15px;
-
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
   padding: 20px;
-  border-radius: 16px;
-
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.09);
 }
 
-/* INPUTS */
+/* =========================================
+   FORM FIELDS
+========================================= */
 
-.system-form input {
-  padding: 12px;
-  border-radius: 10px;
+.settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  min-width: 0;
+}
 
-  border: 1px solid rgba(255, 255, 255, 0.3);
-
-  background: rgba(255, 255, 255, 0.15);
-
+.settings-field label {
   color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.settings-field input {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 13px 14px;
+  border-radius: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.17);
+  background: rgba(255, 255, 255, 0.075);
+  color: #ffffff;
+  font-size: 14px;
   font-weight: 500;
-
   outline: none;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease;
 }
 
-/* PLACEHOLDER */
-
-.system-form input::placeholder {
-  color: rgba(255, 255, 255, 0.7);
+.settings-field input:focus {
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.07);
 }
 
-/* CHECKBOX */
+.settings-field input::placeholder {
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.settings-field input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.settings-field small {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+/* =========================================
+   CHECKBOX
+========================================= */
 
 .checkbox {
   display: flex;
   align-items: center;
-  gap: 8px;
-
+  align-self: center;
+  gap: 10px;
   color: #ffffff;
-}
-
-/* BUTTONS */
-
-.system-form button {
-  padding: 12px;
-  border-radius: 10px;
-  border: none;
-
+  font-size: 13px;
   font-weight: 600;
-
-  color: #ffffff;
-
   cursor: pointer;
 }
 
-/* SUBMIT */
-
-.system-form button[type="submit"] {
-  background: linear-gradient(135deg, #a020f0, #7b2cff);
+.checkbox input {
+  width: 17px;
+  height: 17px;
+  margin: 0;
+  accent-color: #10b981;
+  cursor: pointer;
 }
 
-/* RESET */
+/* =========================================
+   FORM ACTION BUTTONS
+========================================= */
+
+.settings-form-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-top: 5px;
+}
+
+.settings-form-actions button {
+  min-height: 43px;
+  padding: 11px 17px;
+  border: none;
+  border-radius: 9px;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 750;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.settings-form-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.settings-form-actions button[type="submit"] {
+  background: linear-gradient(135deg, #059669, #047857);
+}
+
+.settings-form-actions button[type="submit"]:hover:not(:disabled) {
+  background: linear-gradient(135deg, #10b981, #059669);
+  transform: translateY(-1px);
+}
 
 .reset-btn {
-  background: #ff4d6d;
+  background: #dc3545;
 }
 
-/* ALERTS */
+.reset-btn:hover {
+  background: #ef4444;
+}
+
+/* =========================================
+   ACTIVITY SETTINGS
+========================================= */
+
+.activity-settings-section {
+  border-color: rgba(16, 185, 129, 0.2);
+}
+
+.activity-status-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 11px;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: 30px;
+  background: rgba(16, 185, 129, 0.08);
+  color: #6ee7b7;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.activity-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 9px rgba(16, 185, 129, 0.8);
+}
+
+.activity-information {
+  padding: 16px;
+  border-radius: 11px;
+  background: rgba(16, 185, 129, 0.065);
+  border: 1px solid rgba(16, 185, 129, 0.17);
+}
+
+.activity-information strong {
+  display: block;
+  margin-bottom: 9px;
+  color: #6ee7b7;
+  font-size: 13px;
+}
+
+.activity-information p {
+  margin: 6px 0;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.activity-settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px;
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.activity-input-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.activity-range-preview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  flex-wrap: wrap;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: rgba(16, 185, 129, 0.07);
+  border: 1px solid rgba(16, 185, 129, 0.17);
+}
+
+.activity-range-preview span {
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 12px;
+}
+
+.activity-range-preview strong {
+  color: #6ee7b7;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+/* =========================================
+   ALERTS
+========================================= */
+
+.admin-success,
+.admin-error {
+  padding: 12px 15px;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.6;
+}
 
 .admin-success {
-  padding: 12px;
-  border-radius: 10px;
-
-  background: rgba(70, 227, 152, 0.25);
-  border: 1px solid rgba(70, 227, 152, 0.6);
-
-  color: #ffffff;
-  font-weight: 600;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #6ee7b7;
 }
 
-/* RESPONSIVE */
+.admin-error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+}
+
+/* =========================================
+   LEAGUE CAPITALS
+========================================= */
+
+.league-capitals-section {
+  margin-top: 5px;
+}
+
+.reset-all-leagues-btn {
+  align-self: flex-start;
+  padding: 11px 15px;
+  border: none;
+  border-radius: 8px;
+  background: #dc3545;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.reset-all-leagues-btn:hover {
+  background: #ef4444;
+  transform: translateY(-1px);
+}
+
+.league-capitals {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 13px;
+}
+
+.league-capital-card {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 15px;
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.league-capital-card strong {
+  color: #ffffff;
+  font-size: 13px;
+}
+
+.league-capital-card div {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+}
+
+.league-status {
+  align-self: flex-start;
+  padding: 5px 9px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.league-status.active {
+  background: rgba(16, 185, 129, 0.12);
+  color: #6ee7b7;
+}
+
+.league-status.inactive {
+  background: rgba(239, 68, 68, 0.12);
+  color: #fca5a5;
+}
+
+/* =========================================
+   RESPONSIVE DESIGN
+========================================= */
 
 @media (max-width: 900px) {
-  .system-form {
+  .system-form,
+  .activity-input-grid,
+  .league-capitals {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .system-page {
+    gap: 18px;
+  }
+
+  .system-page-header {
+    align-items: flex-start;
+  }
+
+  .system-page-header h2 {
+    font-size: 21px;
+  }
+
+  .settings-section {
+    padding: 15px;
+    gap: 15px;
+  }
+
+  .settings-section-header h3 {
+    font-size: 16px;
+  }
+
+  .system-form,
+  .activity-settings-form {
+    padding: 15px;
+    gap: 17px;
+  }
+
+  .settings-form-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .settings-form-actions button {
+    width: 100%;
+  }
+
+  .withdrawal-settings-btn {
+    padding: 9px 11px;
+    font-size: 11px;
+  }
+
+  .activity-range-preview {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
