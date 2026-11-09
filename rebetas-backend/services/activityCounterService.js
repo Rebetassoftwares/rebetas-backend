@@ -17,14 +17,9 @@ function clamp(value, min, max) {
 /*
   Distributes an integer total across entities.
 
-  Entities with an explicit weight use that weight.
-  Otherwise, previous values are used to preserve
-  gradual distribution changes.
-
-  Platform weights:
-  Peripessa = 1
-  1xbet = 2
-  Other platforms = 3
+  Explicit weights take priority.
+  Entities without explicit weights use historical
+  values to preserve gradual distribution changes.
 */
 function distribute(total, entities, previousValues = {}) {
   const result = {};
@@ -42,12 +37,10 @@ function distribute(total, entities, previousValues = {}) {
   }
 
   const weights = entities.map((entity) => {
-    // Explicit weights take priority over historical values.
     if (Number.isFinite(entity.weight) && entity.weight > 0) {
       return entity.weight;
     }
 
-    // Preserve previous distribution behaviour for leagues.
     const previous = previousValues[entity.id];
 
     if (Number.isFinite(previous)) {
@@ -61,18 +54,18 @@ function distribute(total, entities, previousValues = {}) {
 
   const allocations = entities.map((entity, index) => {
     const exactShare = (total * weights[index]) / weightTotal;
-    const wholeShare = Math.floor(exactShare);
 
     return {
       id: entity.id,
-      value: wholeShare,
-      remainder: exactShare - wholeShare,
+      value: Math.floor(exactShare),
+      remainder: exactShare - Math.floor(exactShare),
     };
   });
 
   let remaining =
     total - allocations.reduce((sum, item) => sum + item.value, 0);
 
+  // Distribute remaining units according to largest fractional remainders.
   allocations.sort((a, b) => b.remainder - a.remainder);
 
   for (let index = 0; index < remaining; index += 1) {
@@ -115,26 +108,77 @@ function getNextTotal(previousTotal, min, max) {
 }
 
 /*
-  PLATFORM PRIORITY WEIGHTS
+  NORMALIZE PLATFORM NAMES
 
-  Peripessa: lowest allocation.
-  1xbet: second-lowest allocation.
-  Other platforms: higher allocation.
+  Supports the actual database spelling PERIPESA
+  and common spelling variations.
 */
-function getPlatformWeight(platformName) {
-  const normalizedName = String(platformName || "")
+function normalizePlatformName(name) {
+  return String(name || "")
     .trim()
-    .toLowerCase();
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+}
 
-  if (normalizedName === "peripessa") {
-    return 1;
-  }
+function isPeripessa(platformName) {
+  const name = normalizePlatformName(platformName);
 
-  if (normalizedName === "1xbet") {
-    return 2;
-  }
+  return ["peripesa", "peripessa", "paripesa"].includes(name);
+}
 
-  return 3;
+function isOneXBet(platformName) {
+  return normalizePlatformName(platformName) === "1xbet";
+}
+
+/*
+  PLATFORM PRIORITY ALLOCATION
+
+  PERIPESA: weight 1 (lowest).
+  1xBet: weight 2 (second-lowest).
+
+  All remaining platforms receive unique weights:
+  3, 4, 5, 6, 7, etc.
+
+  Their weights are assigned in alphabetical order
+  so their allocations remain stable between snapshots.
+*/
+function getPlatformEntities(platforms) {
+  const otherPlatforms = platforms
+    .filter(
+      (platform) => !isPeripessa(platform.name) && !isOneXBet(platform.name),
+    )
+    .sort((a, b) => {
+      const nameComparison = a.name.localeCompare(b.name);
+
+      if (nameComparison !== 0) {
+        return nameComparison;
+      }
+
+      return String(a._id).localeCompare(String(b._id));
+    });
+
+  const otherPlatformWeights = new Map();
+
+  otherPlatforms.forEach((platform, index) => {
+    otherPlatformWeights.set(String(platform._id), index + 3);
+  });
+
+  return platforms.map((platform) => {
+    let weight;
+
+    if (isPeripessa(platform.name)) {
+      weight = 1;
+    } else if (isOneXBet(platform.name)) {
+      weight = 2;
+    } else {
+      weight = otherPlatformWeights.get(String(platform._id));
+    }
+
+    return {
+      id: String(platform._id),
+      weight,
+    };
+  });
 }
 
 /*
@@ -206,12 +250,6 @@ async function generateActivitySnapshot() {
 
   const previousSnapshot = state.activitySnapshot || {};
 
-  const previousPlatformValues = {};
-
-  (previousSnapshot.platforms || []).forEach((platform) => {
-    previousPlatformValues[String(platform.platformId)] = platform.count;
-  });
-
   const previousTotal = Number(previousSnapshot.total);
 
   const total = clamp(getNextTotal(previousTotal, min, max), min, max);
@@ -219,26 +257,22 @@ async function generateActivitySnapshot() {
   /*
     PLATFORM ALLOCATION
 
-    The explicit platform weights override previous counts.
-    This prevents a previously dominant platform from
-    continuing to receive an unfairly large allocation.
-  */
-  const platformEntities = eligiblePlatforms.map((platform) => ({
-    id: String(platform._id),
-    weight: getPlatformWeight(platform.name),
-  }));
+    PERIPESA receives weight 1.
+    1xBet receives weight 2.
+    Other platforms receive unique weights starting from 3.
 
-  const platformAllocations = distribute(
-    total,
-    platformEntities,
-    previousPlatformValues,
-  );
+    This prevents all other platforms from receiving
+    identical allocations simply because they share weight 3.
+  */
+  const platformEntities = getPlatformEntities(eligiblePlatforms);
+
+  const platformAllocations = distribute(total, platformEntities);
 
   /*
     LEAGUE ALLOCATION
 
-    Each platform's allocation is distributed among its
-    active leagues using the existing historical weighting.
+    Each platform's allocation is distributed among
+    its active leagues using historical weighting.
   */
   const platformResults = eligiblePlatforms.map((platform) => {
     const platformId = String(platform._id);
