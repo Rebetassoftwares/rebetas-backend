@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
+import ActivityCounter from "../ActivityCounter";
 import "./Navbar.css";
 
 export default function Navbar() {

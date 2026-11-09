@@ -34,6 +34,9 @@ export default function Predictions() {
     subscription: null,
   });
 
+  // ACTIVITY SNAPSHOT
+  const [activitySnapshot, setActivitySnapshot] = useState(null);
+
   const { prediction, loadingPrediction, countdown } = usePrediction(league);
 
   const formatCurrency = (value) => {
@@ -79,6 +82,45 @@ export default function Predictions() {
   const awayTeam =
     prediction?.awayTeam ||
     (prediction?.match ? prediction.match.split(" vs ")[1] : "-");
+
+  // FETCH ACTIVITY SNAPSHOT EVERY 5 SECONDS
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadActivity() {
+      try {
+        const response = await api.get("/activity");
+        const snapshot = response?.data ?? response;
+
+        if (isMounted && snapshot && Array.isArray(snapshot.platforms)) {
+          setActivitySnapshot(snapshot);
+        }
+      } catch (error) {
+        console.error("Prediction activity load error:", error);
+      }
+    }
+
+    loadActivity();
+
+    const intervalId = setInterval(loadActivity, 5000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(intervalId);
+    };
+  }, []);
+
+  // GET ACTIVITY COUNTS FOR THE CURRENT PLATFORM AND ITS LEAGUES
+  const currentPlatformActivity = activitySnapshot?.platforms?.find(
+    (item) => String(item.platformId) === String(platform),
+  );
+
+  const leagueActivityCounts = Object.fromEntries(
+    (currentPlatformActivity?.leagues || []).map((item) => [
+      String(item.leagueId),
+      item.count,
+    ]),
+  );
 
   useEffect(() => {
     const clock = setInterval(() => {
@@ -148,6 +190,7 @@ export default function Predictions() {
           leagueOptions={leagueOptions}
           league={league}
           setLeague={setLeague}
+          leagueActivityCounts={leagueActivityCounts}
         />
 
         <div className="prediction-card modern-card">
