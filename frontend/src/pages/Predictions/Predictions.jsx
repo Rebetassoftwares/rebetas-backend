@@ -110,11 +110,15 @@ export default function Predictions() {
     };
   }, []);
 
-  // GET ACTIVITY COUNTS FOR THE CURRENT PLATFORM AND ITS LEAGUES
+  // GET ACTIVITY COUNTS FOR THE CURRENT PLATFORM
   const currentPlatformActivity = activitySnapshot?.platforms?.find(
     (item) => String(item.platformId) === String(platform),
   );
 
+  // PLATFORM ACTIVITY COUNT
+  const platformActivityCount = currentPlatformActivity?.count ?? null;
+
+  // GET ACTIVITY COUNTS FOR EACH LEAGUE ON THE CURRENT PLATFORM
   const leagueActivityCounts = Object.fromEntries(
     (currentPlatformActivity?.leagues || []).map((item) => [
       String(item.leagueId),
@@ -122,6 +126,10 @@ export default function Predictions() {
     ]),
   );
 
+  // GET ACTIVITY COUNT FOR THE SELECTED LEAGUE
+  const leagueActivityCount = leagueActivityCounts[String(league)] ?? null;
+
+  // UPDATE CLOCK
   useEffect(() => {
     const clock = setInterval(() => {
       setTime(new Date());
@@ -130,6 +138,7 @@ export default function Predictions() {
     return () => clearInterval(clock);
   }, []);
 
+  // LOAD SUBSCRIPTION
   useEffect(() => {
     async function loadSubscription() {
       try {
@@ -147,6 +156,7 @@ export default function Predictions() {
     loadSubscription();
   }, []);
 
+  // LOAD PLATFORM LEAGUES
   useEffect(() => {
     async function loadLeagues() {
       setPageError("");
@@ -232,6 +242,8 @@ export default function Predictions() {
         <HistorySection
           platformName={platformName}
           leagueKey={leagueKey}
+          platformActivityCount={platformActivityCount}
+          leagueActivityCount={leagueActivityCount}
           timeframe={timeframe}
           setTimeframe={setTimeframe}
           selectedWeek={selectedWeek}
