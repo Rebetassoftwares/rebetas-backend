@@ -1,7 +1,7 @@
 import Navbar from "../../components/Navbar/Navbar";
 import { Link } from "react-router-dom";
 import "./Landing.css";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination } from "swiper/modules";
@@ -26,6 +26,8 @@ import useLeagues from "../../hooks/useLeagues";
 import useHistory from "../../hooks/useHistory";
 import HistorySection from "../../components/history/HistorySection";
 
+import api from "../../services/api";
+
 export default function Landing() {
   const formatCurrency = (value) => {
     return `$${Number(value || 0).toLocaleString()}`;
@@ -34,6 +36,61 @@ export default function Landing() {
   const { platforms, platformId, setPlatformId } = usePlatforms();
 
   const { leagueOptions, league, setLeague } = useLeagues(platformId);
+
+  // ACTIVITY SNAPSHOT
+  const [activitySnapshot, setActivitySnapshot] = useState(null);
+
+  // FETCH ACTIVITY SNAPSHOT EVERY 5 SECONDS
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadActivity() {
+      try {
+        const response = await api.get("/activity");
+        const snapshot = response?.data ?? response;
+
+        if (isMounted && snapshot && Array.isArray(snapshot.platforms)) {
+          setActivitySnapshot(snapshot);
+        }
+      } catch (error) {
+        console.error("Landing activity load error:", error);
+      }
+    }
+
+    loadActivity();
+
+    const intervalId = setInterval(loadActivity, 5000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(intervalId);
+    };
+  }, []);
+
+  // MAP PLATFORM ACTIVITY COUNTS
+  const platformActivityCounts = Object.fromEntries(
+    (activitySnapshot?.platforms || []).map((item) => [
+      String(item.platformId),
+      item.count,
+    ]),
+  );
+
+  // GET THE SELECTED PLATFORM'S ACTIVITY
+  const selectedPlatformActivity = activitySnapshot?.platforms?.find(
+    (item) => String(item.platformId) === String(platformId),
+  );
+
+  // MAP LEAGUE ACTIVITY COUNTS FOR THE SELECTED PLATFORM
+  const leagueActivityCounts = Object.fromEntries(
+    (selectedPlatformActivity?.leagues || []).map((item) => [
+      String(item.leagueId),
+      item.count,
+    ]),
+  );
+
+  const platformActivityCount = platformActivityCounts[String(platformId)];
+
+  const leagueActivityCount = leagueActivityCounts[String(league)];
 
   const selectedLeague = leagueOptions.find((item) => item._id === league);
 
@@ -91,38 +148,61 @@ export default function Landing() {
             </p>
 
             <div className="hero-platforms">
-              {platforms.map((p) => (
-                <img
-                  key={p._id}
-                  src={getImageUrl(p.logo)}
-                  alt={p.name}
-                  onClick={() => setPlatformId(p._id)}
-                  onError={(e) => {
-                    e.currentTarget.style.display = "none";
-                  }}
-                  style={{
-                    cursor: "pointer",
-                    opacity: platformId === p._id ? 1 : 0.6,
-                    transform:
-                      platformId === p._id ? "scale(1.05)" : "scale(1)",
-                    transition: "all 0.2s ease",
-                  }}
-                />
-              ))}
+              {platforms.map((p) => {
+                const activityCount = platformActivityCounts[String(p._id)];
+
+                return (
+                  <span className="platform-activity-item" key={p._id}>
+                    <img
+                      src={getImageUrl(p.logo)}
+                      alt={p.name}
+                      onClick={() => setPlatformId(p._id)}
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                      }}
+                      style={{
+                        cursor: "pointer",
+                        opacity: platformId === p._id ? 1 : 0.6,
+                        transform:
+                          platformId === p._id ? "scale(1.05)" : "scale(1)",
+                        transition: "all 0.2s ease",
+                      }}
+                    />
+
+                    {activityCount !== undefined && activityCount !== null && (
+                      <span className="platform-activity-badge">
+                        <span aria-hidden="true">👤</span>
+                        <span>{Number(activityCount).toLocaleString()}</span>
+                      </span>
+                    )}
+                  </span>
+                );
+              })}
             </div>
 
             <div className="league-bar">
-              {leagueOptions.map((item) => (
-                <button
-                  key={item._id}
-                  className={
-                    league === item._id ? "league-btn active" : "league-btn"
-                  }
-                  onClick={() => setLeague(item._id)}
-                >
-                  {item.leagueName}
-                </button>
-              ))}
+              {leagueOptions.map((item) => {
+                const activityCount = leagueActivityCounts[String(item._id)];
+
+                return (
+                  <button
+                    key={item._id}
+                    className={
+                      league === item._id ? "league-btn active" : "league-btn"
+                    }
+                    onClick={() => setLeague(item._id)}
+                  >
+                    <span>{item.leagueName}</span>
+
+                    {activityCount !== undefined && activityCount !== null && (
+                      <span className="league-activity-badge">
+                        <span aria-hidden="true">👤</span>
+                        <span>{Number(activityCount).toLocaleString()}</span>
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -133,6 +213,8 @@ export default function Landing() {
       <HistorySection
         platformName={platformName}
         leagueKey={leagueKey}
+        platformActivityCount={platformActivityCount}
+        leagueActivityCount={leagueActivityCount}
         timeframe={timeframe}
         setTimeframe={setTimeframe}
         customStartDate={customStartDate}
@@ -399,16 +481,28 @@ export default function Landing() {
           </p>
 
           <div className="platform-logos">
-            {platforms.map((p) => (
-              <img
-                key={p._id}
-                src={getImageUrl(p.logo)}
-                alt={p.name}
-                onError={(e) => {
-                  e.currentTarget.style.display = "none";
-                }}
-              />
-            ))}
+            {platforms.map((p) => {
+              const activityCount = platformActivityCounts[String(p._id)];
+
+              return (
+                <span className="platform-activity-item" key={p._id}>
+                  <img
+                    src={getImageUrl(p.logo)}
+                    alt={p.name}
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                    }}
+                  />
+
+                  {activityCount !== undefined && activityCount !== null && (
+                    <span className="platform-activity-badge">
+                      <span aria-hidden="true">👤</span>
+                      <span>{Number(activityCount).toLocaleString()}</span>
+                    </span>
+                  )}
+                </span>
+              );
+            })}
           </div>
         </div>
       </section>

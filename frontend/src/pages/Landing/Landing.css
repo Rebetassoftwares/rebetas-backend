@@ -1574,3 +1574,87 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* =========================================================
+   SIMULATED ACTIVITY COUNTERS — LANDING PAGE
+========================================================= */
+
+.landing-page .platform-activity-item {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.landing-page .platform-activity-badge {
+  position: absolute;
+  top: -9px;
+  right: -10px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  min-height: 19px;
+  padding: 2px 6px;
+  border: 1px solid rgba(32, 201, 130, 0.42);
+  border-radius: 20px;
+  background: #07150e;
+  color: #eafff2;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+}
+
+.landing-page .platform-activity-badge span:first-child {
+  font-size: 10px;
+}
+
+.landing-page .hero-platforms .platform-activity-item img,
+.landing-page .platform-logos .platform-activity-item img {
+  display: block;
+}
+
+.landing-page .history-filter {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.landing-page .history-activity-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border: 1px solid rgba(52, 211, 153, 0.25);
+  border-radius: 20px;
+  background: rgba(3, 20, 12, 0.65);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+  .landing-page .platform-activity-badge {
+    top: -7px;
+    right: -8px;
+    min-height: 17px;
+    padding: 2px 5px;
+    font-size: 9px;
+  }
+
+  .landing-page .history-filter {
+    gap: 6px;
+    font-size: 12px;
+  }
+
+  .landing-page .history-activity-badge {
+    padding: 3px 6px;
+    font-size: 10px;
+  }
+}

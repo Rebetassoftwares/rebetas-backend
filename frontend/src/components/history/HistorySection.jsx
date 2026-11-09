@@ -3,6 +3,8 @@ import { useEffect, useMemo, useState } from "react";
 export default function HistorySection({
   platformName,
   leagueKey,
+  platformActivityCount,
+  leagueActivityCount,
   timeframe,
   setTimeframe,
   customStartDate,
@@ -11,9 +13,7 @@ export default function HistorySection({
   setCustomEndDate,
   singleDate,
   setSingleDate,
-
   setTimeStart,
-
   setTimeEnd,
   summary,
   formatCurrency,
@@ -164,16 +164,20 @@ export default function HistorySection({
         ? Number(value || 0)
         : Number(value || 0) * rate;
 
-    return filteredPredictions.map((item) => ({
-      ...item,
-      displayStake: convertUsdToSelected(Number(item.stake || 0) * scaleFactor),
-      displayResult: convertUsdToSelected(
-        Number(item.resultAmount || 0) * scaleFactor,
-      ),
-      displayProfit: convertUsdToSelected(
-        Number(item.profit || 0) * scaleFactor,
-      ),
-    }));
+    return (Array.isArray(filteredPredictions) ? filteredPredictions : []).map(
+      (item) => ({
+        ...item,
+        displayStake: convertUsdToSelected(
+          Number(item.stake || 0) * scaleFactor,
+        ),
+        displayResult: convertUsdToSelected(
+          Number(item.resultAmount || 0) * scaleFactor,
+        ),
+        displayProfit: convertUsdToSelected(
+          Number(item.profit || 0) * scaleFactor,
+        ),
+      }),
+    );
   }, [filteredPredictions, scaleFactor, exchangeRate, selectedCurrency]);
 
   return (
@@ -181,9 +185,28 @@ export default function HistorySection({
       {/* HEADER */}
       <div className="history-header">
         <h2>Prediction Performance</h2>
-        <span className="history-filter">
-          {platformName} - {leagueKey}
-        </span>
+
+        <div className="history-filter">
+          <span>{platformName}</span>
+
+          {platformActivityCount != null && (
+            <span className="history-activity-badge">
+              <span aria-hidden="true">👤</span>
+              {Number(platformActivityCount).toLocaleString()}
+            </span>
+          )}
+
+          <span>-</span>
+
+          <span>{leagueKey}</span>
+
+          {leagueActivityCount != null && (
+            <span className="history-activity-badge">
+              <span aria-hidden="true">👤</span>
+              {Number(leagueActivityCount).toLocaleString()}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* FILTERS */}
