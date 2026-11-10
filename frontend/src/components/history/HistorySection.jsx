@@ -20,11 +20,17 @@ export default function HistorySection({
   filteredPredictions,
   loadingHistory,
 }) {
-  const [startingCapital, setStartingCapital] = useState(
-    Number(summary?.openingBalance || 0),
-  );
+  // null means the user has not customized the capital.
+  // In that case, the actual opening balance is displayed.
+  const [startingCapital, setStartingCapital] = useState(null);
+
   const [selectedCurrency, setSelectedCurrency] = useState("USD");
   const [exchangeRate, setExchangeRate] = useState(1);
+
+  // Use the loaded opening balance unless the user enters a custom amount.
+  const capitalInputValue =
+    startingCapital ??
+    (summary?.openingBalance != null ? Number(summary.openingBalance) : "");
 
   const currencyList = useMemo(() => {
     if (
@@ -115,8 +121,8 @@ export default function HistorySection({
 
     const userOpeningUsd =
       selectedCurrency === "USD"
-        ? Number(startingCapital || 0)
-        : Number(startingCapital || 0) / rate;
+        ? Number(startingCapital ?? summary?.openingBalance ?? 0)
+        : Number(startingCapital ?? summary?.openingBalance ?? 0) / rate;
 
     if (originalOpeningUsd <= 0 || userOpeningUsd <= 0) {
       return 1;
@@ -274,8 +280,12 @@ export default function HistorySection({
             type="number"
             min="0"
             step="0.01"
-            value={startingCapital}
-            onChange={(e) => setStartingCapital(Number(e.target.value) || 0)}
+            value={capitalInputValue}
+            onChange={(e) =>
+              setStartingCapital(
+                e.target.value === "" ? "" : Number(e.target.value),
+              )
+            }
           />
         </div>
 
