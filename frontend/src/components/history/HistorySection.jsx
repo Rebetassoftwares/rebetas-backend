@@ -219,16 +219,20 @@ export default function HistorySection({
       <div className="filter-controls">
         <div className="filter-group">
           <label>Time Frame</label>
+
           <select
             value={timeframe}
             onChange={(e) => {
               const value = e.target.value;
+
               setTimeframe(value);
 
               if (value !== "single_date") {
                 setSingleDate(null);
               }
 
+              // Clear time restrictions when switching to a timeframe
+              // that does not support time-of-day filtering.
               if (!["today", "yesterday", "single_date"].includes(value)) {
                 setTimeStart(null);
                 setTimeEnd(null);
@@ -236,6 +240,8 @@ export default function HistorySection({
             }}
           >
             <option value="all">All Time</option>
+            <option value="last_1_hour">Last 1 Hour</option>
+            <option value="last_2_hours">Last 2 Hours</option>
             <option value="today">Today</option>
             <option value="yesterday">Yesterday</option>
           </select>
@@ -291,6 +297,7 @@ export default function HistorySection({
 
         <div className="filter-group">
           <label>Currency</label>
+
           <select
             value={selectedCurrency}
             onChange={(e) => setSelectedCurrency(e.target.value)}
