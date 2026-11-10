@@ -83,7 +83,7 @@ export default function Footer() {
 
             <div className="footer-contact-item">
               <span className="footer-contact-label">Phone</span>
-              <a href="tel:+233000000000">+233 00 000 0000</a>
+              <a href="tel:+234-SUNSTREAMERS">+233 00 000 0000</a>
             </div>
 
             <div className="footer-contact-item">
