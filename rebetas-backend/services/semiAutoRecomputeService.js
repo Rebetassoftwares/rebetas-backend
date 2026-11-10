@@ -5,11 +5,15 @@ const SystemState = require("../models/SystemState");
 const { getStake } = require("./martingaleService");
 
 /**
- * Recalculate the complete SEMI_AUTO prediction history
- * from a supplied starting capital.
+ * Recalculate complete SEMI_AUTO prediction history
+ * using fixed administrator capital.
  *
- * Existing outcomes and odds are preserved.
- * Pending predictions remain pending.
+ * - Stake remains fixed for every prediction.
+ * - Existing outcomes and odds are preserved.
+ * - Pending predictions remain pending.
+ * - Profit/loss is recalculated.
+ * - capitalAfter represents the performance balance.
+ * - ManualLeague.capital is never increased by profit.
  */
 async function recomputeSemiAutoHistory(leagueId, startingCapital) {
   const league = await ManualLeague.findOne({
@@ -33,15 +37,19 @@ async function recomputeSemiAutoHistory(leagueId, startingCapital) {
     throw new Error("Invalid base stake percentage");
   }
 
-  let runningCapital = Number(startingCapital);
+  const fixedCapital = Number(startingCapital);
 
-  if (!Number.isFinite(runningCapital) || runningCapital < 0) {
+  if (!Number.isFinite(fixedCapital) || fixedCapital < 0) {
     throw new Error("Invalid starting capital");
   }
 
-  runningCapital = Number(runningCapital.toFixed(2));
+  // Every prediction uses this same stake.
+  const fixedStake = getStake(fixedCapital, baseStakePercent);
 
-  // Retrieve ALL predictions, including those created before reset.
+  // Performance balance changes, but configured capital does not.
+  let runningBalance = Number(fixedCapital.toFixed(2));
+
+  // Retrieve all SEMI_AUTO predictions, including those before reset.
   const predictions = await ManualPrediction.find({
     leagueId: league._id,
     type: "SEMI_AUTO",
@@ -60,24 +68,21 @@ async function recomputeSemiAutoHistory(leagueId, startingCapital) {
       throw new Error(`Invalid odd on SEMI_AUTO prediction ${prediction._id}`);
     }
 
-    // Recalculate stake using the current running capital.
-    const stake = getStake(runningCapital, baseStakePercent);
-
     let resultAmount = 0;
     let profit = 0;
 
     if (prediction.status === "won") {
-      resultAmount = Number((stake * odd).toFixed(2));
-      profit = Number((resultAmount - stake).toFixed(2));
+      resultAmount = Number((fixedStake * odd).toFixed(2));
+      profit = Number((resultAmount - fixedStake).toFixed(2));
 
-      runningCapital = Number((runningCapital + profit).toFixed(2));
+      runningBalance = Number((runningBalance + profit).toFixed(2));
     } else if (prediction.status === "loss") {
       resultAmount = 0;
-      profit = Number((-stake).toFixed(2));
+      profit = Number((-fixedStake).toFixed(2));
 
-      runningCapital = Number((runningCapital + profit).toFixed(2));
+      runningBalance = Number((runningBalance + profit).toFixed(2));
     } else if (prediction.status === "pending") {
-      // Pending predictions do not change capital.
+      // Pending predictions do not affect performance balance.
       resultAmount = 0;
       profit = 0;
     } else {
@@ -89,38 +94,34 @@ async function recomputeSemiAutoHistory(leagueId, startingCapital) {
         filter: { _id: prediction._id },
         update: {
           $set: {
-            stake,
+            stake: fixedStake,
             resultAmount,
             profit,
-            capitalAfter: runningCapital,
+            capitalAfter: runningBalance,
           },
         },
       },
     });
   }
 
-  // Update all recalculated prediction records.
+  // Save recalculated prediction records.
   if (operations.length > 0) {
     await ManualPrediction.bulkWrite(operations, {
       ordered: true,
     });
   }
 
-  // Save the final recalculated balance as league capital.
-  await ManualLeague.updateOne(
-    { _id: league._id, mode: "SEMI_AUTO" },
-    {
-      $set: {
-        capital: runningCapital,
-      },
-    },
-  );
+  // IMPORTANT:
+  // Do not overwrite ManualLeague.capital with runningBalance.
+  //
+  // The administrator-set capital remains fixed.
 
   return {
     leagueId: league._id,
     predictionsRecalculated: predictions.length,
-    startingCapital: Number(startingCapital),
-    finalCapital: runningCapital,
+    startingCapital: fixedCapital,
+    fixedStake,
+    finalCapital: runningBalance,
   };
 }
 

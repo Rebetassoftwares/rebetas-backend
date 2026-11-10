@@ -93,7 +93,7 @@ async function runSemiAuto() {
           continue;
         }
 
-        // Settle older predictions before calculating the next stake.
+        // Settle older predictions before creating the next prediction.
         try {
           await settlePreviousSemiAutoPredictions(league, scheduledFor);
         } catch (settlementError) {
@@ -103,7 +103,7 @@ async function runSemiAuto() {
           );
         }
 
-        // Reload the league to use its latest capital after settlement.
+        // Reload the league to get administrator-configured capital.
         const currentLeague = await ManualLeague.findById(league._id);
 
         if (!currentLeague || !currentLeague.isActive) {
@@ -117,11 +117,21 @@ async function runSemiAuto() {
           Number(currentLeague.oddRange.max),
         );
 
-        // Flat staking: percentage of this league's current capital.
+        // FIXED-CAPITAL FLAT STAKING.
+        //
+        // ManualLeague.capital is the administrator-set capital.
+        // Settlement does not increase or decrease this value.
+        //
+        // Every prediction uses the same percentage of this capital.
         const capital = Number(currentLeague.capital);
         const basePercent = Number(systemState.baseStakePercent);
 
-        if (!Number.isFinite(capital) || !Number.isFinite(basePercent)) {
+        if (
+          !Number.isFinite(capital) ||
+          capital < 0 ||
+          !Number.isFinite(basePercent) ||
+          basePercent < 0
+        ) {
           console.error(
             `Invalid stake inputs (${currentLeague.platform} - ${currentLeague.leagueName})`,
             { capital, basePercent },

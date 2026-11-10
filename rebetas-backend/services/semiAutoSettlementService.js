@@ -12,7 +12,13 @@ function assignResult() {
 }
 
 /**
- * Settle one SEMI_AUTO prediction and apply its profit/loss to league capital.
+ * Settle one SEMI_AUTO prediction.
+ *
+ * IMPORTANT:
+ * - ManualLeague.capital remains unchanged.
+ * - Stake is not recalculated here.
+ * - Profit/loss is recorded on the prediction.
+ * - capitalAfter tracks the performance balance.
  */
 async function settleSemiAutoPrediction(prediction, league) {
   if (
@@ -42,9 +48,12 @@ async function settleSemiAutoPrediction(prediction, league) {
     mode: "SEMI_AUTO",
   });
 
-  if (!currentLeague) throw new Error("SEMI_AUTO league not found");
+  if (!currentLeague) {
+    throw new Error("SEMI_AUTO league not found");
+  }
 
   const status = assignResult();
+
   const resultAmount = status === "won" ? Number((stake * odd).toFixed(2)) : 0;
 
   const profit =
@@ -52,7 +61,7 @@ async function settleSemiAutoPrediction(prediction, league) {
       ? Number((resultAmount - stake).toFixed(2))
       : Number((-stake).toFixed(2));
 
-  // Claim it first so another scheduler pass cannot settle it again.
+  // Claim the prediction first to prevent duplicate settlement.
   const updatedPrediction = await ManualPrediction.findOneAndUpdate(
     {
       _id: prediction._id,
@@ -61,45 +70,46 @@ async function settleSemiAutoPrediction(prediction, league) {
       status: "pending",
     },
     {
-      $set: { status, resultAmount, profit },
+      $set: {
+        status,
+        resultAmount,
+        profit,
+      },
     },
     { new: true },
   );
 
   if (!updatedPrediction) return false;
 
-  let capitalWasUpdated = false;
-
   try {
-    const updatedLeague = await ManualLeague.findOneAndUpdate(
-      { _id: league._id, mode: "SEMI_AUTO" },
-      { $inc: { capital: profit } },
-      { new: true },
-    );
+    // Find the previous settled prediction chronologically.
+    const previousPrediction = await ManualPrediction.findOne({
+      leagueId: league._id,
+      type: "SEMI_AUTO",
+      status: { $in: ["won", "loss"] },
+      scheduledFor: { $lt: prediction.scheduledFor },
+      _id: { $ne: prediction._id },
+    }).sort({
+      scheduledFor: -1,
+      createdAt: -1,
+    });
 
-    if (!updatedLeague) {
-      throw new Error("Failed to update SEMI_AUTO league capital");
-    }
+    // Start from administrator-set capital if this is the first result.
+    const previousBalance =
+      previousPrediction?.capitalAfter != null
+        ? Number(previousPrediction.capitalAfter)
+        : Number(currentLeague.capital || 0);
 
-    capitalWasUpdated = true;
-
+    // Performance balance changes, but league capital does not.
     updatedPrediction.capitalAfter = Number(
-      Number(updatedLeague.capital).toFixed(2),
+      (previousBalance + profit).toFixed(2),
     );
+
     await updatedPrediction.save();
 
-    league.capital = updatedLeague.capital;
     return updatedPrediction;
   } catch (error) {
-    // Reverse the capital update only if it was successfully applied.
-    if (capitalWasUpdated) {
-      await ManualLeague.updateOne(
-        { _id: league._id, mode: "SEMI_AUTO" },
-        { $inc: { capital: -profit } },
-      );
-    }
-
-    // Make the prediction eligible for a later retry.
+    // Restore pending status if recording the performance balance fails.
     await ManualPrediction.updateOne(
       {
         _id: prediction._id,
@@ -122,7 +132,8 @@ async function settleSemiAutoPrediction(prediction, league) {
 }
 
 /**
- * Settle all older pending SEMI_AUTO predictions when the next slot arrives.
+ * Settle all older pending SEMI_AUTO predictions
+ * when the next prediction slot arrives.
  */
 async function settlePreviousSemiAutoPredictions(league, nextScheduledFor) {
   if (!league || league.mode !== "SEMI_AUTO" || !nextScheduledFor) {
@@ -143,6 +154,7 @@ async function settlePreviousSemiAutoPredictions(league, nextScheduledFor) {
 
   for (const prediction of pendingPredictions) {
     const result = await settleSemiAutoPrediction(prediction, league);
+
     if (result) settled.push(result);
   }
 

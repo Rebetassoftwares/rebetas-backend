@@ -76,8 +76,8 @@ export default function Footer() {
               <span className="footer-contact-label">Business Address</span>
 
               <address>
-                Plot No: 143, Industrial Area, Ext. BLK III Revised, Chanshegu,
-                Tamale-Kumasi Highway, Ghana.
+                Plot No: 87, Donald Etiebet Avenue, Ewet Housing Estate, Uyo,
+                Akwa Ibom State, Nigeria.
               </address>
             </div>
 

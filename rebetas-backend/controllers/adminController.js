@@ -155,9 +155,9 @@ async function getAllLeagueCapitals(req, res) {
 RESET ALL LEAGUE CAPITALS
 
 SEMI_AUTO:
-- Reset starting capital.
+- Reset administrator-configured capital.
 - Recalculate all existing predictions.
-- Save final recalculated capital.
+- Preserve the fixed capital.
 ------------------------------*/
 async function resetAllLeagueCapitals(req, res) {
   try {
@@ -171,7 +171,7 @@ async function resetAllLeagueCapitals(req, res) {
 
     const resetAt = new Date();
 
-    // Reset all league capitals and record reset information.
+    // Set the fixed administrator capital for every league.
     await ManualLeague.updateMany(
       {},
       {
@@ -183,7 +183,7 @@ async function resetAllLeagueCapitals(req, res) {
       },
     );
 
-    // Only SEMI_AUTO leagues are recalculated here.
+    // Recalculate SEMI_AUTO histories only.
     const semiAutoLeagues = await ManualLeague.find({
       mode: "SEMI_AUTO",
     }).select("_id platform leagueName");
@@ -197,6 +197,7 @@ async function resetAllLeagueCapitals(req, res) {
         platform: league.platform,
         leagueName: league.leagueName,
         predictionsRecalculated: result.predictionsRecalculated,
+        fixedStake: result.fixedStake,
         finalCapital: result.finalCapital,
       });
     }
