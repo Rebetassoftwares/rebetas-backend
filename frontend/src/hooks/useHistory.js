@@ -20,7 +20,6 @@ export default function useHistory({
   // CAPITAL RESET INFORMATION
   const [capitalResetAmount, setCapitalResetAmount] = useState(null);
   const [capitalResetAt, setCapitalResetAt] = useState(null);
-  const [currentCapital, setCurrentCapital] = useState(null);
 
   // REFRESH ROLLING TIME FILTERS
   useEffect(() => {
@@ -48,7 +47,6 @@ export default function useHistory({
 
           setCapitalResetAmount(res?.capitalResetAmount ?? null);
           setCapitalResetAt(res?.capitalResetAt ?? null);
-          setCurrentCapital(res?.currentCapital ?? null);
         }
       } catch (err) {
         console.error("History load error:", err);
@@ -85,7 +83,6 @@ export default function useHistory({
 
           setCapitalResetAmount(res?.capitalResetAmount ?? null);
           setCapitalResetAt(res?.capitalResetAt ?? null);
-          setCurrentCapital(res?.currentCapital ?? null);
         }
       } catch (err) {
         console.error("History auto refresh error:", err);
@@ -104,18 +101,14 @@ export default function useHistory({
     let data = [...history].sort((a, b) => new Date(b.date) - new Date(a.date));
 
     // ALL TIME
-    // Return complete history without date or time restrictions.
     if (timeframe === "all") {
       return data;
     }
 
     // LAST 1 HOUR / LAST 2 HOURS
-    // These are rolling time windows.
     if (timeframe === "last_1_hour" || timeframe === "last_2_hours") {
       const now = new Date(currentTime);
-
       const hours = timeframe === "last_1_hour" ? 1 : 2;
-
       const cutoff = new Date(now.getTime() - hours * 60 * 60 * 1000);
 
       return data.filter((item) => {
@@ -283,7 +276,6 @@ export default function useHistory({
 
     if (filteredPredictions.length > 0) {
       const oldest = filteredPredictions[filteredPredictions.length - 1];
-      const latest = filteredPredictions[0];
 
       const oldestDate = new Date(oldest.date);
 
@@ -300,14 +292,14 @@ export default function useHistory({
         openingBalance = balanceBeforeOldest;
       }
 
-      closingBalance = Number(latest.capitalAfter || 0);
+      // Closing balance must reflect ONLY the selected period.
+      closingBalance = openingBalance + totalProfit;
     } else if (hasReset) {
       openingBalance = Number(capitalResetAmount);
 
-      closingBalance =
-        currentCapital !== null
-          ? Number(currentCapital)
-          : Number(capitalResetAmount);
+      // No filtered predictions means no profit or loss
+      // within the selected period.
+      closingBalance = openingBalance;
     }
 
     let roi = 0;
@@ -324,13 +316,7 @@ export default function useHistory({
       totalProfit,
       roi,
     };
-  }, [
-    filteredPredictions,
-    capitalResetAmount,
-    capitalResetAt,
-    currentCapital,
-    timeframe,
-  ]);
+  }, [filteredPredictions, capitalResetAmount, capitalResetAt, timeframe]);
 
   // AVAILABLE FILTER OPTIONS
   const availableWeeks = [
