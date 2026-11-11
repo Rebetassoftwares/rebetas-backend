@@ -44,7 +44,6 @@ export default function useHistory({
 
         if (isMounted) {
           setHistory(Array.isArray(res?.predictions) ? res.predictions : []);
-
           setCapitalResetAmount(res?.capitalResetAmount ?? null);
           setCapitalResetAt(res?.capitalResetAt ?? null);
         }
@@ -80,7 +79,6 @@ export default function useHistory({
 
         if (isMounted) {
           setHistory(Array.isArray(res?.predictions) ? res.predictions : []);
-
           setCapitalResetAmount(res?.capitalResetAmount ?? null);
           setCapitalResetAt(res?.capitalResetAt ?? null);
         }
@@ -97,7 +95,6 @@ export default function useHistory({
 
   // FILTERING + SORTING
   const filteredPredictions = useMemo(() => {
-    // Sort all predictions newest first.
     let data = [...history].sort((a, b) => new Date(b.date) - new Date(a.date));
 
     // ALL TIME
@@ -232,12 +229,10 @@ export default function useHistory({
         const startMinutes = startH * 60 + startM;
         const endMinutes = endH * 60 + endM;
 
-        // NORMAL RANGE
         if (startMinutes <= endMinutes) {
           return itemMinutes >= startMinutes && itemMinutes <= endMinutes;
         }
 
-        // OVERNIGHT RANGE
         return itemMinutes >= startMinutes || itemMinutes <= endMinutes;
       });
     }
@@ -253,6 +248,27 @@ export default function useHistory({
     singleDate,
     currentTime,
   ]);
+
+  // STABLE ALL-TIME OPENING BALANCE
+  // This is independent of the selected reporting timeframe.
+  const allTimeOpeningBalance = useMemo(() => {
+    const allPredictions = [...history].sort(
+      (a, b) => new Date(b.date) - new Date(a.date),
+    );
+
+    if (allPredictions.length === 0) {
+      return capitalResetAmount !== null ? Number(capitalResetAmount) : 0;
+    }
+
+    // Match the existing All Time summary accounting rule.
+    if (capitalResetAmount !== null) {
+      return Number(capitalResetAmount);
+    }
+
+    const oldest = allPredictions[allPredictions.length - 1];
+
+    return Number(oldest.capitalAfter || 0) - Number(oldest.profit || 0);
+  }, [history, capitalResetAmount]);
 
   // SUMMARY
   const summary = useMemo(() => {
@@ -276,14 +292,11 @@ export default function useHistory({
 
     if (filteredPredictions.length > 0) {
       const oldest = filteredPredictions[filteredPredictions.length - 1];
-
       const oldestDate = new Date(oldest.date);
 
       const balanceBeforeOldest =
         Number(oldest.capitalAfter || 0) - Number(oldest.profit || 0);
 
-      // ALL TIME: The latest capital reset starts
-      // the new performance accounting period.
       if (timeframe === "all" && hasReset) {
         openingBalance = Number(capitalResetAmount);
       } else if (hasReset && resetDate && oldestDate < resetDate) {
@@ -292,13 +305,9 @@ export default function useHistory({
         openingBalance = balanceBeforeOldest;
       }
 
-      // Closing balance must reflect ONLY the selected period.
       closingBalance = openingBalance + totalProfit;
     } else if (hasReset) {
       openingBalance = Number(capitalResetAmount);
-
-      // No filtered predictions means no profit or loss
-      // within the selected period.
       closingBalance = openingBalance;
     }
 
@@ -332,6 +341,7 @@ export default function useHistory({
     loadingHistory,
     filteredPredictions,
     summary,
+    allTimeOpeningBalance,
     availableWeeks,
     availableMonths,
     timeStart,
