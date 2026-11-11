@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 export default function HistorySection({
   platformName,
@@ -20,15 +20,18 @@ export default function HistorySection({
   filteredPredictions,
   loadingHistory,
 }) {
-  // Custom capital is stored internally in USD.
-  // It remains independent of the selected timeframe.
+  // null means the user has not customized the capital.
+  // In that case, the actual opening balance is displayed.
   const [startingCapital, setStartingCapital] = useState(null);
-  const [capitalInputDraft, setCapitalInputDraft] = useState(null);
 
   const [selectedCurrency, setSelectedCurrency] = useState("USD");
   const [exchangeRate, setExchangeRate] = useState(1);
 
-  // Available currencies.
+  // Use the loaded opening balance unless the user enters a custom amount.
+  const capitalInputValue =
+    startingCapital ??
+    (summary?.openingBalance != null ? Number(summary.openingBalance) : "");
+
   const currencyList = useMemo(() => {
     if (
       typeof Intl !== "undefined" &&
@@ -51,43 +54,27 @@ export default function HistorySection({
     ];
   }, []);
 
-  // FETCH EXCHANGE RATE
   useEffect(() => {
     let isMounted = true;
 
     async function fetchRate() {
-      if (selectedCurrency === "USD") {
-        setExchangeRate(1);
-        return;
-      }
-
       try {
-        const response = await fetch(
+        if (selectedCurrency === "USD") {
+          if (isMounted) setExchangeRate(1);
+          return;
+        }
+
+        const res = await fetch(
           `https://api.frankfurter.app/latest?from=USD&to=${selectedCurrency}`,
         );
-
-        if (!response.ok) {
-          throw new Error(`Exchange-rate request failed: ${response.status}`);
-        }
-
-        const data = await response.json();
-        const rate = Number(data?.rates?.[selectedCurrency]);
-
-        if (!Number.isFinite(rate) || rate <= 0) {
-          throw new Error(
-            `No valid exchange rate returned for ${selectedCurrency}`,
-          );
-        }
+        const data = await res.json();
 
         if (isMounted) {
-          setExchangeRate(rate);
+          setExchangeRate(Number(data?.rates?.[selectedCurrency] || 1));
         }
-      } catch (error) {
-        console.error("Currency rate fetch error:", error);
-
-        if (isMounted) {
-          setExchangeRate(1);
-        }
+      } catch (err) {
+        console.error("Currency rate fetch error:", err);
+        if (isMounted) setExchangeRate(1);
       }
     }
 
@@ -98,61 +85,12 @@ export default function HistorySection({
     };
   }, [selectedCurrency]);
 
-  // CONVERT USD TO THE SELECTED CURRENCY
-  const convertUsdToSelected = useCallback(
-    (value) => {
-      const amount = Number(value || 0);
-
-      if (selectedCurrency === "USD") {
-        return amount;
-      }
-
-      return amount * Number(exchangeRate || 1);
-    },
-    [exchangeRate, selectedCurrency],
-  );
-
-  // ORIGINAL OPENING CAPITAL
-  // This value comes from the history summary and does not change
-  // when the user selects another timeframe.
-  const originalOpeningCapital = Number(summary?.openingBalance || 0);
-
-  // CUSTOM CAPITAL OVERRIDES THE ORIGINAL OPENING CAPITAL.
-  // Otherwise, the original opening capital remains in use.
-  const openingBalanceUsd =
-    startingCapital !== null ? startingCapital : originalOpeningCapital;
-
-  // CAPITAL INPUT DISPLAY
-  const capitalInputValue =
-    capitalInputDraft !== null
-      ? capitalInputDraft
-      : String(convertUsdToSelected(openingBalanceUsd));
-
-  // FORMAT CURRENCY
-  function formatDisplayCurrency(value) {
-    const amount = Number(value || 0);
-
-    if (selectedCurrency === "USD") {
-      return formatCurrency(amount);
-    }
-
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: selectedCurrency,
-      maximumFractionDigits: 2,
-    }).format(amount);
-  }
-
-  // FORMAT CYCLES
   function formatCycles(cycles) {
-    if (!Array.isArray(cycles) || cycles.length === 0) {
-      return "-";
-    }
+    if (!Array.isArray(cycles) || cycles.length === 0) return "-";
 
     return cycles.map((cycle) => `${cycle.name}: ${cycle.value}`).join(" | ");
   }
 
-  // FORMAT DATE
   function formatDateTime(value) {
     if (!value) return "-";
 
@@ -165,48 +103,88 @@ export default function HistorySection({
     });
   }
 
-  // SUMMARY
-  // Period totals come from the currently filtered history.
-  // Opening capital remains fixed unless the user customizes it.
-  const displayedSummary = useMemo(() => {
-    const totalProfitUsd = Number(summary?.totalProfit || 0);
-    const totalReturnsUsd = Number(summary?.totalReturns || 0);
+  function formatDisplayCurrency(value) {
+    if (selectedCurrency === "USD") {
+      return formatCurrency(value);
+    }
 
-    const displayedOpeningBalance = convertUsdToSelected(openingBalanceUsd);
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: selectedCurrency,
+      maximumFractionDigits: 2,
+    }).format(Number(value || 0));
+  }
 
-    const displayedProfit = convertUsdToSelected(totalProfitUsd);
+  const scaleFactor = useMemo(() => {
+    const originalOpeningUsd = Number(summary?.openingBalance || 0);
+    const rate = Number(exchangeRate || 1);
 
-    // Closing balance is the fixed opening capital plus
-    // the profit from the selected timeframe.
-    const closingBalance = displayedOpeningBalance + displayedProfit;
+    const userOpeningUsd =
+      selectedCurrency === "USD"
+        ? Number(startingCapital ?? summary?.openingBalance ?? 0)
+        : Number(startingCapital ?? summary?.openingBalance ?? 0) / rate;
 
-    // ROI uses the same opening capital, not the closing balance.
-    const roi =
-      openingBalanceUsd > 0 ? (totalProfitUsd / openingBalanceUsd) * 100 : 0;
+    if (originalOpeningUsd <= 0 || userOpeningUsd <= 0) {
+      return 1;
+    }
+
+    return userOpeningUsd / originalOpeningUsd;
+  }, [
+    summary?.openingBalance,
+    startingCapital,
+    exchangeRate,
+    selectedCurrency,
+  ]);
+
+  const scaledSummary = useMemo(() => {
+    const rate = Number(exchangeRate || 1);
+
+    const convertUsdToSelected = (value) =>
+      selectedCurrency === "USD"
+        ? Number(value || 0)
+        : Number(value || 0) * rate;
 
     return {
       totalBets: Number(summary?.totalBets || 0),
-      openingBalance: displayedOpeningBalance,
-      closingBalance,
-      totalReturns: convertUsdToSelected(totalReturnsUsd),
-      totalProfit: displayedProfit,
-      roi,
+      openingBalance: convertUsdToSelected(
+        Number(summary?.openingBalance || 0) * scaleFactor,
+      ),
+      closingBalance: convertUsdToSelected(
+        Number(summary?.closingBalance || 0) * scaleFactor,
+      ),
+      totalReturns: convertUsdToSelected(
+        Number(summary?.totalReturns || 0) * scaleFactor,
+      ),
+      totalProfit: convertUsdToSelected(
+        Number(summary?.totalProfit || 0) * scaleFactor,
+      ),
+      roi: Number(summary?.roi || 0),
     };
-  }, [summary, openingBalanceUsd, convertUsdToSelected]);
+  }, [summary, scaleFactor, exchangeRate, selectedCurrency]);
 
-  // INDIVIDUAL PREDICTIONS
-  // Use the actual values saved in the backend.
-  // Currency conversion is applied, but capital scaling is not.
-  const displayedPredictions = useMemo(() => {
+  const scaledPredictions = useMemo(() => {
+    const rate = Number(exchangeRate || 1);
+
+    const convertUsdToSelected = (value) =>
+      selectedCurrency === "USD"
+        ? Number(value || 0)
+        : Number(value || 0) * rate;
+
     return (Array.isArray(filteredPredictions) ? filteredPredictions : []).map(
       (item) => ({
         ...item,
-        displayStake: convertUsdToSelected(item.stake),
-        displayResult: convertUsdToSelected(item.resultAmount),
-        displayProfit: convertUsdToSelected(item.profit),
+        displayStake: convertUsdToSelected(
+          Number(item.stake || 0) * scaleFactor,
+        ),
+        displayResult: convertUsdToSelected(
+          Number(item.resultAmount || 0) * scaleFactor,
+        ),
+        displayProfit: convertUsdToSelected(
+          Number(item.profit || 0) * scaleFactor,
+        ),
       }),
     );
-  }, [filteredPredictions, convertUsdToSelected]);
+  }, [filteredPredictions, scaleFactor, exchangeRate, selectedCurrency]);
 
   return (
     <div className="history-section">
@@ -253,6 +231,8 @@ export default function HistorySection({
                 setSingleDate(null);
               }
 
+              // Clear time restrictions when switching to a timeframe
+              // that does not support time-of-day filtering.
               if (!["today", "yesterday", "single_date"].includes(value)) {
                 setTimeStart(null);
                 setTimeEnd(null);
@@ -270,7 +250,6 @@ export default function HistorySection({
         {timeframe === "single_date" && (
           <div className="filter-group">
             <label>Select Date</label>
-
             <input
               type="date"
               value={singleDate || ""}
@@ -283,7 +262,6 @@ export default function HistorySection({
           <>
             <div className="filter-group">
               <label>Start Date</label>
-
               <input
                 type="date"
                 value={customStartDate}
@@ -293,7 +271,6 @@ export default function HistorySection({
 
             <div className="filter-group">
               <label>End Date</label>
-
               <input
                 type="date"
                 value={customEndDate}
@@ -305,43 +282,16 @@ export default function HistorySection({
 
         <div className="filter-group">
           <label>Set Your Capital</label>
-
           <input
             type="number"
             min="0"
             step="0.01"
             value={capitalInputValue}
-            onChange={(e) => {
-              const value = e.target.value;
-
-              setCapitalInputDraft(value);
-
-              if (value === "") {
-                return;
-              }
-
-              const enteredAmount = Number(value);
-
-              if (!Number.isFinite(enteredAmount)) {
-                return;
-              }
-
-              // Convert the entered amount back to USD.
-              // This preserves the same capital when currency changes.
-              const capitalInUsd =
-                selectedCurrency === "USD"
-                  ? enteredAmount
-                  : enteredAmount / Number(exchangeRate || 1);
-
-              setStartingCapital(capitalInUsd);
-            }}
-            onBlur={() => {
-              if (capitalInputDraft === "") {
-                setStartingCapital(null);
-              }
-
-              setCapitalInputDraft(null);
-            }}
+            onChange={(e) =>
+              setStartingCapital(
+                e.target.value === "" ? "" : Number(e.target.value),
+              )
+            }
           />
         </div>
 
@@ -350,10 +300,7 @@ export default function HistorySection({
 
           <select
             value={selectedCurrency}
-            onChange={(e) => {
-              setCapitalInputDraft(null);
-              setSelectedCurrency(e.target.value);
-            }}
+            onChange={(e) => setSelectedCurrency(e.target.value)}
           >
             {currencyList.map((currency) => (
               <option key={currency} value={currency}>
@@ -380,38 +327,36 @@ export default function HistorySection({
 
           <tbody>
             <tr>
-              <td>{displayedSummary.totalBets}</td>
+              <td>{scaledSummary.totalBets}</td>
 
               <td className="result-neutral">
-                {formatDisplayCurrency(displayedSummary.openingBalance)}
+                {formatDisplayCurrency(scaledSummary.openingBalance)}
               </td>
 
               <td className="result-neutral">
-                {formatDisplayCurrency(displayedSummary.closingBalance)}
+                {formatDisplayCurrency(scaledSummary.closingBalance)}
               </td>
 
               <td className="result-neutral">
-                {formatDisplayCurrency(displayedSummary.totalReturns)}
+                {formatDisplayCurrency(scaledSummary.totalReturns)}
               </td>
 
               <td
                 className={
-                  displayedSummary.totalProfit >= 0
-                    ? "result-win"
-                    : "result-loss"
+                  scaledSummary.totalProfit >= 0 ? "result-win" : "result-loss"
                 }
               >
-                {displayedSummary.totalProfit >= 0 ? "+" : "-"}
-                {formatDisplayCurrency(Math.abs(displayedSummary.totalProfit))}
+                {scaledSummary.totalProfit >= 0 ? "+" : "-"}
+                {formatDisplayCurrency(Math.abs(scaledSummary.totalProfit))}
               </td>
 
               <td
                 className={
-                  displayedSummary.roi >= 0 ? "result-win" : "result-loss"
+                  scaledSummary.roi >= 0 ? "result-win" : "result-loss"
                 }
               >
-                {displayedSummary.roi >= 0 ? "+" : ""}
-                {Number(displayedSummary.roi || 0).toFixed(2)}%
+                {scaledSummary.roi >= 0 ? "+" : ""}
+                {Number(scaledSummary.roi || 0).toFixed(2)}%
               </td>
             </tr>
           </tbody>
@@ -440,15 +385,12 @@ export default function HistorySection({
                   Loading history...
                 </td>
               </tr>
-            ) : displayedPredictions.length > 0 ? (
-              displayedPredictions.map((item) => (
+            ) : scaledPredictions.length > 0 ? (
+              scaledPredictions.map((item) => (
                 <tr key={item._id}>
                   <td>{formatDateTime(item.date)}</td>
-
                   <td>{formatCycles(item.cycles)}</td>
-
                   <td>{item.match || "-"}</td>
-
                   <td>{item.odd ?? "-"}</td>
 
                   <td className="result-outgoing">
