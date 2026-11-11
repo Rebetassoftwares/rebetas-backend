@@ -14,8 +14,20 @@ export default function useHistory({
   const [timeEnd, setTimeEnd] = useState("");
   const [singleDate, setSingleDate] = useState(null);
 
-  // ORIGINAL CAPITAL RESET AMOUNT
+  // Used to refresh rolling time filters every minute.
+  const [currentTime, setCurrentTime] = useState(() => Date.now());
+
+  // ADMINISTRATOR-SET LEAGUE CAPITAL FROM BACKEND
   const [capitalResetAmount, setCapitalResetAmount] = useState(null);
+
+  // REFRESH ROLLING TIME FILTERS
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   // FETCH HISTORY
   useEffect(() => {
@@ -82,60 +94,132 @@ export default function useHistory({
 
   // FILTERING + SORTING
   const filteredPredictions = useMemo(() => {
+    // Sort all predictions newest first.
     let data = [...history].sort((a, b) => new Date(b.date) - new Date(a.date));
 
-    // SINGLE DATE FILTER
-    if (singleDate) {
-      const targetDate = new Date(singleDate).toDateString();
-
-      data = data.filter(
-        (item) => new Date(item.date).toDateString() === targetDate,
-      );
+    // ALL TIME
+    if (timeframe === "all") {
+      return data;
     }
 
-    if (timeframe === "today") {
-      const today = new Date().toDateString();
+    // LAST 1 HOUR / LAST 2 HOURS
+    if (timeframe === "last_1_hour" || timeframe === "last_2_hours") {
+      const now = new Date(currentTime);
+      const hours = timeframe === "last_1_hour" ? 1 : 2;
+      const cutoff = new Date(now.getTime() - hours * 60 * 60 * 1000);
 
-      data = data.filter(
-        (item) => new Date(item.date).toDateString() === today,
-      );
-    }
-
-    if (timeframe === "yesterday") {
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-
-      data = data.filter(
-        (item) =>
-          new Date(item.date).toDateString() === yesterday.toDateString(),
-      );
-    }
-
-    if (timeframe === "this_week") {
-      const now = new Date();
-      const start = new Date(now.setDate(now.getDate() - now.getDay()));
-
-      data = data.filter((item) => new Date(item.date) >= start);
-    }
-
-    if (timeframe === "custom" && customStartDate && customEndDate) {
-      data = data.filter((item) => {
+      return data.filter((item) => {
         const itemDate = new Date(item.date);
 
         return (
-          itemDate >= new Date(customStartDate) &&
-          itemDate <= new Date(customEndDate)
+          !Number.isNaN(itemDate.getTime()) &&
+          itemDate >= cutoff &&
+          itemDate <= now
         );
       });
     }
 
+    // SINGLE DATE FILTER
+    if (timeframe === "single_date" && singleDate) {
+      const targetDate = new Date(`${singleDate}T00:00:00`);
+
+      if (!Number.isNaN(targetDate.getTime())) {
+        data = data.filter((item) => {
+          const itemDate = new Date(item.date);
+
+          return (
+            !Number.isNaN(itemDate.getTime()) &&
+            itemDate.getFullYear() === targetDate.getFullYear() &&
+            itemDate.getMonth() === targetDate.getMonth() &&
+            itemDate.getDate() === targetDate.getDate()
+          );
+        });
+      }
+    }
+
+    // TODAY FILTER
+    if (timeframe === "today") {
+      const today = new Date(currentTime);
+
+      data = data.filter((item) => {
+        const itemDate = new Date(item.date);
+
+        return (
+          !Number.isNaN(itemDate.getTime()) &&
+          itemDate.getFullYear() === today.getFullYear() &&
+          itemDate.getMonth() === today.getMonth() &&
+          itemDate.getDate() === today.getDate()
+        );
+      });
+    }
+
+    // YESTERDAY FILTER
+    if (timeframe === "yesterday") {
+      const yesterday = new Date(currentTime);
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      data = data.filter((item) => {
+        const itemDate = new Date(item.date);
+
+        return (
+          !Number.isNaN(itemDate.getTime()) &&
+          itemDate.getFullYear() === yesterday.getFullYear() &&
+          itemDate.getMonth() === yesterday.getMonth() &&
+          itemDate.getDate() === yesterday.getDate()
+        );
+      });
+    }
+
+    // THIS WEEK FILTER
+    if (timeframe === "this_week") {
+      const now = new Date(currentTime);
+      const start = new Date(now);
+
+      start.setHours(0, 0, 0, 0);
+      start.setDate(start.getDate() - start.getDay());
+
+      data = data.filter((item) => {
+        const itemDate = new Date(item.date);
+
+        return !Number.isNaN(itemDate.getTime()) && itemDate >= start;
+      });
+    }
+
+    // CUSTOM DATE FILTER
+    if (timeframe === "custom" && customStartDate && customEndDate) {
+      const start = new Date(`${customStartDate}T00:00:00`);
+      const end = new Date(`${customEndDate}T23:59:59.999`);
+
+      if (
+        !Number.isNaN(start.getTime()) &&
+        !Number.isNaN(end.getTime()) &&
+        start <= end
+      ) {
+        data = data.filter((item) => {
+          const itemDate = new Date(item.date);
+
+          return (
+            !Number.isNaN(itemDate.getTime()) &&
+            itemDate >= start &&
+            itemDate <= end
+          );
+        });
+      } else {
+        data = [];
+      }
+    }
+
     // TIME RANGE FILTER
     const shouldApplyTimeRange =
-      timeframe === "today" || timeframe === "yesterday" || Boolean(singleDate);
+      timeframe === "today" ||
+      timeframe === "yesterday" ||
+      timeframe === "single_date";
 
     if (shouldApplyTimeRange && timeStart && timeEnd) {
       data = data.filter((item) => {
         const itemDate = new Date(item.date);
+
+        if (Number.isNaN(itemDate.getTime())) return false;
 
         const itemMinutes = itemDate.getHours() * 60 + itemDate.getMinutes();
 
@@ -164,11 +248,11 @@ export default function useHistory({
     timeStart,
     timeEnd,
     singleDate,
+    currentTime,
   ]);
 
   // SUMMARY
   const summary = useMemo(() => {
-    // These totals belong only to the selected timeframe.
     const totalBets = filteredPredictions.length;
 
     const totalReturns = filteredPredictions.reduce(
@@ -181,30 +265,18 @@ export default function useHistory({
       0,
     );
 
-    // FIND THE ORIGINAL OPENING CAPITAL.
-    // This calculation uses the COMPLETE history, not filtered history.
-    let originalOpeningBalance = 0;
+    // Always use the administrator-configured league capital.
+    // Do not derive opening balance from prediction records,
+    // because old predictions may be automatically deleted.
+    const openingBalance =
+      capitalResetAmount !== null && Number.isFinite(Number(capitalResetAmount))
+        ? Number(capitalResetAmount)
+        : 0;
 
-    if (capitalResetAmount !== null) {
-      originalOpeningBalance = Number(capitalResetAmount);
-    } else if (history.length > 0) {
-      const oldestPrediction = [...history].sort(
-        (a, b) => new Date(a.date) - new Date(b.date),
-      )[0];
-
-      originalOpeningBalance =
-        Number(oldestPrediction.capitalAfter || 0) -
-        Number(oldestPrediction.profit || 0);
-    }
-
-    // OPENING BALANCE NEVER CHANGES WITH THE SELECTED TIMEFRAME.
-    const openingBalance = originalOpeningBalance;
-
-    // CLOSING BALANCE IS CALCULATED INDEPENDENTLY.
-    // It never replaces or modifies the original opening balance.
+    // Closing balance reflects only profit within
+    // the currently selected timeframe.
     const closingBalance = openingBalance + totalProfit;
 
-    // ROI USES THE ORIGINAL OPENING CAPITAL.
     const roi = openingBalance > 0 ? (totalProfit / openingBalance) * 100 : 0;
 
     return {
@@ -215,7 +287,7 @@ export default function useHistory({
       totalProfit,
       roi,
     };
-  }, [filteredPredictions, history, capitalResetAmount]);
+  }, [filteredPredictions, capitalResetAmount]);
 
   // AVAILABLE FILTER OPTIONS
   const availableWeeks = [
