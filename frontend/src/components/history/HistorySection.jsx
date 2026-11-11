@@ -23,6 +23,9 @@ export default function HistorySection({
   // Store custom capital in USD as the base currency.
   const [startingCapital, setStartingCapital] = useState(null);
 
+  // Temporary text value while the user edits the capital input.
+  const [capitalInputDraft, setCapitalInputDraft] = useState(null);
+
   const [selectedCurrency, setSelectedCurrency] = useState("USD");
   const [exchangeRate, setExchangeRate] = useState(1);
 
@@ -105,10 +108,13 @@ export default function HistorySection({
     startingCapital !== null ? startingCapital : originalOpeningCapital;
 
   // CAPITAL INPUT DISPLAY
+  // Keep the draft untouched while the user is editing.
   const capitalInputValue =
-    selectedCurrency === "USD"
-      ? openingBalanceUsd
-      : openingBalanceUsd * Number(exchangeRate || 1);
+    capitalInputDraft !== null
+      ? capitalInputDraft
+      : selectedCurrency === "USD"
+        ? String(openingBalanceUsd)
+        : String(openingBalanceUsd * Number(exchangeRate || 1));
 
   // FORMAT CURRENCY
   function formatDisplayCurrency(value) {
@@ -294,20 +300,31 @@ export default function HistorySection({
             onChange={(e) => {
               const value = e.target.value;
 
-              if (value === "") {
-                setStartingCapital(null);
-                return;
-              }
+              // Preserve the exact text currently being edited,
+              // including an empty field.
+              setCapitalInputDraft(value);
+
+              // Do not reset capital while the field is temporarily empty.
+              if (value === "") return;
 
               const enteredAmount = Number(value);
 
-              // Convert the entered currency amount back to USD
-              // so the same capital is preserved when currency changes.
+              // Convert the entered currency amount back to USD.
               setStartingCapital(
                 selectedCurrency === "USD"
                   ? enteredAmount
                   : enteredAmount / Number(exchangeRate || 1),
               );
+            }}
+            onBlur={() => {
+              // If left empty, restore the original opening capital.
+              if (capitalInputDraft === "") {
+                setStartingCapital(null);
+                setCapitalInputDraft(null);
+              } else {
+                // Finish editing and display the calculated capital.
+                setCapitalInputDraft(null);
+              }
             }}
           />
         </div>
@@ -317,7 +334,10 @@ export default function HistorySection({
 
           <select
             value={selectedCurrency}
-            onChange={(e) => setSelectedCurrency(e.target.value)}
+            onChange={(e) => {
+              setCapitalInputDraft(null);
+              setSelectedCurrency(e.target.value);
+            }}
           >
             {currencyList.map((currency) => (
               <option key={currency} value={currency}>
