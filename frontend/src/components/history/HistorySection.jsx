@@ -21,7 +21,6 @@ export default function HistorySection({
   loadingHistory,
 }) {
   // null means the user has not customized the capital.
-  // In that case, the actual opening balance is displayed.
   const [startingCapital, setStartingCapital] = useState(null);
 
   const [selectedCurrency, setSelectedCurrency] = useState("USD");
@@ -115,21 +114,28 @@ export default function HistorySection({
     }).format(Number(value || 0));
   }
 
+  // Use one timeframe-independent reference capital.
+  // This prevents the same prediction stake from changing
+  // simply because Today, Yesterday, or All Time is selected.
   const scaleFactor = useMemo(() => {
-    const originalOpeningUsd = Number(summary?.openingBalance || 0);
+    const originalCapital = Number(
+      summary?.stakeReferenceCapital ?? summary?.openingBalance ?? 0,
+    );
+
     const rate = Number(exchangeRate || 1);
 
-    const userOpeningUsd =
+    const userCapital =
       selectedCurrency === "USD"
-        ? Number(startingCapital ?? summary?.openingBalance ?? 0)
-        : Number(startingCapital ?? summary?.openingBalance ?? 0) / rate;
+        ? Number(startingCapital ?? originalCapital)
+        : Number(startingCapital ?? originalCapital) / rate;
 
-    if (originalOpeningUsd <= 0 || userOpeningUsd <= 0) {
+    if (originalCapital <= 0 || userCapital <= 0) {
       return 1;
     }
 
-    return userOpeningUsd / originalOpeningUsd;
+    return userCapital / originalCapital;
   }, [
+    summary?.stakeReferenceCapital,
     summary?.openingBalance,
     startingCapital,
     exchangeRate,
@@ -146,18 +152,23 @@ export default function HistorySection({
 
     return {
       totalBets: Number(summary?.totalBets || 0),
+
       openingBalance: convertUsdToSelected(
         Number(summary?.openingBalance || 0) * scaleFactor,
       ),
+
       closingBalance: convertUsdToSelected(
         Number(summary?.closingBalance || 0) * scaleFactor,
       ),
+
       totalReturns: convertUsdToSelected(
         Number(summary?.totalReturns || 0) * scaleFactor,
       ),
+
       totalProfit: convertUsdToSelected(
         Number(summary?.totalProfit || 0) * scaleFactor,
       ),
+
       roi: Number(summary?.roi || 0),
     };
   }, [summary, scaleFactor, exchangeRate, selectedCurrency]);
@@ -173,12 +184,15 @@ export default function HistorySection({
     return (Array.isArray(filteredPredictions) ? filteredPredictions : []).map(
       (item) => ({
         ...item,
+
         displayStake: convertUsdToSelected(
           Number(item.stake || 0) * scaleFactor,
         ),
+
         displayResult: convertUsdToSelected(
           Number(item.resultAmount || 0) * scaleFactor,
         ),
+
         displayProfit: convertUsdToSelected(
           Number(item.profit || 0) * scaleFactor,
         ),
