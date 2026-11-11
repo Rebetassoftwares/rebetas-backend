@@ -167,18 +167,12 @@ export default function HistorySection({
     return (Array.isArray(filteredPredictions) ? filteredPredictions : []).map(
       (item) => ({
         ...item,
-        displayStake: convertUsdToSelected(
-          Number(item.stake || 0) * scaleFactor,
-        ),
-        displayResult: convertUsdToSelected(
-          Number(item.resultAmount || 0) * scaleFactor,
-        ),
-        displayProfit: convertUsdToSelected(
-          Number(item.profit || 0) * scaleFactor,
-        ),
+        displayStake: convertUsdToSelected(item.stake),
+        displayResult: convertUsdToSelected(item.resultAmount),
+        displayProfit: convertUsdToSelected(item.profit),
       }),
     );
-  }, [filteredPredictions, scaleFactor, exchangeRate, selectedCurrency]);
+  }, [filteredPredictions, exchangeRate, selectedCurrency]);
 
   return (
     <div className="history-section">
