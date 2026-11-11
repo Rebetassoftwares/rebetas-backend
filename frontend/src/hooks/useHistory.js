@@ -90,6 +90,29 @@ export default function useHistory({
     };
   }, [platformKey, leagueKey]);
 
+  // FIXED STAKE REFERENCE CAPITAL
+  // This is calculated from the complete history, not the selected timeframe.
+  // Therefore, Today, Yesterday, and All Time share the same reference capital.
+  const stakeReferenceCapital = useMemo(() => {
+    if (capitalResetAmount !== null) {
+      return Number(capitalResetAmount);
+    }
+
+    if (history.length > 0) {
+      const oldestPrediction = [...history].sort(
+        (a, b) => new Date(a.date) - new Date(b.date),
+      )[0];
+
+      const openingCapital =
+        Number(oldestPrediction.capitalAfter || 0) -
+        Number(oldestPrediction.profit || 0);
+
+      return Number.isFinite(openingCapital) ? openingCapital : 0;
+    }
+
+    return currentCapital !== null ? Number(currentCapital) : 0;
+  }, [history, capitalResetAmount, currentCapital]);
+
   // FILTERING + SORTING
   const filteredPredictions = useMemo(() => {
     let data = [...history].sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -243,6 +266,9 @@ export default function useHistory({
       totalReturns,
       totalProfit,
       roi,
+
+      // Same reference capital for every timeframe.
+      stakeReferenceCapital,
     };
   }, [
     filteredPredictions,
@@ -250,6 +276,7 @@ export default function useHistory({
     capitalResetAt,
     currentCapital,
     timeframe,
+    stakeReferenceCapital,
   ]);
 
   // AVAILABLE FILTER OPTIONS
