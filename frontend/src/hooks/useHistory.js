@@ -14,10 +14,8 @@ export default function useHistory({
   const [timeEnd, setTimeEnd] = useState("");
   const [singleDate, setSingleDate] = useState(null);
 
-  // CAPITAL RESET INFORMATION
+  // ORIGINAL CAPITAL RESET AMOUNT
   const [capitalResetAmount, setCapitalResetAmount] = useState(null);
-  const [capitalResetAt, setCapitalResetAt] = useState(null);
-  const [currentCapital, setCurrentCapital] = useState(null);
 
   // FETCH HISTORY
   useEffect(() => {
@@ -35,10 +33,6 @@ export default function useHistory({
           setHistory(Array.isArray(res?.predictions) ? res.predictions : []);
 
           setCapitalResetAmount(res?.capitalResetAmount ?? null);
-
-          setCapitalResetAt(res?.capitalResetAt ?? null);
-
-          setCurrentCapital(res?.currentCapital ?? null);
         }
       } catch (err) {
         console.error("History load error:", err);
@@ -74,10 +68,6 @@ export default function useHistory({
           setHistory(Array.isArray(res?.predictions) ? res.predictions : []);
 
           setCapitalResetAmount(res?.capitalResetAmount ?? null);
-
-          setCapitalResetAt(res?.capitalResetAt ?? null);
-
-          setCurrentCapital(res?.currentCapital ?? null);
         }
       } catch (err) {
         console.error("History auto refresh error:", err);
@@ -150,7 +140,6 @@ export default function useHistory({
         const itemMinutes = itemDate.getHours() * 60 + itemDate.getMinutes();
 
         const [startH, startM] = timeStart.split(":").map(Number);
-
         const [endH, endM] = timeEnd.split(":").map(Number);
 
         const startMinutes = startH * 60 + startM;
@@ -179,6 +168,7 @@ export default function useHistory({
 
   // SUMMARY
   const summary = useMemo(() => {
+    // These totals belong only to the selected timeframe.
     const totalBets = filteredPredictions.length;
 
     const totalReturns = filteredPredictions.reduce(
@@ -191,50 +181,31 @@ export default function useHistory({
       0,
     );
 
-    let openingBalance = 0;
-    let closingBalance = 0;
+    // FIND THE ORIGINAL OPENING CAPITAL.
+    // This calculation uses the COMPLETE history, not filtered history.
+    let originalOpeningBalance = 0;
 
-    const hasReset = capitalResetAmount !== null;
-    const resetDate = capitalResetAt ? new Date(capitalResetAt) : null;
+    if (capitalResetAmount !== null) {
+      originalOpeningBalance = Number(capitalResetAmount);
+    } else if (history.length > 0) {
+      const oldestPrediction = [...history].sort(
+        (a, b) => new Date(a.date) - new Date(b.date),
+      )[0];
 
-    if (filteredPredictions.length > 0) {
-      const oldest = filteredPredictions[filteredPredictions.length - 1];
-
-      const latest = filteredPredictions[0];
-
-      const oldestDate = new Date(oldest.date);
-
-      const balanceBeforeOldest =
-        Number(oldest.capitalAfter || 0) - Number(oldest.profit || 0);
-
-      // ALL TIME: the latest capital reset starts
-      // the new performance accounting period.
-      if (timeframe === "all" && hasReset) {
-        openingBalance = Number(capitalResetAmount);
-      } else if (hasReset && resetDate && oldestDate < resetDate) {
-        // The selected history begins before the latest reset.
-        openingBalance = Number(capitalResetAmount);
-      } else {
-        // Preserve the existing period-opening calculation.
-        openingBalance = balanceBeforeOldest;
-      }
-
-      closingBalance = Number(latest.capitalAfter || 0);
-    } else if (hasReset) {
-      // No predictions in the selected period.
-      openingBalance = Number(capitalResetAmount);
-
-      closingBalance =
-        currentCapital !== null
-          ? Number(currentCapital)
-          : Number(capitalResetAmount);
+      originalOpeningBalance =
+        Number(oldestPrediction.capitalAfter || 0) -
+        Number(oldestPrediction.profit || 0);
     }
 
-    let roi = 0;
+    // OPENING BALANCE NEVER CHANGES WITH THE SELECTED TIMEFRAME.
+    const openingBalance = originalOpeningBalance;
 
-    if (openingBalance > 0) {
-      roi = (totalProfit / openingBalance) * 100;
-    }
+    // CLOSING BALANCE IS CALCULATED INDEPENDENTLY.
+    // It never replaces or modifies the original opening balance.
+    const closingBalance = openingBalance + totalProfit;
+
+    // ROI USES THE ORIGINAL OPENING CAPITAL.
+    const roi = openingBalance > 0 ? (totalProfit / openingBalance) * 100 : 0;
 
     return {
       totalBets,
@@ -244,13 +215,7 @@ export default function useHistory({
       totalProfit,
       roi,
     };
-  }, [
-    filteredPredictions,
-    capitalResetAmount,
-    capitalResetAt,
-    currentCapital,
-    timeframe,
-  ]);
+  }, [filteredPredictions, history, capitalResetAmount]);
 
   // AVAILABLE FILTER OPTIONS
   const availableWeeks = [
