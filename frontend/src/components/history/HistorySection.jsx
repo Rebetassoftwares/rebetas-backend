@@ -16,13 +16,12 @@ export default function HistorySection({
   setTimeStart,
   setTimeEnd,
   summary,
-  allTimeOpeningBalance,
   formatCurrency,
   filteredPredictions,
   loadingHistory,
 }) {
   // null means the user has not customized the capital.
-  // The input can still display the selected period's opening balance.
+  // In that case, the actual opening balance is displayed.
   const [startingCapital, setStartingCapital] = useState(null);
 
   const [selectedCurrency, setSelectedCurrency] = useState("USD");
@@ -116,32 +115,26 @@ export default function HistorySection({
     }).format(Number(value || 0));
   }
 
-  // SCALE AGAINST THE STABLE ALL-TIME CAPITAL REFERENCE.
-  // Changing the reporting timeframe must not change historical stakes.
   const scaleFactor = useMemo(() => {
-    const originalOpeningUsd = Number(allTimeOpeningBalance || 0);
+    const originalOpeningUsd = Number(summary?.openingBalance || 0);
     const rate = Number(exchangeRate || 1);
 
-    // No custom capital means no scaling.
-    if (startingCapital === null) {
-      return 1;
-    }
-
-    const enteredCapital = Number(startingCapital);
-
     const userOpeningUsd =
-      selectedCurrency === "USD" ? enteredCapital : enteredCapital / rate;
+      selectedCurrency === "USD"
+        ? Number(startingCapital ?? summary?.openingBalance ?? 0)
+        : Number(startingCapital ?? summary?.openingBalance ?? 0) / rate;
 
-    if (
-      originalOpeningUsd <= 0 ||
-      !Number.isFinite(userOpeningUsd) ||
-      userOpeningUsd <= 0
-    ) {
+    if (originalOpeningUsd <= 0 || userOpeningUsd <= 0) {
       return 1;
     }
 
     return userOpeningUsd / originalOpeningUsd;
-  }, [allTimeOpeningBalance, startingCapital, exchangeRate, selectedCurrency]);
+  }, [
+    summary?.openingBalance,
+    startingCapital,
+    exchangeRate,
+    selectedCurrency,
+  ]);
 
   const scaledSummary = useMemo(() => {
     const rate = Number(exchangeRate || 1);
