@@ -16,7 +16,6 @@ export default function HistorySection({
   setTimeStart,
   setTimeEnd,
   summary,
-  formatCurrency,
   filteredPredictions,
   loadingHistory,
 }) {
@@ -103,15 +102,14 @@ export default function HistorySection({
     });
   }
 
+  // Display currency symbols without decimal places.
   function formatDisplayCurrency(value) {
-    if (selectedCurrency === "USD") {
-      return formatCurrency(value);
-    }
-
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: selectedCurrency,
-      maximumFractionDigits: 2,
+      currencyDisplay: "narrowSymbol",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
     }).format(Number(value || 0));
   }
 
