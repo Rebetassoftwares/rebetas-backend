@@ -2100,3 +2100,92 @@
     font-size: 10px;
   }
 }
+
+/* =========================================================
+   PAST PERFORMANCE — SMALL SCREEN TABLE FIT
+   Keep the existing table layout. No cards or logic changes.
+========================================================= */
+
+@media (max-width: 600px) {
+  .history-section {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    padding: 16px 9px;
+  }
+
+  /* SUMMARY TABLE */
+  .history-section .summary-table-wrapper {
+    width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+  }
+
+  .history-section .summary-table {
+    width: 100%;
+    min-width: 0;
+    table-layout: fixed;
+  }
+
+  .history-section .summary-table th,
+  .history-section .summary-table td {
+    padding: 7px 3px;
+    font-size: 9px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: normal;
+    text-align: center;
+  }
+
+  .history-section .summary-table th {
+    font-size: 8px;
+    letter-spacing: 0;
+  }
+
+  /* PREDICTION HISTORY TABLE */
+  .history-section .table-scroll-box {
+    width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .history-section .past-table {
+    width: 100%;
+    min-width: 0;
+    table-layout: fixed;
+  }
+
+  .history-section .past-table th,
+  .history-section .past-table td {
+    padding: 8px 3px;
+    font-size: 9px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: normal;
+  }
+
+  .history-section .past-table th {
+    font-size: 8px;
+    letter-spacing: 0;
+  }
+}
+
+/* EXTRA COMPACT PHONES */
+@media (max-width: 380px) {
+  .history-section {
+    padding: 13px 6px;
+  }
+
+  .history-section .summary-table th,
+  .history-section .past-table th {
+    padding: 6px 2px;
+    font-size: 7px;
+  }
+
+  .history-section .summary-table td,
+  .history-section .past-table td {
+    padding: 6px 2px;
+    font-size: 8px;
+  }
+}
