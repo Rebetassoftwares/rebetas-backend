@@ -74,7 +74,6 @@ export default function HistorySection({
         }
       } catch (err) {
         console.error("Currency rate fetch error:", err);
-
         if (isMounted) setExchangeRate(1);
       }
     }
@@ -87,9 +86,7 @@ export default function HistorySection({
   }, [selectedCurrency]);
 
   function formatCycles(cycles) {
-    if (!Array.isArray(cycles) || cycles.length === 0) {
-      return "-";
-    }
+    if (!Array.isArray(cycles) || cycles.length === 0) return "-";
 
     return cycles.map((cycle) => `${cycle.name}: ${cycle.value}`).join(" | ");
   }
@@ -106,8 +103,6 @@ export default function HistorySection({
     });
   }
 
-  // Display compact currency symbols instead of long currency codes
-  // wherever the browser's international currency data supports them.
   function formatDisplayCurrency(value) {
     if (selectedCurrency === "USD") {
       return formatCurrency(value);
@@ -116,7 +111,6 @@ export default function HistorySection({
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: selectedCurrency,
-      currencyDisplay: "narrowSymbol",
       maximumFractionDigits: 2,
     }).format(Number(value || 0));
   }
@@ -152,23 +146,18 @@ export default function HistorySection({
 
     return {
       totalBets: Number(summary?.totalBets || 0),
-
       openingBalance: convertUsdToSelected(
         Number(summary?.openingBalance || 0) * scaleFactor,
       ),
-
       closingBalance: convertUsdToSelected(
         Number(summary?.closingBalance || 0) * scaleFactor,
       ),
-
       totalReturns: convertUsdToSelected(
         Number(summary?.totalReturns || 0) * scaleFactor,
       ),
-
       totalProfit: convertUsdToSelected(
         Number(summary?.totalProfit || 0) * scaleFactor,
       ),
-
       roi: Number(summary?.roi || 0),
     };
   }, [summary, scaleFactor, exchangeRate, selectedCurrency]);
@@ -184,15 +173,12 @@ export default function HistorySection({
     return (Array.isArray(filteredPredictions) ? filteredPredictions : []).map(
       (item) => ({
         ...item,
-
         displayStake: convertUsdToSelected(
           Number(item.stake || 0) * scaleFactor,
         ),
-
         displayResult: convertUsdToSelected(
           Number(item.resultAmount || 0) * scaleFactor,
         ),
-
         displayProfit: convertUsdToSelected(
           Number(item.profit || 0) * scaleFactor,
         ),
@@ -264,7 +250,6 @@ export default function HistorySection({
         {timeframe === "single_date" && (
           <div className="filter-group">
             <label>Select Date</label>
-
             <input
               type="date"
               value={singleDate || ""}
@@ -277,7 +262,6 @@ export default function HistorySection({
           <>
             <div className="filter-group">
               <label>Start Date</label>
-
               <input
                 type="date"
                 value={customStartDate}
@@ -287,7 +271,6 @@ export default function HistorySection({
 
             <div className="filter-group">
               <label>End Date</label>
-
               <input
                 type="date"
                 value={customEndDate}
@@ -299,7 +282,6 @@ export default function HistorySection({
 
         <div className="filter-group">
           <label>Set Your Capital</label>
-
           <input
             type="number"
             min="0"
@@ -347,22 +329,22 @@ export default function HistorySection({
             <tr>
               <td>{scaledSummary.totalBets}</td>
 
-              <td className="result-neutral currency-cell">
+              <td className="result-neutral">
                 {formatDisplayCurrency(scaledSummary.openingBalance)}
               </td>
 
-              <td className="result-neutral currency-cell">
+              <td className="result-neutral">
                 {formatDisplayCurrency(scaledSummary.closingBalance)}
               </td>
 
-              <td className="result-neutral currency-cell">
+              <td className="result-neutral">
                 {formatDisplayCurrency(scaledSummary.totalReturns)}
               </td>
 
               <td
-                className={`currency-cell ${
+                className={
                   scaledSummary.totalProfit >= 0 ? "result-win" : "result-loss"
-                }`}
+                }
               >
                 {scaledSummary.totalProfit >= 0 ? "+" : "-"}
                 {formatDisplayCurrency(Math.abs(scaledSummary.totalProfit))}
@@ -407,31 +389,28 @@ export default function HistorySection({
               scaledPredictions.map((item) => (
                 <tr key={item._id}>
                   <td>{formatDateTime(item.date)}</td>
-
                   <td>{formatCycles(item.cycles)}</td>
-
                   <td>{item.match || "-"}</td>
-
                   <td>{item.odd ?? "-"}</td>
 
-                  <td className="result-outgoing currency-cell">
+                  <td className="result-outgoing">
                     {formatDisplayCurrency(item.displayStake)}
                   </td>
 
                   <td
-                    className={`currency-cell ${
+                    className={
                       item.resultStatus === "WIN" ? "result-win" : "result-loss"
-                    }`}
+                    }
                   >
                     {formatDisplayCurrency(item.displayResult)}
                   </td>
 
                   <td
-                    className={`currency-cell ${
+                    className={
                       Number(item.displayProfit || 0) >= 0
                         ? "result-win"
                         : "result-loss"
-                    }`}
+                    }
                   >
                     {Number(item.displayProfit || 0) >= 0 ? "+" : "-"}
                     {formatDisplayCurrency(Math.abs(item.displayProfit))}

@@ -2219,14 +2219,3 @@
     padding-right: 2px;
   }
 }
-
-/* Keep monetary values together on smaller screens */
-@media (max-width: 600px) {
-  .history-section .currency-cell {
-    white-space: nowrap !important;
-    word-break: normal !important;
-    overflow-wrap: normal !important;
-    font-variant-numeric: tabular-nums;
-    letter-spacing: -0.2px;
-  }
-}
