@@ -528,6 +528,36 @@ export default function Pricing() {
 
               {renderPlanPrice("monthly", monthlyPlan)}
 
+              <div className="pricing-guarantee">
+                <div className="pricing-guarantee-icon">✓</div>
+
+                <div className="pricing-guarantee-content">
+                  <span className="pricing-guarantee-label">
+                    YOUR SUBSCRIPTION IS PROTECTED
+                  </span>
+
+                  <h4>24-Hour Money-Back Guarantee</h4>
+
+                  <p>
+                    Not completely satisfied with SunStreamers? Request a
+                    <strong>
+                      {" "}
+                      100% refund of your subscription payment within 24 hours
+                      of purchase.
+                    </strong>
+                  </p>
+
+                  <strong className="pricing-guarantee-promise">
+                    100% Refund. No Deductions. No Conditions.
+                  </strong>
+
+                  <span className="pricing-guarantee-contact">
+                    Simply email support@sunstreamers.com within 24 hours of
+                    purchase.
+                  </span>
+                </div>
+              </div>
+
               <ul className="features">
                 {FEATURES.map((f, i) => (
                   <li key={i}>✔ {f}</li>

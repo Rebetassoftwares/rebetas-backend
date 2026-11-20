@@ -23,7 +23,7 @@ export default function Predictions() {
   const [time, setTime] = useState(new Date());
   const [pageError, setPageError] = useState("");
 
-  const [timeframe, setTimeframe] = useState("all");
+  const [timeframe, setTimeframe] = useState("last_1_hour");
   const [selectedWeek, setSelectedWeek] = useState("all");
   const [selectedMonth, setSelectedMonth] = useState("all");
   const [customStartDate, setCustomStartDate] = useState("");

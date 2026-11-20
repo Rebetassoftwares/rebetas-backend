@@ -14,10 +14,10 @@ export default function useHistory({
   const [timeEnd, setTimeEnd] = useState("");
   const [singleDate, setSingleDate] = useState(null);
 
-  // Used to refresh rolling time filters every minute.
+  // Refresh rolling time filters every minute.
   const [currentTime, setCurrentTime] = useState(() => Date.now());
 
-  // ADMINISTRATOR-SET LEAGUE CAPITAL FROM BACKEND
+  // Administrator-set league capital from backend.
   const [capitalResetAmount, setCapitalResetAmount] = useState(null);
 
   // REFRESH ROLLING TIME FILTERS
@@ -43,7 +43,6 @@ export default function useHistory({
 
         if (isMounted) {
           setHistory(Array.isArray(res?.predictions) ? res.predictions : []);
-
           setCapitalResetAmount(res?.capitalResetAmount ?? null);
         }
       } catch (err) {
@@ -78,7 +77,6 @@ export default function useHistory({
 
         if (isMounted) {
           setHistory(Array.isArray(res?.predictions) ? res.predictions : []);
-
           setCapitalResetAmount(res?.capitalResetAmount ?? null);
         }
       } catch (err) {
@@ -94,27 +92,28 @@ export default function useHistory({
 
   // FILTERING + SORTING
   const filteredPredictions = useMemo(() => {
-    // Sort all predictions newest first.
+    // Sort newest first.
     let data = [...history].sort((a, b) => new Date(b.date) - new Date(a.date));
 
-    // ALL TIME
-    if (timeframe === "all") {
-      return data;
-    }
+    // ROLLING TIMEFRAME FILTERS
+    const rollingTimeframes = {
+      last_30_minutes: 30,
+      last_1_hour: 60,
+      last_2_hours: 120,
+      last_3_hours: 180,
+      last_4_hours: 240,
+      last_5_hours: 300,
+    };
 
-    // LAST 1 HOUR / LAST 2 HOURS
-    if (timeframe === "last_1_hour" || timeframe === "last_2_hours") {
-      const now = new Date(currentTime);
-      const hours = timeframe === "last_1_hour" ? 1 : 2;
-      const cutoff = new Date(now.getTime() - hours * 60 * 60 * 1000);
+    if (Object.prototype.hasOwnProperty.call(rollingTimeframes, timeframe)) {
+      const now = currentTime;
+      const cutoff = now - rollingTimeframes[timeframe] * 60 * 1000;
 
       return data.filter((item) => {
-        const itemDate = new Date(item.date);
+        const itemTime = new Date(item.date).getTime();
 
         return (
-          !Number.isNaN(itemDate.getTime()) &&
-          itemDate >= cutoff &&
-          itemDate <= now
+          Number.isFinite(itemTime) && itemTime >= cutoff && itemTime <= now
         );
       });
     }
@@ -229,12 +228,11 @@ export default function useHistory({
         const startMinutes = startH * 60 + startM;
         const endMinutes = endH * 60 + endM;
 
-        // NORMAL RANGE
         if (startMinutes <= endMinutes) {
           return itemMinutes >= startMinutes && itemMinutes <= endMinutes;
         }
 
-        // OVERNIGHT RANGE
+        // Overnight range.
         return itemMinutes >= startMinutes || itemMinutes <= endMinutes;
       });
     }
@@ -265,16 +263,11 @@ export default function useHistory({
       0,
     );
 
-    // Always use the administrator-configured league capital.
-    // Do not derive opening balance from prediction records,
-    // because old predictions may be automatically deleted.
     const openingBalance =
       capitalResetAmount !== null && Number.isFinite(Number(capitalResetAmount))
         ? Number(capitalResetAmount)
         : 0;
 
-    // Closing balance reflects only profit within
-    // the currently selected timeframe.
     const closingBalance = openingBalance + totalProfit;
 
     const roi = openingBalance > 0 ? (totalProfit / openingBalance) * 100 : 0;

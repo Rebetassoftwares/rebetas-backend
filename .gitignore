@@ -15,3 +15,5 @@ build/
 # SYSTEM FILES
 .DS_Store
 Thumbs.db
+# ORIGINAL TUTORIAL VIDEO
+frontend/src/assets/videos/tutorial-video.mov

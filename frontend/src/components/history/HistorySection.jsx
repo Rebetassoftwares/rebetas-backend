@@ -237,9 +237,12 @@ export default function HistorySection({
               }
             }}
           >
-            <option value="all">All Time</option>
+            <option value="last_30_minutes">Last 30 Minutes</option>
             <option value="last_1_hour">Last 1 Hour</option>
             <option value="last_2_hours">Last 2 Hours</option>
+            <option value="last_3_hours">Last 3 Hours</option>
+            <option value="last_4_hours">Last 4 Hours</option>
+            <option value="last_5_hours">Last 5 Hours</option>
             <option value="today">Today</option>
             <option value="yesterday">Yesterday</option>
           </select>
