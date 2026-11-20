@@ -565,7 +565,7 @@
   padding: 0;
   border: 2px solid rgba(255, 255, 255, 0.85);
   border-radius: 50%;
-  background: rgba(18, 165, 104, 0.94);
+  background: rgba(203, 43, 15, 0.94);
   box-shadow: 0 8px 35px rgba(0, 0, 0, 0.45);
   transform: translate(-50%, -50%);
   cursor: pointer;
@@ -577,7 +577,7 @@
 }
 
 .tutorials-page .tutorial-play-button:hover {
-  background: #ba1c0b;
+  background: lch(97.23% 0.01 296.81);
   transform: translate(-50%, -50%) scale(1.1);
   box-shadow: 0 10px 40px rgba(18, 165, 104, 0.4);
 }
