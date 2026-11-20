@@ -533,3 +533,84 @@
     font-size: 23px;
   }
 }
+
+/* YOUTUBE-STYLE TUTORIAL VIDEO PLAYER */
+
+.tutorials-page .tutorial-video-player {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  background: #000;
+  cursor: pointer;
+}
+
+.tutorials-page .tutorial-video-player video {
+  display: block;
+  width: 100%;
+  max-height: 610px;
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
+  background: #000;
+}
+
+.tutorials-page .tutorial-play-button {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 86px;
+  height: 86px;
+  padding: 0;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  border-radius: 50%;
+  background: rgba(18, 165, 104, 0.94);
+  box-shadow: 0 8px 35px rgba(0, 0, 0, 0.45);
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  z-index: 2;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.tutorials-page .tutorial-play-button:hover {
+  background: #0bba76;
+  transform: translate(-50%, -50%) scale(1.1);
+  box-shadow: 0 10px 40px rgba(18, 165, 104, 0.4);
+}
+
+.tutorials-page .tutorial-play-icon {
+  width: 0;
+  height: 0;
+  margin-left: 7px;
+  border-top: 18px solid transparent;
+  border-bottom: 18px solid transparent;
+  border-left: 27px solid #fff;
+}
+
+@media (max-width: 650px) {
+  .tutorials-page .tutorial-video-player video {
+    aspect-ratio: 9 / 16;
+    max-height: 68vh;
+  }
+
+  .tutorials-page .tutorial-play-button {
+    width: 72px;
+    height: 72px;
+  }
+
+  .tutorials-page .tutorial-play-icon {
+    border-top-width: 15px;
+    border-bottom-width: 15px;
+    border-left-width: 23px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tutorials-page .tutorial-play-button {
+    transition: none;
+  }
+}

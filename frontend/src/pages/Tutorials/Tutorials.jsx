@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Navbar from "../../components/Navbar/Navbar";
 import DashboardNavbar from "../../components/DashboardNavbar/DashboardNavbar";
 import Footer from "../../components/Footer/Footer";
@@ -6,6 +6,7 @@ import "./Tutorials.css";
 import { useNavigate } from "react-router-dom";
 import { trackEvent } from "../../services/tracking";
 import tutorialVideo from "../../assets/videos/tutorial-video.mp4";
+import tutorialThumbnail from "../../assets/images/tutorial-thumbnail.jpg";
 
 const guides = [
   {
@@ -98,7 +99,11 @@ const guides = [
 export default function Tutorials() {
   const isLoggedIn = !!localStorage.getItem("rebetas_token");
   const navigate = useNavigate();
+
   const [expandedGuide, setExpandedGuide] = useState(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  const videoRef = useRef(null);
 
   useEffect(() => {
     trackEvent("ViewContent", {
@@ -117,6 +122,35 @@ export default function Tutorials() {
         content_category: "How-To Guides",
       });
     }
+  };
+
+  const toggleVideoPlayback = async () => {
+    const video = videoRef.current;
+
+    if (!video) return;
+
+    if (video.paused) {
+      try {
+        await video.play();
+      } catch (error) {
+        console.error("Unable to play tutorial video:", error);
+        setIsPlaying(false);
+      }
+    } else {
+      video.pause();
+    }
+  };
+
+  const handleVideoPlay = () => {
+    setIsPlaying(true);
+  };
+
+  const handleVideoPause = () => {
+    setIsPlaying(false);
+  };
+
+  const handleVideoEnded = () => {
+    setIsPlaying(false);
   };
 
   const handlePrimaryAction = () => {
@@ -145,15 +179,39 @@ export default function Tutorials() {
           <div className="container">
             <div className="main-tutorial-card">
               <div className="main-tutorial-video">
-                <video
-                  src={tutorialVideo}
-                  controls
-                  playsInline
-                  preload="metadata"
-                  aria-label="SunStreamers tutorial video"
+                <div
+                  className="tutorial-video-player"
+                  onClick={toggleVideoPlayback}
                 >
-                  Your browser does not support HTML video.
-                </video>
+                  <video
+                    ref={videoRef}
+                    src={tutorialVideo}
+                    poster={tutorialThumbnail}
+                    controls
+                    playsInline
+                    preload="metadata"
+                    aria-label="SunStreamers tutorial video"
+                    onPlay={handleVideoPlay}
+                    onPause={handleVideoPause}
+                    onEnded={handleVideoEnded}
+                  >
+                    Your browser does not support HTML video.
+                  </video>
+
+                  {!isPlaying && (
+                    <button
+                      type="button"
+                      className="tutorial-play-button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        toggleVideoPlayback();
+                      }}
+                      aria-label="Play SunStreamers tutorial"
+                    >
+                      <span className="tutorial-play-icon" />
+                    </button>
+                  )}
+                </div>
               </div>
 
               <div className="main-tutorial-meta">
