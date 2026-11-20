@@ -577,7 +577,7 @@
 }
 
 .tutorials-page .tutorial-play-button:hover {
-  background: #0bba76;
+  background: #ba1c0b;
   transform: translate(-50%, -50%) scale(1.1);
   box-shadow: 0 10px 40px rgba(18, 165, 104, 0.4);
 }
