@@ -100,7 +100,7 @@ export default function Landing() {
 
   const platformName = selectedLeague?.platformId?.name || "";
 
-  const [timeframe, setTimeframe] = useState("last_1_hour");
+  const [timeframe, setTimeframe] = useState("today");
   const [customStartDate, setCustomStartDate] = useState("");
   const [customEndDate, setCustomEndDate] = useState("");
 
