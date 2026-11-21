@@ -1,5 +1,3 @@
-const crypto = require("crypto");
-
 const WebsiteEvent = require("../models/WebsiteEvent");
 const WebsiteVisitor = require("../models/WebsiteVisitor");
 const WebsiteSession = require("../models/WebsiteSession");
@@ -14,8 +12,6 @@ const ALLOWED_EVENTS = new Set([
   "CompleteRegistration",
   "Login",
   "InitiateCheckout",
-  "Subscribe",
-  "Purchase",
   "Lead",
   "ButtonClick",
   "FormSubmit",
@@ -52,12 +48,15 @@ function getDeviceInfo(userAgent = "") {
   else if (ua.includes("mac os")) operatingSystem = "macOS";
   else if (ua.includes("linux")) operatingSystem = "Linux";
 
-  return { deviceType, browser, operatingSystem };
+  return {
+    deviceType,
+    browser,
+    operatingSystem,
+  };
 }
 
 function getAttribution(data) {
   const params = data.attribution || {};
-
   const referrer = cleanString(data.referrer, 1000);
 
   let source = cleanString(params.utmSource || params.source, 150);
@@ -66,18 +65,27 @@ function getAttribution(data) {
     try {
       const hostname = new URL(referrer).hostname.toLowerCase();
 
-      if (hostname.includes("facebook")) source = "facebook";
-      else if (hostname.includes("instagram")) source = "instagram";
-      else if (hostname.includes("tiktok")) source = "tiktok";
-      else if (hostname.includes("google")) source = "google";
-      else if (hostname.includes("whatsapp")) source = "whatsapp";
-      else source = hostname;
+      if (hostname.includes("facebook")) {
+        source = "facebook";
+      } else if (hostname.includes("instagram")) {
+        source = "instagram";
+      } else if (hostname.includes("tiktok")) {
+        source = "tiktok";
+      } else if (hostname.includes("google")) {
+        source = "google";
+      } else if (hostname.includes("whatsapp") || hostname.includes("wa.me")) {
+        source = "whatsapp";
+      } else {
+        source = hostname;
+      }
     } catch {
       source = "referral";
     }
   }
 
-  if (!source) source = "direct";
+  if (!source) {
+    source = "direct";
+  }
 
   return {
     source,
@@ -98,17 +106,34 @@ function getAttribution(data) {
   };
 }
 
+function sanitizeEventData(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return {};
+  }
+
+  const blocked =
+    /email|phone|password|token|secret|authorization|fullname|first.?name|last.?name|address/i;
+
+  const safe = {};
+
+  for (const [key, item] of Object.entries(value).slice(0, 40)) {
+    if (blocked.test(key)) continue;
+
+    if (
+      item === null ||
+      ["string", "number", "boolean"].includes(typeof item)
+    ) {
+      safe[key.slice(0, 80)] =
+        typeof item === "string" ? item.slice(0, 500) : item;
+    }
+  }
+
+  return safe;
+}
+
 exports.trackWebsiteEvent = async (req, res) => {
   try {
     const data = req.body || {};
-
-    // Analytics consent is required.
-    if (data.analyticsConsent !== true) {
-      return res.status(403).json({
-        success: false,
-        message: "Analytics consent required",
-      });
-    }
 
     const visitorId = cleanString(data.visitorId, 100);
     const sessionId = cleanString(data.sessionId, 100);
@@ -138,7 +163,17 @@ exports.trackWebsiteEvent = async (req, res) => {
       });
     }
 
+    // Never accept browser-generated payment confirmations.
+    if (eventName === "Purchase" || eventName === "Subscribe") {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Payment events must come from verified backend payment records",
+      });
+    }
+
     const now = new Date();
+
     const pageUrl = cleanString(data.pageUrl, 2000);
     const pagePath = cleanString(data.pagePath, 1000);
     const pageTitle = cleanString(data.pageTitle, 300);
@@ -152,7 +187,6 @@ exports.trackWebsiteEvent = async (req, res) => {
 
     const device = getDeviceInfo(req.headers["user-agent"] || "");
 
-    // Preserve the original attribution while updating the latest touch.
     let visitor = await WebsiteVisitor.findOne({ visitorId });
 
     if (!visitor) {
@@ -168,16 +202,17 @@ exports.trackWebsiteEvent = async (req, res) => {
       });
     } else {
       visitor.lastSeenAt = now;
-      visitor.lastTouch = attribution;
+
+      // Preserve known campaign attribution on direct page navigation.
+      if (attribution.source !== "direct") {
+        visitor.lastTouch = attribution;
+      }
 
       visitor.deviceType = device.deviceType;
       visitor.browser = device.browser;
       visitor.operatingSystem = device.operatingSystem;
-
-      await visitor.save();
     }
 
-    // Find or create the current session.
     let session = await WebsiteSession.findOne({ sessionId });
 
     if (!session) {
@@ -205,17 +240,14 @@ exports.trackWebsiteEvent = async (req, res) => {
     session.lastActivityAt = now;
     session.isActive = true;
     session.endedAt = null;
-    session.eventCount += 1;
+    session.eventCount = (session.eventCount || 0) + 1;
 
     if (eventName === "PageView") {
-      session.pageViews += 1;
+      session.pageViews = (session.pageViews || 0) + 1;
       session.exitPage = pagePath;
-      visitor.totalPageViews += 1;
+      visitor.totalPageViews = (visitor.totalPageViews || 0) + 1;
     }
 
-    await Promise.all([session.save(), visitor.save()]);
-
-    // Store the individual event.
     const event = await WebsiteEvent.create({
       visitorId,
       sessionId,
@@ -240,11 +272,10 @@ exports.trackWebsiteEvent = async (req, res) => {
       deviceType: device.deviceType,
       browser: device.browser,
       operatingSystem: device.operatingSystem,
-      eventData:
-        data.eventData && typeof data.eventData === "object"
-          ? data.eventData
-          : {},
+      eventData: sanitizeEventData(data.eventData),
     });
+
+    await Promise.all([session.save(), visitor.save()]);
 
     return res.status(201).json({
       success: true,

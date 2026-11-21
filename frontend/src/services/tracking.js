@@ -1,23 +1,20 @@
-const CONSENT_STORAGE_KEY = "sunstreamers_tracking_consent";
-
 const trackingConfig = {
   metaPixelId: import.meta.env.VITE_META_PIXEL_ID,
   ga4MeasurementId: import.meta.env.VITE_GA4_MEASUREMENT_ID,
   googleAdsId: import.meta.env.VITE_GOOGLE_ADS_ID,
   googleAdsConversionLabel: import.meta.env.VITE_GOOGLE_ADS_CONVERSION_LABEL,
   tiktokPixelId: import.meta.env.VITE_TIKTOK_PIXEL_ID,
+  clarityId: import.meta.env.VITE_CLARITY_ID,
 };
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ||
-  "https://rebetas-backend-production.up.railway.app/api";
-
-const FIRST_PARTY_TRACKING_URL = `${API_BASE_URL.replace(/\/+$/, "")}/website-tracking/event`;
+const FIRST_PARTY_TRACKING_URL = import.meta.env.VITE_API_BASE_URL
+  ? `${import.meta.env.VITE_API_BASE_URL.replace(/\/+$/, "")}/website-tracking/event`
+  : null;
 
 const VISITOR_STORAGE_KEY = "sunstreamers_analytics_visitor_id";
 const SESSION_STORAGE_KEY = "sunstreamers_analytics_session_id";
+const UTM_STORAGE_KEY = "sunstreamers_landing_utm";
 
-let currentConsent = { analytics: false, advertising: false };
 let trackingInitialized = false;
 let googleScriptLoaded = false;
 let metaScriptLoaded = false;
@@ -26,18 +23,22 @@ let configuredGoogleIds = new Set();
 let lastPageView = "";
 
 function createTrackingId() {
-  if (typeof crypto !== "undefined" && crypto.randomUUID)
+  if (typeof crypto !== "undefined" && crypto.randomUUID) {
     return crypto.randomUUID();
+  }
+
   return `${Date.now()}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`;
 }
 
 function getOrCreateTrackingId(storage, key) {
   try {
     let id = storage.getItem(key);
+
     if (!id) {
       id = createTrackingId();
       storage.setItem(key, id);
     }
+
     return id;
   } catch {
     return createTrackingId();
@@ -52,11 +53,74 @@ function getSessionId() {
   return getOrCreateTrackingId(sessionStorage, SESSION_STORAGE_KEY);
 }
 
+function readSavedUtm() {
+  try {
+    return JSON.parse(localStorage.getItem(UTM_STORAGE_KEY) || "{}");
+  } catch {
+    return {};
+  }
+}
+
+export function saveUtmParams() {
+  if (typeof window === "undefined") return {};
+
+  const params = new URLSearchParams(window.location.search);
+
+  const trackingKeys = [
+    "utm_source",
+    "utm_medium",
+    "utm_campaign",
+    "utm_content",
+    "utm_term",
+    "utm_id",
+    "fbclid",
+    "gclid",
+    "ttclid",
+    "campaign_id",
+    "adset_id",
+    "ad_id",
+  ];
+
+  const hasTrackingParams = trackingKeys.some((key) => params.has(key));
+
+  if (!hasTrackingParams) {
+    return readSavedUtm();
+  }
+
+  const utmData = {};
+
+  trackingKeys.forEach((key) => {
+    utmData[key] = params.get(key) || "";
+  });
+
+  utmData.capturedAt = new Date().toISOString();
+
+  try {
+    localStorage.setItem(UTM_STORAGE_KEY, JSON.stringify(utmData));
+  } catch (error) {
+    console.warn("Could not save campaign attribution:", error);
+  }
+
+  return utmData;
+}
+
 function getTrafficAttribution() {
   const params = new URLSearchParams(window.location.search);
+  const saved = readSavedUtm();
   const referrer = document.referrer || "";
-  let source = params.get("utm_source") || "";
-  let medium = params.get("utm_medium") || "";
+
+  const utmSource = params.get("utm_source") || saved.utm_source || "";
+
+  const utmMedium = params.get("utm_medium") || saved.utm_medium || "";
+
+  const utmCampaign = params.get("utm_campaign") || saved.utm_campaign || "";
+
+  const utmContent = params.get("utm_content") || saved.utm_content || "";
+
+  const utmTerm = params.get("utm_term") || saved.utm_term || "";
+
+  let source = utmSource;
+  let medium = utmMedium;
 
   if (!source && referrer) {
     try {
@@ -98,24 +162,31 @@ function getTrafficAttribution() {
   return {
     source,
     medium,
-    campaign: params.get("utm_campaign") || "",
-    adSet: params.get("utm_term") || "",
-    ad: params.get("utm_content") || "",
+    campaign: utmCampaign,
+    campaignId:
+      params.get("campaign_id") ||
+      params.get("utm_id") ||
+      saved.campaign_id ||
+      saved.utm_id ||
+      "",
+    adSet: utmTerm,
+    adSetId: params.get("adset_id") || saved.adset_id || "",
+    ad: utmContent,
+    adId: params.get("ad_id") || saved.ad_id || "",
     referrer,
-    utmSource: params.get("utm_source") || "",
-    utmMedium: params.get("utm_medium") || "",
-    utmCampaign: params.get("utm_campaign") || "",
-    utmContent: params.get("utm_content") || "",
-    utmTerm: params.get("utm_term") || "",
-    campaignId: params.get("campaign_id") || params.get("utm_id") || "",
-    adSetId: params.get("adset_id") || "",
-    adId: params.get("ad_id") || "",
+    landingPage: window.location.pathname,
+    utmSource,
+    utmMedium,
+    utmCampaign,
+    utmContent,
+    utmTerm,
   };
 }
 
 function sanitizeEventData(parameters = {}) {
   const blockedKeyPattern =
     /email|phone|password|token|secret|authorization|fullname|first.?name|last.?name|address/i;
+
   const safeData = {};
 
   for (const [key, value] of Object.entries(parameters || {})) {
@@ -133,16 +204,14 @@ function sanitizeEventData(parameters = {}) {
 }
 
 function sendFirstPartyEvent(eventName, parameters = {}) {
-  if (
-    typeof window === "undefined" ||
-    !currentConsent.analytics ||
-    !FIRST_PARTY_TRACKING_URL
-  ) {
+  if (typeof window === "undefined" || !FIRST_PARTY_TRACKING_URL) {
     return;
   }
 
-  // Successful payment events must be recorded from verified backend records.
-  if (eventName === "Purchase" || eventName === "Subscribe") return;
+  // Payment conversions must come from verified backend records.
+  if (eventName === "Purchase" || eventName === "Subscribe") {
+    return;
+  }
 
   const allowedEvents = [
     "PageView",
@@ -171,7 +240,6 @@ function sendFirstPartyEvent(eventName, parameters = {}) {
   }
 
   const payload = {
-    analyticsConsent: true,
     visitorId: getVisitorId(),
     sessionId: getSessionId(),
     eventName: backendEventName,
@@ -190,40 +258,14 @@ function sendFirstPartyEvent(eventName, parameters = {}) {
 
   fetch(FIRST_PARTY_TRACKING_URL, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+    },
     body: JSON.stringify(payload),
     keepalive: true,
   }).catch((error) => {
     console.warn("First-party analytics request failed:", error);
   });
-}
-
-function getSavedConsent() {
-  try {
-    const saved = localStorage.getItem(CONSENT_STORAGE_KEY);
-    if (!saved) return null;
-
-    const parsed = JSON.parse(saved);
-
-    if (
-      typeof parsed.analytics !== "boolean" ||
-      typeof parsed.advertising !== "boolean"
-    ) {
-      return null;
-    }
-
-    return parsed;
-  } catch {
-    return null;
-  }
-}
-
-export function getTrackingConsent() {
-  return { ...currentConsent };
-}
-
-export function hasTrackingConsentChoice() {
-  return getSavedConsent() !== null;
 }
 
 function ensureGoogleTagStub() {
@@ -236,34 +278,22 @@ function ensureGoogleTagStub() {
   }
 }
 
-function updateGoogleConsent() {
-  if (typeof window.gtag !== "function") return;
-
-  window.gtag("consent", "update", {
-    analytics_storage: currentConsent.analytics ? "granted" : "denied",
-    ad_storage: currentConsent.advertising ? "granted" : "denied",
-    ad_user_data: currentConsent.advertising ? "granted" : "denied",
-    ad_personalization: currentConsent.advertising ? "granted" : "denied",
-  });
-}
-
 function loadGoogleTags() {
   const ga4Id = trackingConfig.ga4MeasurementId;
   const adsId = trackingConfig.googleAdsId;
-  const shouldLoadGA4 = currentConsent.analytics && Boolean(ga4Id);
-  const shouldLoadAds = currentConsent.advertising && Boolean(adsId);
 
-  if (!shouldLoadGA4 && !shouldLoadAds) return;
+  if (!ga4Id && !adsId) return;
 
-  const primaryId = shouldLoadGA4 ? ga4Id : adsId;
-  if (!primaryId) return;
+  const primaryId = ga4Id || adsId;
 
   ensureGoogleTagStub();
 
   if (!googleScriptLoaded) {
     const script = document.createElement("script");
+
     script.async = true;
     script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(primaryId)}`;
+
     document.head.appendChild(script);
     googleScriptLoaded = true;
   }
@@ -273,22 +303,27 @@ function loadGoogleTags() {
     window.__sunStreamersGtagInitialized = true;
   }
 
-  if (shouldLoadGA4 && !configuredGoogleIds.has(ga4Id)) {
-    window.gtag("config", ga4Id, { send_page_view: false });
+  if (ga4Id && !configuredGoogleIds.has(ga4Id)) {
+    window.gtag("config", ga4Id, {
+      send_page_view: false,
+    });
+
     configuredGoogleIds.add(ga4Id);
   }
 
-  if (shouldLoadAds && !configuredGoogleIds.has(adsId)) {
-    window.gtag("config", adsId, { send_page_view: false });
+  if (adsId && !configuredGoogleIds.has(adsId)) {
+    window.gtag("config", adsId, {
+      send_page_view: false,
+    });
+
     configuredGoogleIds.add(adsId);
   }
-
-  updateGoogleConsent();
 }
 
 function loadMetaPixel() {
   const pixelId = trackingConfig.metaPixelId;
-  if (!currentConsent.advertising || !pixelId || metaScriptLoaded) return;
+
+  if (!pixelId || metaScriptLoaded) return;
 
   if (!window.fbq) {
     const fbq = function () {
@@ -299,14 +334,17 @@ function loadMetaPixel() {
 
     window.fbq = fbq;
     window._fbq = fbq;
+
     fbq.push = fbq;
     fbq.loaded = true;
     fbq.version = "2.0";
     fbq.queue = [];
 
     const script = document.createElement("script");
+
     script.async = true;
     script.src = "https://connect.facebook.net/en_US/fbevents.js";
+
     document.head.appendChild(script);
   }
 
@@ -316,7 +354,8 @@ function loadMetaPixel() {
 
 function loadTikTokPixel() {
   const pixelId = trackingConfig.tiktokPixelId;
-  if (!currentConsent.advertising || !pixelId || tiktokScriptLoaded) return;
+
+  if (!pixelId || tiktokScriptLoaded) return;
 
   if (!window.ttq) {
     const ttq = (window.ttq = []);
@@ -352,18 +391,22 @@ function loadTikTokPixel() {
 
     ttq.instance = function (id) {
       const instance = ttq._i[id] || [];
+
       for (let i = 0; i < ttq.methods.length; i++) {
         ttq.setAndDefer(instance, ttq.methods[i]);
       }
+
       return instance;
     };
 
     ttq.load = function (id) {
       const script = document.createElement("script");
+
       script.async = true;
       script.src = `https://analytics.tiktok.com/i18n/pixel/events.js?sdkid=${encodeURIComponent(id)}&lib=ttq`;
 
       const firstScript = document.getElementsByTagName("script")[0];
+
       if (firstScript?.parentNode) {
         firstScript.parentNode.insertBefore(script, firstScript);
       } else {
@@ -383,71 +426,58 @@ function loadTikTokPixel() {
   tiktokScriptLoaded = true;
 }
 
-export function initializeTracking() {
-  if (trackingInitialized || typeof window === "undefined") return;
+function loadClarity() {
+  const clarityId = trackingConfig.clarityId;
 
-  trackingInitialized = true;
-  const savedConsent = getSavedConsent();
+  if (!clarityId || typeof window === "undefined" || window.clarity) {
+    return;
+  }
 
-  currentConsent = savedConsent || {
-    analytics: false,
-    advertising: false,
-  };
+  (function (c, l, a, r, i, t, y) {
+    c[a] =
+      c[a] ||
+      function () {
+        (c[a].q = c[a].q || []).push(arguments);
+      };
 
-  ensureGoogleTagStub();
+    t = l.createElement(r);
+    t.async = true;
+    t.src = "https://www.clarity.ms/tag/" + i;
 
-  window.gtag("consent", "default", {
-    analytics_storage: "denied",
-    ad_storage: "denied",
-    ad_user_data: "denied",
-    ad_personalization: "denied",
-  });
-
-  window.gtag("js", new Date());
-  window.__sunStreamersGtagInitialized = true;
-
-  if (savedConsent) applyTrackingConsent();
+    y = l.getElementsByTagName(r)[0];
+    y.parentNode.insertBefore(t, y);
+  })(window, document, "clarity", "script", clarityId);
 }
 
-function applyTrackingConsent() {
-  updateGoogleConsent();
+export function initializeTracking() {
+  if (trackingInitialized || typeof window === "undefined") {
+    return;
+  }
+
+  trackingInitialized = true;
+
+  saveUtmParams();
+
+  ensureGoogleTagStub();
   loadGoogleTags();
   loadMetaPixel();
   loadTikTokPixel();
-}
-
-export function setTrackingConsent(consent) {
-  currentConsent = {
-    analytics: Boolean(consent.analytics),
-    advertising: Boolean(consent.advertising),
-  };
-
-  try {
-    localStorage.setItem(CONSENT_STORAGE_KEY, JSON.stringify(currentConsent));
-  } catch (error) {
-    console.warn("Could not save tracking preferences:", error);
-  }
-
-  applyTrackingConsent();
-
-  lastPageView = "";
-
-  if (typeof window !== "undefined" && window.location) {
-    trackPageView(window.location.href);
-  }
+  loadClarity();
 }
 
 export function trackPageView(pageUrl) {
   if (typeof window === "undefined") return;
 
   const url = pageUrl || window.location.href;
+
   if (lastPageView === url) return;
 
   lastPageView = url;
 
+  saveUtmParams();
   sendFirstPartyEvent("PageView");
 
-  if (currentConsent.analytics && trackingConfig.ga4MeasurementId) {
+  if (trackingConfig.ga4MeasurementId) {
     loadGoogleTags();
 
     window.gtag?.("event", "page_view", {
@@ -457,12 +487,12 @@ export function trackPageView(pageUrl) {
     });
   }
 
-  if (currentConsent.advertising && trackingConfig.metaPixelId) {
+  if (trackingConfig.metaPixelId) {
     loadMetaPixel();
     window.fbq?.("track", "PageView");
   }
 
-  if (currentConsent.advertising && trackingConfig.tiktokPixelId) {
+  if (trackingConfig.tiktokPixelId) {
     loadTikTokPixel();
     window.ttq?.page();
   }
@@ -491,8 +521,6 @@ const eventMappings = {
   },
 
   Subscribe: {
-    // Kept separate from purchase to avoid counting the same
-    // subscription as two GA4 purchases.
     ga4: "subscribe",
     meta: "Subscribe",
     metaType: "standard",
@@ -539,7 +567,7 @@ export function trackEvent(eventName, parameters = {}) {
     tiktok: eventName,
   };
 
-  if (currentConsent.analytics && trackingConfig.ga4MeasurementId) {
+  if (trackingConfig.ga4MeasurementId) {
     loadGoogleTags();
 
     if (typeof window.gtag === "function") {
@@ -548,7 +576,7 @@ export function trackEvent(eventName, parameters = {}) {
     }
   }
 
-  if (currentConsent.advertising && trackingConfig.metaPixelId) {
+  if (trackingConfig.metaPixelId) {
     loadMetaPixel();
 
     if (typeof window.fbq === "function") {
@@ -562,7 +590,7 @@ export function trackEvent(eventName, parameters = {}) {
     }
   }
 
-  if (currentConsent.advertising && trackingConfig.tiktokPixelId) {
+  if (trackingConfig.tiktokPixelId) {
     loadTikTokPixel();
 
     if (typeof window.ttq?.track === "function") {
@@ -580,7 +608,6 @@ export function trackGoogleAdsConversion({
   transactionId,
 } = {}) {
   if (
-    !currentConsent.advertising ||
     !trackingConfig.googleAdsId ||
     !trackingConfig.googleAdsConversionLabel ||
     typeof window === "undefined"
@@ -594,10 +621,12 @@ export function trackGoogleAdsConversion({
     console.warn(
       "Google Ads conversion skipped: a valid positive transaction value is required.",
     );
+
     return false;
   }
 
   loadGoogleTags();
+
   if (typeof window.gtag !== "function") return false;
 
   window.gtag("event", "conversion", {

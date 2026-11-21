@@ -1,7 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import RouteTracker from "./components/tracking/RouteTracker";
 import SEOManager from "./components/seo/SEOManager";
-import TrackingConsent from "./components/tracking/TrackingConsent";
 import { isLoggedIn, getStoredUser } from "./utils/auth";
 //import MaintenanceScreen from "./components/MaintenanceScreen";
 //import AutoPilotLaunchPopup from "./components/AutoPilotLaunchPopup/AutoPilotLaunchPopup.jsx";
@@ -99,7 +98,6 @@ function App() {
     <BrowserRouter>
       <SEOManager />
       <RouteTracker />
-      <TrackingConsent />
 
       <Routes>
         {/* -------- PUBLIC -------- */}
