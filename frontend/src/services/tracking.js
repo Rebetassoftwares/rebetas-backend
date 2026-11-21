@@ -1,7 +1,7 @@
 const CONSENT_STORAGE_KEY = "sunstreamers_tracking_consent";
 
 const trackingConfig = {
-  metaPixelId: import.meta.env.META_PIXEL_ID,
+  metaPixelId: import.meta.env.VITE_META_PIXEL_ID,
   ga4MeasurementId: import.meta.env.VITE_GA4_MEASUREMENT_ID,
   googleAdsId: import.meta.env.VITE_GOOGLE_ADS_ID,
   googleAdsConversionLabel: import.meta.env.VITE_GOOGLE_ADS_CONVERSION_LABEL,
