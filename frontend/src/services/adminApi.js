@@ -357,3 +357,26 @@ export const sendAdminUserNotification = (payload) =>
 
 export const deleteAdminNotification = (id) =>
   api.delete(`/admin/notifications/${id}`);
+
+/* ================================
+   📊 WEBSITE ANALYTICS
+================================ */
+
+export const getWebsiteAnalytics = (filters = {}) => {
+  const params = new URLSearchParams();
+
+  if (filters.startDate) {
+    params.append("startDate", filters.startDate);
+  }
+
+  if (filters.endDate) {
+    params.append("endDate", filters.endDate);
+  }
+
+  const query = params.toString();
+
+  return api.get(
+    query ? `/admin/website-analytics?${query}` : "/admin/website-analytics",
+    authConfig(),
+  );
+};

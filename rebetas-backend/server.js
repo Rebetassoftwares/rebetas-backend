@@ -7,6 +7,7 @@ const connectDB = require("./database/connectDB");
 const { startRoundScheduler } = require("./services/roundScheduler");
 const { recoverPendingPayments } = require("./services/paymentRecoveryService");
 const runSemiAuto = require("./services/semiAutoService");
+const websiteTrackingRoutes = require("./routes/websiteTrackingRoutes");
 const startCleanupScheduler = require("./services/cleanupScheduler");
 const flutterwaveUnifiedWebhookRoutes = require("./routes/flutterwaveUnifiedWebhookRoutes");
 const webhookRoutes = require("./routes/webhookRoutes");
@@ -57,6 +58,7 @@ const adminNotificationRoutes = require("./routes/adminNotificationRoutes");
 const adminDailyProfitRoutes = require("./routes/adminDailyProfitRoutes");
 const adminInvestmentAccountRoutes = require("./routes/adminInvestmentAccountRoutes");
 const adminCurrencyRoutes = require("./routes/adminCurrencyRoutes");
+const websiteAnalyticsRoutes = require("./routes/websiteAnalyticsRoutes");
 
 const activityRoutes = require("./routes/activityRoutes");
 const { startActivityCounter } = require("./services/activityCounterService");
@@ -126,6 +128,11 @@ app.use("/uploads", express.static("uploads"));
 /*
 MAIN ROUTES
 */
+// Public website tracking
+app.use("/api/website-tracking", websiteTrackingRoutes);
+
+// Protected admin website analytics
+app.use("/api/admin/website-analytics", websiteAnalyticsRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/admin/pricing", adminPricingRoutes);
 app.use("/api/admin/promo", adminPromoRoutes);

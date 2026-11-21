@@ -58,6 +58,7 @@ import AdminAutoPilotAnalytics from "./pages/admin/AutoPilot/AdminAutoPilotAnaly
 import AdminDailyProfitCredit from "./pages/admin/AutoPilot/AdminDailyProfitCredit";
 import AdminCurrencyRates from "./pages/admin/CurrencyRates/AdminCurrencyRates";
 import AdminNotifications from "./pages/admin/Notifications/AdminNotifications";
+import WebsiteAnalytics from "./pages/admin/WebsiteAnalytics/WebsiteAnalytics";
 
 /* 🔥 NEW SCREENS */
 import PlatformPage from "./pages/admin/platforms/PlatformPage";
@@ -186,6 +187,7 @@ function App() {
           {/* DEFAULT */}
           <Route index element={<AdminDashboard />} />
           {/* EXISTING */}
+          <Route path="website-analytics" element={<WebsiteAnalytics />} />
           <Route path="pricing" element={<PricingManagement />} />
           <Route path="promo-codes" element={<PromoCodes />} />
           <Route path="users" element={<Users />} />

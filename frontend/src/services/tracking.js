@@ -8,23 +8,199 @@ const trackingConfig = {
   tiktokPixelId: import.meta.env.VITE_TIKTOK_PIXEL_ID,
 };
 
-let currentConsent = {
-  analytics: false,
-  advertising: false,
-};
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  "https://rebetas-backend-production.up.railway.app/api";
 
+const FIRST_PARTY_TRACKING_URL = `${API_BASE_URL.replace(/\/+$/, "")}/website-tracking/event`;
+
+const VISITOR_STORAGE_KEY = "sunstreamers_analytics_visitor_id";
+const SESSION_STORAGE_KEY = "sunstreamers_analytics_session_id";
+
+let currentConsent = { analytics: false, advertising: false };
 let trackingInitialized = false;
 let googleScriptLoaded = false;
 let metaScriptLoaded = false;
 let tiktokScriptLoaded = false;
-
 let configuredGoogleIds = new Set();
 let lastPageView = "";
+
+function createTrackingId() {
+  if (typeof crypto !== "undefined" && crypto.randomUUID)
+    return crypto.randomUUID();
+  return `${Date.now()}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`;
+}
+
+function getOrCreateTrackingId(storage, key) {
+  try {
+    let id = storage.getItem(key);
+    if (!id) {
+      id = createTrackingId();
+      storage.setItem(key, id);
+    }
+    return id;
+  } catch {
+    return createTrackingId();
+  }
+}
+
+function getVisitorId() {
+  return getOrCreateTrackingId(localStorage, VISITOR_STORAGE_KEY);
+}
+
+function getSessionId() {
+  return getOrCreateTrackingId(sessionStorage, SESSION_STORAGE_KEY);
+}
+
+function getTrafficAttribution() {
+  const params = new URLSearchParams(window.location.search);
+  const referrer = document.referrer || "";
+  let source = params.get("utm_source") || "";
+  let medium = params.get("utm_medium") || "";
+
+  if (!source && referrer) {
+    try {
+      const hostname = new URL(referrer).hostname.toLowerCase();
+
+      if (hostname.includes("facebook.com") || hostname.includes("fb.com")) {
+        source = "facebook";
+        medium = "referral";
+      } else if (hostname.includes("instagram.com")) {
+        source = "instagram";
+        medium = "referral";
+      } else if (hostname.includes("tiktok.com")) {
+        source = "tiktok";
+        medium = "referral";
+      } else if (hostname.includes("google.")) {
+        source = "google";
+        medium = "organic";
+      } else if (
+        hostname.includes("whatsapp.com") ||
+        hostname.includes("wa.me")
+      ) {
+        source = "whatsapp";
+        medium = "referral";
+      } else {
+        source = hostname;
+        medium = "referral";
+      }
+    } catch {
+      source = "referral";
+      medium = "referral";
+    }
+  }
+
+  if (!source) {
+    source = "direct";
+    medium = "none";
+  }
+
+  return {
+    source,
+    medium,
+    campaign: params.get("utm_campaign") || "",
+    adSet: params.get("utm_term") || "",
+    ad: params.get("utm_content") || "",
+    referrer,
+    utmSource: params.get("utm_source") || "",
+    utmMedium: params.get("utm_medium") || "",
+    utmCampaign: params.get("utm_campaign") || "",
+    utmContent: params.get("utm_content") || "",
+    utmTerm: params.get("utm_term") || "",
+    campaignId: params.get("campaign_id") || params.get("utm_id") || "",
+    adSetId: params.get("adset_id") || "",
+    adId: params.get("ad_id") || "",
+  };
+}
+
+function sanitizeEventData(parameters = {}) {
+  const blockedKeyPattern =
+    /email|phone|password|token|secret|authorization|fullname|first.?name|last.?name|address/i;
+  const safeData = {};
+
+  for (const [key, value] of Object.entries(parameters || {})) {
+    if (blockedKeyPattern.test(key)) continue;
+
+    if (
+      value === null ||
+      ["string", "number", "boolean"].includes(typeof value)
+    ) {
+      safeData[key] = typeof value === "string" ? value.slice(0, 500) : value;
+    }
+  }
+
+  return safeData;
+}
+
+function sendFirstPartyEvent(eventName, parameters = {}) {
+  if (
+    typeof window === "undefined" ||
+    !currentConsent.analytics ||
+    !FIRST_PARTY_TRACKING_URL
+  ) {
+    return;
+  }
+
+  // Successful payment events must be recorded from verified backend records.
+  if (eventName === "Purchase" || eventName === "Subscribe") return;
+
+  const allowedEvents = [
+    "PageView",
+    "ViewContent",
+    "TutorialStart",
+    "TutorialProgress",
+    "TutorialComplete",
+    "RegistrationAttempt",
+    "CompleteRegistration",
+    "Login",
+    "InitiateCheckout",
+    "Lead",
+    "ButtonClick",
+    "FormSubmit",
+    "CustomEvent",
+  ];
+
+  let backendEventName = eventName;
+
+  if (eventName === "TutorialStepView") {
+    backendEventName = "TutorialProgress";
+  }
+
+  if (!allowedEvents.includes(backendEventName)) {
+    backendEventName = "CustomEvent";
+  }
+
+  const payload = {
+    analyticsConsent: true,
+    visitorId: getVisitorId(),
+    sessionId: getSessionId(),
+    eventName: backendEventName,
+    pageUrl: window.location.href,
+    pagePath: `${window.location.pathname}${window.location.search}`,
+    pageTitle: document.title,
+    referrer: document.referrer || "",
+    attribution: getTrafficAttribution(),
+    eventData: {
+      ...sanitizeEventData(parameters),
+      ...(backendEventName === "CustomEvent"
+        ? { originalEventName: String(eventName).slice(0, 100) }
+        : {}),
+    },
+  };
+
+  fetch(FIRST_PARTY_TRACKING_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+    keepalive: true,
+  }).catch((error) => {
+    console.warn("First-party analytics request failed:", error);
+  });
+}
 
 function getSavedConsent() {
   try {
     const saved = localStorage.getItem(CONSENT_STORAGE_KEY);
-
     if (!saved) return null;
 
     const parsed = JSON.parse(saved);
@@ -74,51 +250,36 @@ function updateGoogleConsent() {
 function loadGoogleTags() {
   const ga4Id = trackingConfig.ga4MeasurementId;
   const adsId = trackingConfig.googleAdsId;
-
   const shouldLoadGA4 = currentConsent.analytics && Boolean(ga4Id);
   const shouldLoadAds = currentConsent.advertising && Boolean(adsId);
 
   if (!shouldLoadGA4 && !shouldLoadAds) return;
 
-  // Prefer GA4 when analytics consent is available.
-  // Otherwise, load using the Google Ads ID.
   const primaryId = shouldLoadGA4 ? ga4Id : adsId;
-
   if (!primaryId) return;
 
   ensureGoogleTagStub();
 
   if (!googleScriptLoaded) {
     const script = document.createElement("script");
-
     script.async = true;
-    script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(
-      primaryId,
-    )}`;
-
+    script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(primaryId)}`;
     document.head.appendChild(script);
     googleScriptLoaded = true;
   }
 
-  // Initialize gtag only once for this page session.
   if (!window.__sunStreamersGtagInitialized) {
     window.gtag("js", new Date());
     window.__sunStreamersGtagInitialized = true;
   }
 
   if (shouldLoadGA4 && !configuredGoogleIds.has(ga4Id)) {
-    window.gtag("config", ga4Id, {
-      send_page_view: false,
-    });
-
+    window.gtag("config", ga4Id, { send_page_view: false });
     configuredGoogleIds.add(ga4Id);
   }
 
   if (shouldLoadAds && !configuredGoogleIds.has(adsId)) {
-    window.gtag("config", adsId, {
-      send_page_view: false,
-    });
-
+    window.gtag("config", adsId, { send_page_view: false });
     configuredGoogleIds.add(adsId);
   }
 
@@ -127,10 +288,7 @@ function loadGoogleTags() {
 
 function loadMetaPixel() {
   const pixelId = trackingConfig.metaPixelId;
-
-  if (!currentConsent.advertising || !pixelId || metaScriptLoaded) {
-    return;
-  }
+  if (!currentConsent.advertising || !pixelId || metaScriptLoaded) return;
 
   if (!window.fbq) {
     const fbq = function () {
@@ -141,31 +299,24 @@ function loadMetaPixel() {
 
     window.fbq = fbq;
     window._fbq = fbq;
-
     fbq.push = fbq;
     fbq.loaded = true;
     fbq.version = "2.0";
     fbq.queue = [];
 
     const script = document.createElement("script");
-
     script.async = true;
     script.src = "https://connect.facebook.net/en_US/fbevents.js";
-
     document.head.appendChild(script);
   }
 
   window.fbq("init", pixelId);
-
   metaScriptLoaded = true;
 }
 
 function loadTikTokPixel() {
   const pixelId = trackingConfig.tiktokPixelId;
-
-  if (!currentConsent.advertising || !pixelId || tiktokScriptLoaded) {
-    return;
-  }
+  if (!currentConsent.advertising || !pixelId || tiktokScriptLoaded) return;
 
   if (!window.ttq) {
     const ttq = (window.ttq = []);
@@ -201,24 +352,18 @@ function loadTikTokPixel() {
 
     ttq.instance = function (id) {
       const instance = ttq._i[id] || [];
-
       for (let i = 0; i < ttq.methods.length; i++) {
         ttq.setAndDefer(instance, ttq.methods[i]);
       }
-
       return instance;
     };
 
     ttq.load = function (id) {
       const script = document.createElement("script");
-
       script.async = true;
-      script.src = `https://analytics.tiktok.com/i18n/pixel/events.js?sdkid=${encodeURIComponent(
-        id,
-      )}&lib=ttq`;
+      script.src = `https://analytics.tiktok.com/i18n/pixel/events.js?sdkid=${encodeURIComponent(id)}&lib=ttq`;
 
       const firstScript = document.getElementsByTagName("script")[0];
-
       if (firstScript?.parentNode) {
         firstScript.parentNode.insertBefore(script, firstScript);
       } else {
@@ -235,7 +380,6 @@ function loadTikTokPixel() {
   }
 
   window.ttq.load(pixelId);
-
   tiktokScriptLoaded = true;
 }
 
@@ -243,7 +387,6 @@ export function initializeTracking() {
   if (trackingInitialized || typeof window === "undefined") return;
 
   trackingInitialized = true;
-
   const savedConsent = getSavedConsent();
 
   currentConsent = savedConsent || {
@@ -253,7 +396,6 @@ export function initializeTracking() {
 
   ensureGoogleTagStub();
 
-  // Set default consent before any Google tags are loaded.
   window.gtag("consent", "default", {
     analytics_storage: "denied",
     ad_storage: "denied",
@@ -264,9 +406,7 @@ export function initializeTracking() {
   window.gtag("js", new Date());
   window.__sunStreamersGtagInitialized = true;
 
-  if (savedConsent) {
-    applyTrackingConsent();
-  }
+  if (savedConsent) applyTrackingConsent();
 }
 
 function applyTrackingConsent() {
@@ -290,7 +430,6 @@ export function setTrackingConsent(consent) {
 
   applyTrackingConsent();
 
-  // Re-track the current page using the newly selected preferences.
   lastPageView = "";
 
   if (typeof window !== "undefined" && window.location) {
@@ -302,10 +441,11 @@ export function trackPageView(pageUrl) {
   if (typeof window === "undefined") return;
 
   const url = pageUrl || window.location.href;
-
   if (lastPageView === url) return;
 
   lastPageView = url;
+
+  sendFirstPartyEvent("PageView");
 
   if (currentConsent.analytics && trackingConfig.ga4MeasurementId) {
     loadGoogleTags();
@@ -390,6 +530,8 @@ export function trackEvent(eventName, parameters = {}) {
 
   if (typeof window === "undefined") return result;
 
+  sendFirstPartyEvent(eventName, parameters);
+
   const mapping = eventMappings[eventName] || {
     ga4: eventName,
     meta: eventName,
@@ -448,7 +590,6 @@ export function trackGoogleAdsConversion({
 
   const numericValue = Number(value);
 
-  // Do not send a conversion with an invented or invalid value.
   if (!Number.isFinite(numericValue) || numericValue <= 0) {
     console.warn(
       "Google Ads conversion skipped: a valid positive transaction value is required.",
@@ -457,7 +598,6 @@ export function trackGoogleAdsConversion({
   }
 
   loadGoogleTags();
-
   if (typeof window.gtag !== "function") return false;
 
   window.gtag("event", "conversion", {

@@ -9,6 +9,11 @@ const menu = [
       { name: "Pricing", path: "/admin/pricing", icon: "💳" },
       { name: "Promo Codes", path: "/admin/promo-codes", icon: "🎟️" },
       { name: "Users", path: "/admin/users", icon: "👥" },
+      {
+        name: "Website Analytics",
+        path: "/admin/website-analytics",
+        icon: "📈",
+      },
     ],
   },
 
